@@ -1,6 +1,6 @@
 // EmailScreen.tsx
 import React,{useState} from "react";
-import { View,Text, TextInput,TouchableOpacity,StyleSheet } from "react-native";
+import { View,Text, TextInput,TouchableOpacity,StyleSheet, KeyboardAvoidingView, Platform} from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 
@@ -12,8 +12,17 @@ function EmailScreen({navigation}:EmailScreenProps){
     const [showVerification, setShowVerification]=useState(false);
     const [verified, setVerified] = useState(false);
     
+    const handleNext = () => {
+        if(verified){
+            navigation.navigate('SignUp');
+        }
+    }
+
     return(
-        <View style={{flex: 1,alignItems:"center",justifyContent:"center",backgroundColor:'white'}}>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
+        >
             <View style={{alignSelf:"flex-start",marginLeft:40,marginBottom:30}}>
                 <Text style={styles.largeText}>이메일 인증</Text>
             </View>
@@ -23,6 +32,7 @@ function EmailScreen({navigation}:EmailScreenProps){
                 onChangeText={setEmail}
                 value={email}
                 placeholder="학교 이메일"
+                autoCapitalize="none"
             />
             
             <View style={{flexDirection:"row",justifyContent:"space-between",width:315}}>
@@ -65,16 +75,22 @@ function EmailScreen({navigation}:EmailScreenProps){
 
             <TouchableOpacity 
                 style={verified?styles.verifiedLargeBtn:styles.largeBtn}
-                onPress={() => navigation.navigate('SignUp')}>
+                onPress={handleNext}>
                 <Text style={styles.largeBtnText}>다음</Text>
             </TouchableOpacity>
-        </View>
+        </KeyboardAvoidingView>
     )
 }
 
 export default EmailScreen
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        paddingTop: 100,
+        backgroundColor: 'white',
+    },
     input: {
         borderColor:'#E7E7E7',
         borderWidth:1,
@@ -101,7 +117,8 @@ const styles = StyleSheet.create({
     smallText: {
         fontSize:14,
         color:"#3D3D3D",
-        textAlign:"left"
+        textAlign:"left",
+        marginLeft: 6
     },
     verifiedSmallText: {
         fontSize:14,
@@ -113,7 +130,7 @@ const styles = StyleSheet.create({
         marginTop:25,
         padding:5,
         width:320,
-        height:45,
+        height:48,
         borderRadius:10,
         justifyContent:"center"
     },
@@ -122,7 +139,7 @@ const styles = StyleSheet.create({
         marginTop:25,
         padding:5,
         width:320,
-        height:45,
+        height:48,
         borderRadius:10,
         justifyContent:"center"
     },

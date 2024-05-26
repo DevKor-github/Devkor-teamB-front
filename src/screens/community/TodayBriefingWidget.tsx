@@ -7,7 +7,7 @@ import {Color} from '../../Color.tsx';
 const highlightColor = Color.ui.primary;
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: 'whi../Timetable/TimetableTypes.tsx',
     borderRadius: 12,
     borderColor: highlightColor,
     borderWidth: 2,

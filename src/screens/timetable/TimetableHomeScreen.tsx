@@ -192,7 +192,7 @@ function Container() {
   );
 }
 
-function TimetableScreen() {
+function TimetableHomeScreen() {
   const Stack = createNativeStackNavigator();
   return (
     <Stack.Navigator>
@@ -223,4 +223,4 @@ function TimetableScreen() {
   );
 }
 
-export default TimetableScreen;
+export default TimetableHomeScreen;

@@ -1,6 +1,6 @@
 // SignUpScreen.tsx
 import React,{useState} from "react";
-import { View,Button,Text, TextInput,TouchableOpacity } from "react-native";
+import { View,Text, TextInput,TouchableOpacity,StyleSheet, KeyboardAvoidingView, Platform} from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 
@@ -10,59 +10,120 @@ function SignUpScreen({navigation}:SignUpScreenProps){
     const [email, setEmail] = useState("");
     const [verificationNum,setVerficationNum] = useState("");
     const [showVerification, setShowVerification]=useState(false);
+    const [verified, setVerified] = useState(false);
+
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const isFormFilled = username!=="" && password!=="";
     
+    const handleNext = () => {
+        navigation.navigate('CreateTimetable');
+    }
+
     return(
-        <View style={{flex: 1,alignItems:"center",justifyContent:"center",backgroundColor:'white'}}>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
+        >
             <View style={{alignSelf:"flex-start",marginLeft:40,marginBottom:30}}>
-                <Text style={{fontSize:24,fontWeight:"600"}}>회원가입</Text>
+                <Text style={styles.largeText}>회원가입</Text>
             </View>
 
             <TextInput 
-                style={{borderColor:'#E7E7E7',borderWidth:1,margin:10,padding:10,width:320,height:40,borderRadius:10}}
-                onChangeText={setEmail}
-                value={email}
-                placeholder="학교 이메일"
+                style={styles.input}
+                onChangeText={setUsername}
+                value={username}
+                placeholder="아이디"
+                autoCapitalize="none"
             />
             
-            <View style={{flexDirection:"row",justifyContent:"space-between",display:"flex"}}>
-                <View style={{justifyContent:"space-between",paddingVertical:6}}>
-                    <Text style={{fontSize:14,color:"#3D3D3D",textAlign:"left"}}>위 메일로 인증번호를 발송합니다</Text>
-                </View>
-                <TouchableOpacity
-                    style={{backgroundColor:'#F4F4F4',padding:3,borderRadius:49,width:76,height:29,paddingHorizontal:12,paddingVertical:6}}
-                    onPress={()=>setShowVerification(true)}>
-                    <Text style={{textAlign:"center",fontSize:14,color:"#3D3D3D"}}>전송 요청</Text>
-                </TouchableOpacity>
-            </View>
-            
+            <TextInput 
+                style={styles.input}
+                onChangeText={setPassword}
+                value={password}
+                placeholder="패스워드"
+                autoCapitalize="none"
+            />
 
-            {showVerification && (
-                <View>
-                    <TextInput 
-                        style={{borderBlockColor:'gray',borderWidth:1,margin:10,padding:10,width:250,height:40,borderRadius:10}}
-                        onChangeText={setVerficationNum}
-                        value={verificationNum}
-                        placeholder="인증번호입력"
-                    />
-                    <View style={{flexDirection:"row"}}>
-                        <View style={{alignSelf:"flex-start",marginRight:15,marginLeft:20}}>
-                            <Text style={{fontSize:14}}>인증번호는 최대 10분동안 유효합니다</Text>
-                        </View>
-                        <TouchableOpacity
-                            style={{backgroundColor:'lightgray',padding:3,width:50,borderRadius:5}}>
-                            <Text style={{textAlign:"center",fontSize:10}}>확인</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            )}
+    
 
             <TouchableOpacity 
-                style={{backgroundColor:'gray',marginTop:25,padding:5,width:320,height:45,borderRadius:10,justifyContent:"center"}} 
-                onPress={() => navigation.navigate('Home')}>
-                <Text style={{color:'black',textAlign:'center',fontSize:18}}>다음</Text>
+                style={isFormFilled?styles.largeBtnActive:styles.largeBtnInactive}
+                onPress={handleNext}>
+                <Text style={styles.largeBtnText}>다음</Text>
             </TouchableOpacity>
-        </View>
+        </KeyboardAvoidingView>
     )
 }
 
 export default SignUpScreen
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        paddingTop: 100,
+        backgroundColor: 'white',
+    },
+    input: {
+        borderColor:'#E7E7E7',
+        borderWidth:1,
+        margin:10,
+        padding:10,
+        width:320,
+        height:40,
+        borderRadius:10  
+    },
+    smallBtn: {
+        backgroundColor:'#F4F4F4',
+        padding:3,
+        borderRadius:49,
+        width:76,
+        height:29,
+        paddingHorizontal:12,
+        paddingVertical:6
+    },
+    smallBtnText: {
+        textAlign:"center",
+        fontSize:14,
+        color:"#3D3D3D"
+    },
+    smallText: {
+        fontSize:14,
+        color:"#3D3D3D",
+        textAlign:"left",
+        marginLeft: 6
+    },
+    verifiedSmallText: {
+        fontSize:14,
+        color:"#96DE69",
+        textAlign:"left"
+    },
+    largeBtnInactive: {
+        backgroundColor:'#EEEEEE',
+        marginTop:25,
+        padding:5,
+        width:320,
+        height:48,
+        borderRadius:10,
+        justifyContent:"center"
+    },
+    largeBtnActive: {
+        backgroundColor:'#FCA0CC',
+        marginTop:25,
+        padding:5,
+        width:320,
+        height:48,
+        borderRadius:10,
+        justifyContent:"center"
+    },
+    largeBtnText: {
+        color:'black',
+        textAlign:'center',
+        fontSize:18
+    },
+    largeText: {
+        fontSize:24,
+        fontWeight:"600"
+    },
+})
