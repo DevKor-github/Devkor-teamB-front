@@ -9,6 +9,7 @@ import HomeScreen from './screens/HomeScreen';
 import TodayTimetableScreen from './screens/TodayTimetableScreen';
 import TimetableScreen from './screens/TimetableScreen';
 import LoginScreen from './screens/LoginScreen';
+import SignupScreen from './screens/SignupScreen';
 
 
 export type RootStackParamList={
@@ -16,6 +17,7 @@ export type RootStackParamList={
   TodayTimetable: undefined;
   Timetable: undefined;
   Login: undefined;
+  Signup: undefined;
 };
 
 export type TabNavigatorParamList={
@@ -41,6 +43,7 @@ const App: React.FC=()=>{
     <NavigationContainer>
         <RootStack.Navigator initialRouteName="Login">
           <RootStack.Screen name="Login" component={LoginScreen} />
+          <RootStack.Screen name="Signup" component={SignupScreen} />
           {/* <RootStack.Screen name="Home" component={HomeScreen} />  */}
           <RootStack.Screen
             name="Home"
