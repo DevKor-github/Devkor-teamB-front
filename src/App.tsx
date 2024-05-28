@@ -7,7 +7,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 // Screens
 import HomeScreen from './screens/HomeScreen';
 import TodayTimetableScreen from './screens/TodayTimetableScreen';
-import TimetableScreen from './screens/TimetableScreen';
+import TimetableScreen from './screens/timetable/TimetableScreen.tsx';
 import LoginScreen from './screens/LoginScreen';
 
 
@@ -28,7 +28,9 @@ const Tab = createBottomTabNavigator<TabNavigatorParamList>();
 
 function BottomTab(){
   return(
-    <Tab.Navigator>
+    <Tab.Navigator screenOptions={{
+      headerShown: false
+    }}>
       <Tab.Screen name="TodayTimetable" component={TodayTimetableScreen} />
       <Tab.Screen name="Timetable" component={TimetableScreen} />
     </Tab.Navigator>
