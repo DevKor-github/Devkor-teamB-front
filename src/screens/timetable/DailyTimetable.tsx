@@ -9,6 +9,7 @@ type TodayTimetableScreenProps = NativeStackScreenProps<
   'TodayTimetable'
 >;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DailyTimetable({navigation}: TodayTimetableScreenProps) {
   return (
     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>

@@ -1,9 +1,9 @@
 import React from 'react';
 import {View, Button, Text} from 'react-native';
-import {
-  createNativeStackNavigator,
-  // NativeStackScreenProps,
-} from '@react-navigation/native-stack';
+// import {
+//   createNativeStackNavigator,
+//   NativeStackScreenProps,
+// } from '@react-navigation/native-stack';
 // import {RootStackParamList} from '../App';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
