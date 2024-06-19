@@ -1,4 +1,4 @@
-import {Lecture, SimpleLecture, TimeSlot} from './TimetableTypes.tsx';
+import {Lecture, Schedule, SimpleLecture, TimeSlot} from './TimetableTypes.tsx';
 
 const colors = ['crimson', 'green', 'orange', 'darkviolet'];
 const colorMap: Map<string, number> = new Map();
@@ -24,7 +24,7 @@ export function getLectureSlot(time: string): number {
   return Math.floor((parseTime - 540) / 5);
 }
 
-export function getLectureByDays(lectures: Lecture[]) {
+export function getLectureByDays(lectures: Schedule) {
   const lecturesByDay: {[key: string]: SimpleLecture[]} = {};
   lectures.forEach((lec: Lecture) =>
     lec.time.forEach((time: TimeSlot) => {
@@ -62,8 +62,12 @@ export function getSlotCount(lectures: Lecture[]): number {
   }
 }
 
-export function getLabels(lectures: Lecture[]): string[] {
+export function getLabels(lectures: Schedule): string[] {
   const label = ['월', '화', '수', '목', '금'];
+  if (lectures.length === 0) {
+    return label;
+  }
+
   let hasSaturday = lectures.some(lec =>
     lec.time.some(time => time.day === '토'),
   );
@@ -79,6 +83,6 @@ export function getLabels(lectures: Lecture[]): string[] {
   return label;
 }
 
-export function getOnlineLecture(lectures: Lecture[]): Lecture[] {
+export function getOnlineLecture(lectures: Schedule): Schedule {
   return lectures.filter(lec => lec.time.length === 0);
 }

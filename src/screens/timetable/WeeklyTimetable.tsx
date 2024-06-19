@@ -8,23 +8,25 @@ import {
   getStartTime,
   getLectureByDays,
   getLectureColor,
-} from './timetable/TimetableUtils.tsx';
-import {Lecture, Schedule, SimpleLecture} from './timetable/TimetableTypes.tsx';
+} from './TimetableUtils.tsx';
+import {Lecture, Schedule, SimpleLecture} from './TimetableTypes.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 
 const slotHeight = 48;
 const labelSize = 20;
 const borderWidth = 1;
-const borderColor = '#bdbdbd';
+const borderColor = 'white';
 const fontColor = '#373737';
 const largeFontSize = 12;
-const smallFontSize = 10;
+const smallFontSize = 11;
+const backgroundColor = 'lightgray';
 
 const styles = StyleSheet.create({
   body: {
     flex: 1,
     borderColor: borderColor,
+    backgroundColor: backgroundColor,
     borderLeftWidth: borderWidth,
   },
   text: {
@@ -36,15 +38,16 @@ const styles = StyleSheet.create({
   },
   container: {
     overflow: 'hidden',
-    backgroundColor: 'white',
     borderWidth: borderWidth,
     borderColor: borderColor,
     borderRadius: 12,
+    backgroundColor: backgroundColor,
   },
   list: {
     padding: 12,
     borderTopWidth: borderWidth,
     borderColor: borderColor,
+    backgroundColor: backgroundColor,
   },
   slot: {
     borderTopWidth: borderWidth,
@@ -57,6 +60,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: borderWidth,
     height: labelSize,
     justifyContent: 'center',
+    backgroundColor: backgroundColor,
   },
   daySlotLabel: {
     textAlign: 'center',
@@ -70,6 +74,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderColor: borderColor,
     borderTopWidth: borderWidth,
+    backgroundColor: backgroundColor,
     height: labelSize,
     padding: 2,
   },
@@ -132,36 +137,38 @@ function ClickableLecture({lecture}: {lecture: SimpleLecture}) {
   );
 }
 
-function TimetableBody({lectures}: {lectures: Lecture[]}) {
+const TimetableBody = ({lectures}: {lectures: Schedule}) => {
   const keyPrefix = 'timetablebody';
   const slotCount = getSlotCount(lectures);
   const labels = getLabels(lectures);
   const lectureByDays = getLectureByDays(lectures);
+
   return (
     <View style={styles.row}>
       <View style={styles.hourColumn}>
-        {[...Array(slotCount).keys()].map(i => (
-          <View key={keyPrefix + i} style={styles.hourSlot}>
+        {Array.from({length: slotCount}, (_, i) => (
+          <View key={`${keyPrefix}${i}`} style={styles.hourSlot}>
             <Text style={styles.hourSlotLabel}>{getStartTime(i)}</Text>
           </View>
         ))}
       </View>
       {labels.map(day => (
-        <View key={keyPrefix + day} style={styles.body}>
-          {[...Array(slotCount).keys()].map(i => (
-            <View key={keyPrefix + day + i} style={styles.slot} />
+        <View key={`${keyPrefix}${day}`} style={styles.body}>
+          {Array.from({length: slotCount}, (_, i) => (
+            <View key={`${keyPrefix}${i}`} style={styles.slot} />
           ))}
-          {lectureByDays[day].map((lecture: SimpleLecture) => (
-            <ClickableLecture
-              key={keyPrefix + day + lecture.id}
-              lecture={lecture}
-            />
-          ))}
+          {lectureByDays[day] &&
+            lectureByDays[day].map((lecture: SimpleLecture) => (
+              <ClickableLecture
+                key={`${keyPrefix}${day}${lecture.id}`}
+                lecture={lecture}
+              />
+            ))}
         </View>
       ))}
     </View>
   );
-}
+};
 
 function TimetableFooter({lectures}: {lectures: Lecture[]}) {
   const keyPrefix = 'timetablefooter';

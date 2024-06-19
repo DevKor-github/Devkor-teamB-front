@@ -1,11 +1,10 @@
 import React, {useEffect} from 'react';
-import {View, Text, FlatList, Modal, TouchableOpacity} from 'react-native';
-import {mockCommunities, mockLectures} from '../../MockUserData.tsx';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
+import {mockCommunities} from '../../MockUserData.tsx';
 import {Comment, Community, Post} from './CommunityTypes.tsx';
 import {getDateString} from './CommunityUtils.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {Lecture} from '../timetable/TimetableTypes.tsx';
 import UserInfo from '../../UserTypes.tsx';
 
 function PostItem({post}: {post: Post}) {
