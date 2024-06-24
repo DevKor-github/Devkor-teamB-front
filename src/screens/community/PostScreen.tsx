@@ -40,10 +40,12 @@ function PostScreen({route, navigation}: {route: any; navigation: any}) {
   const post: Post = route.params.post;
   return (
     <SafeAreaView style={{flex: 1}}>
-      <ScrollView style={{
-        padding: 12,
-        marginHorizontal: 12,
-        backgroundColor: 'lightgray'}}>
+      <ScrollView
+        style={{
+          padding: 12,
+          marginHorizontal: 12,
+          backgroundColor: 'lightgray',
+        }}>
         <CloseButton onPress={() => navigation.goBack()} />
         <View
           style={{
@@ -55,7 +57,7 @@ function PostScreen({route, navigation}: {route: any; navigation: any}) {
           <Text>{post.content}</Text>
         </View>
         {post.comments.map(comment => (
-          <View style={{marginTop: 12,}}>
+          <View style={{marginTop: 12}}>
             <CommentContainer comment={comment} />
           </View>
         ))}

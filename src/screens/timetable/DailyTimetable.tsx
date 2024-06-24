@@ -4,16 +4,10 @@ import {View, Text} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../App.tsx';
 
-type TodayTimetableScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'TodayTimetable'
->;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function DailyTimetable({navigation}: TodayTimetableScreenProps) {
+function DailyTimetable() {
   return (
-    <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-      <Text>오늘의 시간표 페이지입니당</Text>
+    <View>
+      <Text>Daily</Text>
     </View>
   );
 }

@@ -6,6 +6,7 @@ import {getDateString} from './CommunityUtils.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import UserInfo from '../../UserTypes.tsx';
+import TodayBriefingWidget from "./TodayBriefingWidget.tsx";
 
 function PostItem({post}: {post: Post}) {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -86,11 +87,12 @@ function CommunityScreen({route, navigation}: {route: any; navigation: any}) {
   const communities: Community = mockCommunities;
 
   useEffect(() => {
-    navigation.setOptions({title: `${lecture.name} 게시판`});
+    navigation.setOptions({title: `${lecture.name}`});
   }, [lecture, communities, navigation]);
 
   return (
     <View style={{flex: 1}}>
+      <TodayBriefingWidget />
       {communities.has(lecture.id) ? (
         <PostContainer posts={communities.get(lecture.id) as Post[]} />
       ) : (
@@ -105,7 +107,7 @@ function CommunityScreen({route, navigation}: {route: any; navigation: any}) {
             comments: [] as Comment[],
             postId: 111,
             postDate: '2024-05-26 00:05:00',
-            content: '게시물을 생성해 보았습니다.',
+            content: '게시물 생성 테스트',
           } as Post);
         }}
       />

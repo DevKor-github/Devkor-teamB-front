@@ -12,6 +12,7 @@ import {mockLectures} from '../../MockUserData.tsx';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import CommunityScreen from '../community/CommunityScreen.tsx';
 import PostScreen from '../community/PostScreen.tsx';
+import DailyTimetable from './DailyTimetable.tsx';
 
 enum Option {
   daily,
@@ -43,10 +44,7 @@ class Today {
 const Stack = createNativeStackNavigator();
 const spacing = 12;
 const style = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
+  safeArea: {flex: 1},
   container: {
     flex: 1,
     paddingHorizontal: spacing,
@@ -154,9 +152,11 @@ function Weekly() {
 
   return (
     <ScrollView
+      contentContainerStyle={{padding: 3}}
       scrollEnabled={scrollEnabled}
       onLayout={e => setViewHeight(e.nativeEvent.layout.height)}>
-      <View onLayout={e => setContentHeight(e.nativeEvent.layout.height)}>
+      <View
+        onLayout={e => setContentHeight(e.nativeEvent.layout.height)}>
         <WeeklyTimetable lectures={mockLectures} />
       </View>
     </ScrollView>
@@ -166,7 +166,7 @@ function Weekly() {
 function Daily() {
   return (
     <View style={{flex: 1, justifyContent: 'center'}}>
-      <Text style={{textAlign: 'center'}}>Daily</Text>
+      <DailyTimetable />
     </View>
   );
 }

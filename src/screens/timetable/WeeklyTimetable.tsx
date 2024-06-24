@@ -16,11 +16,11 @@ import {StackNavigationProp} from '@react-navigation/stack';
 const slotHeight = 48;
 const labelSize = 20;
 const borderWidth = 1;
-const borderColor = 'white';
+const borderColor = 'lightgray';
 const fontColor = '#373737';
 const largeFontSize = 12;
 const smallFontSize = 11;
-const backgroundColor = 'lightgray';
+const backgroundColor = 'white';
 
 const styles = StyleSheet.create({
   body: {
@@ -37,6 +37,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   container: {
+    elevation: 3,
     overflow: 'hidden',
     borderWidth: borderWidth,
     borderColor: borderColor,
