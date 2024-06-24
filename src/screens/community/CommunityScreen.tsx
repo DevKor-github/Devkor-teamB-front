@@ -6,7 +6,7 @@ import {getDateString} from './CommunityUtils.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import UserInfo from '../../UserTypes.tsx';
-import TodayBriefingWidget from "./TodayBriefingWidget.tsx";
+import TodayBriefingWidget from './TodayBriefingWidget.tsx';
 
 function PostItem({post}: {post: Post}) {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -92,7 +92,7 @@ function CommunityScreen({route, navigation}: {route: any; navigation: any}) {
 
   return (
     <View style={{flex: 1}}>
-      <TodayBriefingWidget />
+      <TodayBriefingWidget lecture={lecture} />
       {communities.has(lecture.id) ? (
         <PostContainer posts={communities.get(lecture.id) as Post[]} />
       ) : (

@@ -1,16 +1,20 @@
 import {View, Animated, Easing, StyleSheet} from 'react-native';
 import React, {useEffect, useState} from 'react';
 
-// const defaultHighlightColor = '#f91482';
+const defaultHighlightColor = '#f91482';
 const defaultBackgroundColor = 'lightgray';
+const size = 20;
 
 function Knob({progress}: {progress: number}) {
   const [textOpacity] = useState(new Animated.Value(0));
   const styles = StyleSheet.create({
     knob: {
-      width: 24,
-      height: 24,
-      borderRadius: 24,
+      position: 'absolute',
+      top: -1,
+      right: -1,
+      width: size + 2,
+      height: size + 2,
+      borderRadius: size,
       justifyContent: 'center',
       backgroundColor: 'white',
     },
@@ -40,26 +44,20 @@ function Knob({progress}: {progress: number}) {
   );
 }
 
-function ProgressBar({
-  progress,
-  highlightColor,
-}: {
-  progress: number;
-  highlightColor: string;
-}) {
+function ProgressBar({progress}: {progress: number}) {
   const [percentage] = useState(new Animated.Value(0));
   const styles = StyleSheet.create({
     outerBar: {
       width: '100%',
       backgroundColor: defaultBackgroundColor,
-      borderRadius: 24,
-      height: 24,
+      borderRadius: size,
+      height: size,
     },
     innerBar: {
       position: 'absolute',
-      backgroundColor: highlightColor,
-      borderRadius: 24,
-      height: 24,
+      backgroundColor: defaultHighlightColor,
+      borderRadius: size,
+      height: size,
       alignItems: 'flex-end',
     },
   });

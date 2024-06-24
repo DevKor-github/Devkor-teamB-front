@@ -18,6 +18,7 @@ enum Option {
   daily,
   weekly,
 }
+
 class Today {
   month: number;
   date: number;
@@ -53,6 +54,7 @@ const style = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
 const header = StyleSheet.create({
   background: {
     height: 48,
@@ -155,8 +157,7 @@ function Weekly() {
       contentContainerStyle={{padding: 3}}
       scrollEnabled={scrollEnabled}
       onLayout={e => setViewHeight(e.nativeEvent.layout.height)}>
-      <View
-        onLayout={e => setContentHeight(e.nativeEvent.layout.height)}>
+      <View onLayout={e => setContentHeight(e.nativeEvent.layout.height)}>
         <WeeklyTimetable lectures={mockLectures} />
       </View>
     </ScrollView>
