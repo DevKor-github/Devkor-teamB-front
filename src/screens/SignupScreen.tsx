@@ -44,7 +44,7 @@ function SignupScreen({navigation}:SignupScreenProps){
                         placeholder="인증번호입력"
                     />
                     <View style={{flexDirection:"row"}}>
-                        <View style={{alignSelf:"flex-start",marginRight:15}}>
+                        <View style={{alignSelf:"flex-start",marginRight:15,marginLeft:20}}>
                             <Text style={{fontSize:11}}>인증번호는 최대 10분동안 유효합니다</Text>
                         </View>
                         <TouchableOpacity
