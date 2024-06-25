@@ -2,7 +2,7 @@
 import React from "react";
 import {View,Text} from 'react-native'
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from '../App';
+import { RootStackParamList } from '../../App.tsx';
 
 type TimetableScreenProps = NativeStackScreenProps<RootStackParamList,"Timetable">
 

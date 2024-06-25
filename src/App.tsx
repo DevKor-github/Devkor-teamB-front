@@ -6,8 +6,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 // Screens
 import HomeScreen from './screens/HomeScreen';
-import TodayTimetableScreen from './screens/TodayTimetableScreen';
-import TimetableScreen from './screens/TimetableScreen';
+import TodayTimetableScreen from './screens/TimeTable/TodayTimetableScreen';
+import TimetableScreen from './screens/TimeTable/TimetableScreen';
 import LoginScreen from './screens/LoginScreen';
 
 
@@ -47,6 +47,7 @@ const App: React.FC=()=>{
             component={BottomTab}
             options={{headerShown:false}}
           />
+          
         </RootStack.Navigator>
     </NavigationContainer>
   );
