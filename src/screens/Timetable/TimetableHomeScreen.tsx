@@ -1,23 +1,4 @@
-// // TimetableHomeScreen.tsx
-// import React from "react";
-// import {View,Button,Text} from 'react-native'
-// import { NativeStackScreenProps } from "@react-navigation/native-stack";
-// import { BottomTabNavigatorParamList } from "../../navigator/BottomTabNavigator";
-// import TopNavigator from "../../navigator/TopTabNavigator";
-
-// type TimetableHomeScreenProps = NativeStackScreenProps<BottomTabNavigatorParamList,"Timetable">
-
-// function TimetableHomeScreen({navigation}:TimetableHomeScreenProps){
-//     return(
-//         <>
-//             <TopNavigator />
-//         </>
-
-//     )
-// }
-
-// export default TimetableHomeScreen
-
+// TimetableHomeScreen.tsx
 import React, {useEffect, useState} from 'react';
 import {
   View,
@@ -27,7 +8,7 @@ import {
   TouchableOpacity,
   Text,
 } from 'react-native';
-
+import Icon from 'react-native-vector-icons/Fontisto.js';
 import {mockLectures} from '../../MockUserData.tsx';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import CommunityScreen from '../Community/CommunityScreen.tsx';
@@ -70,6 +51,7 @@ const style = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: spacing,
+    backgroundColor: '#FFF8FC'
   },
   text: {
     textAlign: 'center',
@@ -88,29 +70,29 @@ const header = StyleSheet.create({
   },
   buttonActive: {
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: 'black',
+    color: '#FF1485',
   },
   buttonInactive: {
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: 'gray',
+    color: '#CACACA',
   },
 });
 
-function Icon() {
-  return (
-    <View
-      style={{
-        width: 24,
-        height: 24,
-        backgroundColor: 'gray',
-      }}
-    />
-  );
-}
+// function Icon() {
+//   return (
+//     <View
+//       style={{
+//         width: 24,
+//         height: 24,
+//         backgroundColor: 'gray',
+//       }}
+//     />
+//   );
+// }
 
 function Notification() {
   return (
@@ -123,19 +105,21 @@ function Notification() {
         padding: 8,
         marginVertical: spacing,
         borderColor: 'lightgray',
+        backgroundColor: 'white'
       }}>
       <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-        <Icon />
+        {/* <Icon name='bell' size={30} color='#FF1485'/> */}
         <Text
           style={{
             paddingHorizontal: 8,
             alignSelf: 'center',
             textAlign: 'center',
+            fontSize:16
           }}>
           첫 댓글 작성 시 포인트 3배 적립!
         </Text>
       </View>
-      <Icon />
+      <Icon name='bell' size={25} color='#FF1485'/>
     </View>
   );
 }

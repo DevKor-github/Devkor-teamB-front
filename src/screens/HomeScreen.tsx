@@ -32,18 +32,18 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
 import BottomNavigator from "../navigator/BottomTabNavigator";
 import { NavigationContainer } from "@react-navigation/native";
-import TopNavigator from "../navigator/TopTabNavigator";
-import WeeklyTimetableScreen from "./Timetable/WeeklyTimetableScreen";
 
 type HomeScreenProps = NativeStackScreenProps<RootStackParamList,"Home">
 
 
 function HomeScreen({navigation}:HomeScreenProps){
     return(
+        // <View style={{backgroundColor:'#FFF8FC'}}>
+        //     <BottomNavigator />
+        // </View>
         <>
             <BottomNavigator />
         </>
-
     )
 }
 
