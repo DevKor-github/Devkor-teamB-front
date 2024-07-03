@@ -1,4 +1,5 @@
-import UserInfo from '../../UserTypes.tsx';
+// CommunityTypes.tsx
+import UserInfo from "../../UserTypes.tsx";
 
 export interface Comment {
   commentId: number;

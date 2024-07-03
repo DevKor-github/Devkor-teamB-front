@@ -1,24 +1,18 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableHighlight,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import React from 'react';
-import ProgressBar from '../../ProgressBar.tsx';
+import ProgressBar from '../../ProgessBar.tsx';
 import {Lecture} from '../timetable/TimetableTypes.tsx';
+import {Color} from '../../Color.tsx';
 
-const highlightColor = '#f91482';
+const highlightColor = Color.ui.primary;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'white',
     borderRadius: 12,
     borderColor: highlightColor,
-    borderWidth: 1,
+    borderWidth: 2,
     margin: 12,
     padding: 12,
-    elevation: 5,
   },
   item: {
     paddingVertical: 4,

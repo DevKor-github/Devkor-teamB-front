@@ -1,5 +1,6 @@
+// WeeklyTimetableScreen.tsx
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Platform} from 'react-native';
 import {
   getLectureSlot,
   getSlotCount,
@@ -12,22 +13,38 @@ import {
 import {Lecture, Schedule, SimpleLecture} from './TimetableTypes.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
+import {Color} from '../../Color.tsx';
 
 const slotHeight = 48;
 const labelSize = 20;
-const borderWidth = 1;
-const borderColor = 'lightgray';
+const innerBorderSize = 1;
 const fontColor = '#373737';
 const largeFontSize = 12;
 const smallFontSize = 11;
 const backgroundColor = 'white';
+const borderRadius = 12;
 
 const styles = StyleSheet.create({
+  container: {
+    borderWidth: 2,
+    borderColor: Color.ui.primary,
+    borderRadius: borderRadius,
+    backgroundColor: backgroundColor,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'black',
+        shadowOpacity: 0.5,
+        shadowOffset: {width: 0, height: 1},
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
   body: {
     flex: 1,
-    borderColor: borderColor,
-    backgroundColor: backgroundColor,
-    borderLeftWidth: borderWidth,
+    borderColor: Color.ui.onPrimary,
+    borderLeftWidth: innerBorderSize,
   },
   text: {
     color: 'black',
@@ -36,32 +53,22 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
   },
-  container: {
-    elevation: 3,
-    overflow: 'hidden',
-    borderWidth: borderWidth,
-    borderColor: borderColor,
-    borderRadius: 12,
-    backgroundColor: backgroundColor,
-  },
   list: {
     padding: 12,
-    borderTopWidth: borderWidth,
-    borderColor: borderColor,
-    backgroundColor: backgroundColor,
+    borderTopWidth: innerBorderSize,
+    borderColor: Color.ui.onPrimary,
   },
   slot: {
-    borderTopWidth: borderWidth,
-    borderColor: borderColor,
+    borderTopWidth: innerBorderSize,
+    borderColor: Color.ui.onPrimary,
     height: slotHeight,
   },
   daySlot: {
     flex: 1,
-    borderColor: borderColor,
-    borderLeftWidth: borderWidth,
     height: labelSize,
     justifyContent: 'center',
-    backgroundColor: backgroundColor,
+    borderColor: Color.ui.onPrimary,
+    borderLeftWidth: innerBorderSize,
   },
   daySlotLabel: {
     textAlign: 'center',
@@ -73,9 +80,8 @@ const styles = StyleSheet.create({
   },
   hourSlot: {
     flex: 1,
-    borderColor: borderColor,
-    borderTopWidth: borderWidth,
-    backgroundColor: backgroundColor,
+    borderColor: Color.ui.onPrimary,
+    borderTopWidth: innerBorderSize,
     height: labelSize,
     padding: 2,
   },
@@ -109,11 +115,11 @@ function ClickableLecture({lecture}: {lecture: SimpleLecture}) {
       backgroundColor: getLectureColor(lecture.id),
       position: 'absolute',
       width: '100%',
-      top: minSlotHeight * getLectureSlot(lecture.start) + borderWidth,
+      top: minSlotHeight * getLectureSlot(lecture.start) + innerBorderSize,
       height:
         minSlotHeight *
           (getLectureSlot(lecture.end) - getLectureSlot(lecture.start)) -
-        borderWidth,
+        innerBorderSize,
     },
     roomText: {
       color: 'white',
@@ -130,10 +136,8 @@ function ClickableLecture({lecture}: {lecture: SimpleLecture}) {
       activeOpacity={0.8}
       onPress={() => navigation.navigate('CommunityScreen', {lecture: lecture})}
       style={style.container}>
-      <>
-        <Text style={style.nameText}>{lecture.name}</Text>
-        <Text style={style.roomText}>{lecture.room}</Text>
-      </>
+      <Text style={style.nameText}>{lecture.name}</Text>
+      <Text style={style.roomText}>{lecture.room}</Text>
     </TouchableOpacity>
   );
 }
@@ -196,7 +200,11 @@ function TimetableFooter({lectures}: {lectures: Lecture[]}) {
   }
 }
 
-export default function WeeklyTimetable({lectures}: {lectures: Schedule}) {
+export default function WeeklyTimetableScreen({
+  lectures,
+}: {
+  lectures: Schedule;
+}) {
   return (
     <View style={styles.container}>
       <TimetableHeader labels={getLabels(lectures)} />

@@ -1,8 +1,9 @@
 import {View, Animated, Easing, StyleSheet} from 'react-native';
 import React, {useEffect, useState} from 'react';
+import {Color} from './Color';
 
-const defaultHighlightColor = '#f91482';
-const defaultBackgroundColor = 'lightgray';
+const defaultHighlightColor = Color.ui.primary;
+const defaultBackgroundColor = Color.ui.disabled;
 const size = 20;
 
 function Knob({progress}: {progress: number}) {

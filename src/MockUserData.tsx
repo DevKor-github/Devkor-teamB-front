@@ -4,41 +4,28 @@ import UserInfo from './UserTypes.tsx';
 
 export const mockLectures: Schedule = [
   {
-    name: '과목1',
+    name: '과목A',
     professor: '교수1',
-    room: '정보통신관 205호',
+    room: '',
     id: 'ABCD123',
     time: [
       {
-        day: '금',
-        start: '15:30',
-        end: '19:00',
+        day: '월',
+        start: '09:00',
+        end: '10:15',
+      },
+      {
+        day: '수',
+        start: '09:00',
+        end: '10:15',
       },
     ],
   },
   {
-    name: '과목2',
+    name: '과목B',
     professor: '교수2',
-    room: '정보통신관 205호',
+    room: '',
     id: 'ABCD124',
-    time: [
-      {
-        day: '화',
-        start: '13:30',
-        end: '14:45',
-      },
-      {
-        day: '목',
-        start: '13:30',
-        end: '14:45',
-      },
-    ],
-  },
-  {
-    name: '과목3',
-    professor: '교수3',
-    room: '애기능생활관 302호',
-    id: 'ABCD125',
     time: [
       {
         day: '월',
@@ -53,9 +40,27 @@ export const mockLectures: Schedule = [
     ],
   },
   {
-    name: '과목4',
+    name: '과목C',
+    professor: '교수3',
+    room: '',
+    id: 'ABCD125',
+    time: [
+      {
+        day: '월',
+        start: '12:00',
+        end: '13:15',
+      },
+      {
+        day: '수',
+        start: '12:00',
+        end: '13:15',
+      },
+    ],
+  },
+  {
+    name: '과목D',
     professor: '교수4',
-    room: '애기능생활관 302호',
+    room: '',
     id: 'ABCD126',
     time: [
       {
@@ -66,18 +71,30 @@ export const mockLectures: Schedule = [
     ],
   },
   {
-    name: '과목5',
+    name: '수업E',
     professor: '교수5',
     room: '',
     id: 'ABCD127',
-    time: [],
+    time: [
+      {
+        day: '화',
+        start: '09:00',
+        end: '11:45',
+      },
+    ],
   },
   {
-    name: '과목6',
+    name: '수업F (영강)',
     professor: '교수6',
     room: '',
     id: 'ABCD128',
-    time: [],
+    time: [
+      {
+        day: '목',
+        start: '15:00',
+        end: '18:45',
+      },
+    ],
   },
 ];
 
