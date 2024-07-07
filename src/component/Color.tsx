@@ -14,5 +14,12 @@ export const Color = {
     onPrimary: 'rgb(250, 226, 240)',
     disabled: 'rgb(200, 200, 200)',
     background: 'rgb(254, 247, 251)',
+    white: 'rgb(255, 255, 255)',
+  },
+  text: {
+    primary: 'rgb(231, 26, 122)',
+    onPrimary: 'rgb(255, 255, 255)',
+    default: 'rgb(0, 0, 0)',
+    placeholder: 'rgb(100, 100, 100)',
   },
 };

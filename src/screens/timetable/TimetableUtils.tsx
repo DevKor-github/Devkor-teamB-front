@@ -1,4 +1,5 @@
 import {Lecture, Schedule, SimpleLecture, TimeSlot} from './TimetableTypes.tsx';
+import {Color} from '../../component/Color.tsx';
 
 const colors = ['crimson', 'green', 'orange', 'darkviolet'];
 const colorMap: Map<string, number> = new Map();

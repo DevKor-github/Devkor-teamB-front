@@ -8,6 +8,10 @@ export const mockLectures: Schedule = [
     professor: '교수1',
     room: '',
     id: 'ABCD123',
+    mate: 38,
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
     time: [
       {
         day: '월',
@@ -26,6 +30,10 @@ export const mockLectures: Schedule = [
     professor: '교수2',
     room: '',
     id: 'ABCD124',
+    mate: 38,
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
     time: [
       {
         day: '월',
@@ -44,6 +52,10 @@ export const mockLectures: Schedule = [
     professor: '교수3',
     room: '',
     id: 'ABCD125',
+    mate: 38,
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
     time: [
       {
         day: '월',
@@ -62,6 +74,10 @@ export const mockLectures: Schedule = [
     professor: '교수4',
     room: '',
     id: 'ABCD126',
+    mate: 38,
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
     time: [
       {
         day: '월',
@@ -75,6 +91,10 @@ export const mockLectures: Schedule = [
     professor: '교수5',
     room: '',
     id: 'ABCD127',
+    mate: 38,
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
     time: [
       {
         day: '화',
@@ -88,11 +108,154 @@ export const mockLectures: Schedule = [
     professor: '교수6',
     room: '',
     id: 'ABCD128',
+    mate: 38,
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
     time: [
       {
         day: '목',
         start: '15:00',
         end: '18:45',
+      },
+    ],
+  },
+];
+
+export const mockRegisterLectures: Schedule = [
+  {
+    name: '기초정보디자인(영강)',
+    professor: '허나은',
+    room: '미디어관 901호',
+    id: 'ARDE229-00',
+    mate: 38,
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
+    time: [
+      {
+        day: '목',
+        start: '15:00',
+        end: '17:45',
+      },
+    ],
+  },
+  {
+    name: '미술과문화',
+    professor: '이응진',
+    mate: 49,
+    room: '교양관 105호',
+    id: 'ARDE113-00',
+    type: '학문의기초',
+    credit: '3학점',
+    timeInfo: '화 (1-2)',
+    time: [
+      {
+        day: '화',
+        start: '09:00',
+        end: '11:45',
+      },
+    ],
+  },
+  {
+    name: '기초정보디자인(영강)',
+    professor: '허나은',
+    mate: 38,
+    room: '미디어관 901호',
+    id: 'ARDE229-00',
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
+    time: [
+      {
+        day: '목',
+        start: '15:00',
+        end: '17:45',
+      },
+    ],
+  },
+  {
+    name: '미술과문화',
+    professor: '이응진',
+    mate: 49,
+    room: '교양관 105호',
+    id: 'ARDE113-00',
+    type: '학문의기초',
+    credit: '3학점',
+    timeInfo: '화 (1-2)',
+    time: [
+      {
+        day: '화',
+        start: '09:00',
+        end: '11:45',
+      },
+    ],
+  },
+  {
+    name: '기초정보디자인(영강)',
+    professor: '허나은',
+    mate: 38,
+    room: '미디어관 901호',
+    id: 'ARDE229-00',
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
+    time: [
+      {
+        day: '목',
+        start: '15:00',
+        end: '17:45',
+      },
+    ],
+  },
+  {
+    name: '미술과문화',
+    professor: '이응진',
+    mate: 49,
+    room: '교양관 105호',
+    id: 'ARDE113-00',
+    type: '학문의기초',
+    credit: '3학점',
+    timeInfo: '화 (1-2)',
+    time: [
+      {
+        day: '화',
+        start: '09:00',
+        end: '11:45',
+      },
+    ],
+  },
+  {
+    name: '기초정보디자인(영강)',
+    professor: '허나은',
+    mate: 38,
+    room: '미디어관 901호',
+    id: 'ARDE229-00',
+    type: '전공선택',
+    credit: '3학점',
+    timeInfo: '목 (5-7)',
+    time: [
+      {
+        day: '목',
+        start: '15:00',
+        end: '17:45',
+      },
+    ],
+  },
+  {
+    name: '미술과문화',
+    professor: '이응진',
+    mate: 49,
+    room: '교양관 105호',
+    id: 'ARDE113-00',
+    type: '학문의기초',
+    credit: '3학점',
+    timeInfo: '화 (1-2)',
+    time: [
+      {
+        day: '화',
+        start: '09:00',
+        end: '11:45',
       },
     ],
   },

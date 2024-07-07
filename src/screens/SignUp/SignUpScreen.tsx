@@ -4,7 +4,7 @@ import { View,Text, TextInput,TouchableOpacity,StyleSheet, KeyboardAvoidingView,
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 
-type SignUpScreenProps = NativeStackScreenProps<RootStackParamList,"SignUp">
+type SignUpScreenProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 function SignUpScreen({navigation}:SignUpScreenProps){
     const [email, setEmail] = useState("");

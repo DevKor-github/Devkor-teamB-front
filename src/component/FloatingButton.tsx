@@ -1,11 +1,9 @@
-import React from 'react';
-import {Platform, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {ReactElement} from 'react';
+import {Platform, StyleSheet, TouchableOpacity, View} from 'react-native';
 import {Color} from './Color';
 
 const buttonSize = 48;
 const margin = 12;
-const textSize = 32;
-const centerText = '+';
 
 const style = StyleSheet.create({
   container: {
@@ -28,24 +26,23 @@ const style = StyleSheet.create({
     height: buttonSize,
     borderRadius: buttonSize,
     justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: Color.ui.primary,
-  },
-  text: {
-    fontSize: textSize,
-    lineHeight: textSize,
-    color: 'white',
-    textAlign: 'center',
   },
 });
 
-function FloatingButton({onPress}: {onPress: Function}) {
+interface FloatingButtonProps {
+  onPress: Function;
+  children: ReactElement;
+}
+const FloatingButton: React.FC<FloatingButtonProps> = ({onPress, children}) => {
   return (
     <View style={style.container}>
       <TouchableOpacity style={style.button} onPress={() => onPress()}>
-        <Text style={style.text}>{centerText}</Text>
+        {children}
       </TouchableOpacity>
     </View>
   );
-}
+};
 
 export default FloatingButton;
