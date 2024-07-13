@@ -1,6 +1,6 @@
 // WeeklyTimetableScreen.tsx
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Platform} from 'react-native';
 import {
   getLectureSlot,
   getSlotCount,
@@ -9,8 +9,8 @@ import {
   getStartTime,
   getLectureByDays,
   getLectureColor,
-} from '../screens/Timetable/TimetableUtils.tsx';
-import {Schedule, SimpleLecture} from '../screens/Timetable/TimetableTypes.tsx';
+} from '../screens/timetable/TimetableUtils.tsx';
+import {Schedule, SimpleLecture} from '../screens/timetable/TimetableTypes.tsx';
 
 import {Color} from './Color.tsx';
 

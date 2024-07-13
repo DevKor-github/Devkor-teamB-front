@@ -17,7 +17,7 @@ function SignUpScreen({navigation}:SignUpScreenProps){
     const isFormFilled = username!=="" && password!=="";
     
     const handleNext = () => {
-        navigation.navigate('CreateTimetable');
+        navigation.navigate('Register');
     }
 
     return(
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        paddingTop: 100,
+        paddingTop: 130,
         backgroundColor: 'white',
     },
     input: {

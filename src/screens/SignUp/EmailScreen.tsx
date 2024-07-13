@@ -4,7 +4,7 @@ import { View,Text, TextInput,TouchableOpacity,StyleSheet, KeyboardAvoidingView,
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
 
-type EmailScreenProps = NativeStackScreenProps<RootStackParamList, 'Email'>;
+type EmailScreenProps = NativeStackScreenProps<RootStackParamList,"Email">
 
 function EmailScreen({navigation}:EmailScreenProps){
     const [email, setEmail] = useState("");
@@ -47,12 +47,31 @@ function EmailScreen({navigation}:EmailScreenProps){
             </View>
             
 
-      <TextInput
-        style={styles.input}
-        onChangeText={setEmail}
-        value={email}
-        placeholder="학교 이메일"
-      />
+            {showVerification && (
+                <View style={{alignItems:'center'}}>
+                    <TextInput 
+                        style={styles.input}
+                        onChangeText={setVerficationNum}
+                        value={verificationNum}
+                        placeholder="인증번호입력"
+                    />
+                    <View style={{flexDirection:"row",justifyContent:"space-between",width:315}}>
+                        <View style={{paddingVertical:6}}>
+                            {verified?
+                                <Text style={styles.verifiedSmallText}>인증이 완료되었습니다.</Text>:
+                                <Text style={styles.smallText}>인증번호는 최대 10분동안 유효합니다.</Text>
+                            }
+                            
+                        </View>
+                        <TouchableOpacity
+                            style={styles.smallBtn}
+                            onPress={()=>setVerified(true)}>
+                                <Text style={styles.smallBtnText}>확인</Text>
+                                
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
 
             <TouchableOpacity 
                 style={verified?styles.verifiedLargeBtn:styles.largeBtn}
@@ -63,13 +82,13 @@ function EmailScreen({navigation}:EmailScreenProps){
     )
 }
 
-export default EmailScreen;
+export default EmailScreen
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        paddingTop: 100,
+        paddingTop: 130,
         backgroundColor: 'white',
     },
     input: {

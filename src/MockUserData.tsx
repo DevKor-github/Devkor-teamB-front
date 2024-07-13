@@ -1,6 +1,6 @@
-import {Schedule} from './screens/Timetable/TimetableTypes.tsx';
-import {Community} from './screens/Community/CommunityTypes.tsx';
-import UserInfo from './UserTypes.tsx';
+import UserInfo from './UserTypes';
+import {Community} from './screens/Community/CommunityTypes';
+import {Schedule} from './screens/timetable/TimetableTypes';
 
 export const mockLectures: Schedule = [
   {

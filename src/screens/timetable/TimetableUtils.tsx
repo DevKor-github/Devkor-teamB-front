@@ -1,7 +1,6 @@
 import {Lecture, Schedule, SimpleLecture, TimeSlot} from './TimetableTypes.tsx';
 import {Color} from '../../component/Color.tsx';
 
-const colors = ['crimson', 'green', 'orange', 'darkviolet'];
 const colorMap: Map<string, number> = new Map();
 const defaultSlotCount = 7;
 const defaultStartTime = 9;
@@ -12,6 +11,7 @@ export const getStartTime = (i: number) => {
 };
 
 export function getLectureColor(id: string): string {
+  const colors = Object.values(Color.subject);
   if (!colorMap.has(id)) {
     colorMap.set(id, colorMap.size + 1);
   }
