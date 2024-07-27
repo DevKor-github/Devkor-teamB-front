@@ -1,6 +1,6 @@
 import UserInfo from './UserTypes';
 import {Community} from './screens/Community/CommunityTypes';
-import {Schedule} from './screens/timetable/TimetableTypes';
+import {Schedule} from './screens/Timetable/TimetableTypes';
 
 export const mockLectures: Schedule = [
   {

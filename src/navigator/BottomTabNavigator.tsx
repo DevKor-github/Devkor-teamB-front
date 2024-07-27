@@ -6,7 +6,7 @@ import Octicon from 'react-native-vector-icons/Octicons';
 
 // Screens
 import StoreScreen from '../screens/StoreScreen';
-import TimetableHomeScreen from '../screens/timetable/TimetableHomeScreen';
+import TimetableHomeScreen from '../screens/Timetable/TimetableHomeScreen';
 import MyPageScreen from '../screens/MyPageScreen';
 
 export type BottomTabNavigatorParamList = {

@@ -1,12 +1,16 @@
 import React, {useEffect} from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
-import {mockCommunities} from '../../MockUserData.tsx';
+import {mockCommunities, mockLectures} from '../../MockUserData.tsx';
 import {Comment, Community, Post} from './CommunityTypes.tsx';
 import {getDateString} from './CommunityUtils.tsx';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import UserInfo from '../../UserTypes.tsx';
 import TodayBriefingWidget from './TodayBriefingWidget.tsx';
+import FloatingButton from '../../component/FloatingButton.tsx';
+import Icon from 'react-native-vector-icons/FontAwesome.js';
+import {Color} from '../../component/Color.tsx';
+import {Lecture} from '../timetable/TimetableTypes.tsx';
 
 function PostItem({post}: {post: Post}) {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -52,39 +56,10 @@ function PostIsEmpty() {
   );
 }
 
-function FloatingButton({onPress}: {onPress: Function}) {
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-      }}>
-      <TouchableOpacity
-        style={{
-          width: 48,
-          height: 48,
-          margin: 12,
-          borderRadius: 24,
-          justifyContent: 'center',
-          backgroundColor: 'lightgray',
-        }}
-        onPress={() => onPress()}>
-        <Text
-          style={{
-            fontSize: 24,
-            textAlign: 'center',
-          }}>
-          +
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 function CommunityScreen({route, navigation}: {route: any; navigation: any}) {
-  const {lecture} = route.params;
+  const {id} = route.params;
   const communities: Community = mockCommunities;
+  const lecture = mockLectures.find(e => e.id === id) as Lecture;
 
   useEffect(() => {
     navigation.setOptions({title: `${lecture.name}`});
@@ -100,7 +75,7 @@ function CommunityScreen({route, navigation}: {route: any; navigation: any}) {
       )}
       <FloatingButton
         onPress={() => {
-          (communities.get(lecture.id) as Post[]).push({
+          const content = {
             title: '게시물 테스트',
             view: 0,
             author: new UserInfo('user1111', '게시물 작성자', 'no-image'),
@@ -108,9 +83,17 @@ function CommunityScreen({route, navigation}: {route: any; navigation: any}) {
             postId: 111,
             postDate: '2024-05-26 00:05:00',
             content: '게시물 생성 테스트',
-          } as Post);
-        }}
-      />
+          } as Post;
+
+          if (communities.has(lecture.id)) {
+            const posts = communities.get(lecture.id) as Post[];
+            posts.push(content);
+          } else {
+            communities.set(lecture.id, [content]);
+          }
+        }}>
+        <Icon name="plus" size={24} color={Color.ui.onPrimary} />
+      </FloatingButton>
     </View>
   );
 }

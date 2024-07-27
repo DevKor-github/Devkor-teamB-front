@@ -13,7 +13,7 @@ import {mockLectures} from '../../MockUserData.tsx';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import CommunityScreen from '../Community/CommunityScreen.tsx';
 import PostScreen from '../Community/PostScreen.tsx';
-import WeeklyTimetableScreen from './WeeklyTimetableScreen.tsx';
+import WeeklyTimetableScreen from '../../component/Timetable.tsx';
 import DailyTimetableScreen from './DailyTimetableScreen.tsx';
 
 enum Option {

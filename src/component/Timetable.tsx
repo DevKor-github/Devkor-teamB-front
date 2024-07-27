@@ -9,8 +9,8 @@ import {
   getStartTime,
   getLectureByDays,
   getLectureColor,
-} from '../screens/timetable/TimetableUtils.tsx';
-import {Schedule, SimpleLecture} from '../screens/timetable/TimetableTypes.tsx';
+} from '../screens/Timetable/TimetableUtils.tsx';
+import {Schedule, SimpleLecture} from '../screens/Timetable/TimetableTypes.tsx';
 
 import {Color} from './Color.tsx';
 
