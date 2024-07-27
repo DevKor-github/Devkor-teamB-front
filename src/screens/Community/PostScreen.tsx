@@ -1,68 +1,110 @@
-// PostScreen.tsx
-import React from 'react';
+import React, {useState} from 'react';
 import {
   ScrollView,
   View,
   Text,
   SafeAreaView,
   TouchableOpacity,
+  TextInput,
+  StyleSheet,
+  Platform,
 } from 'react-native';
 import {Comment, Post} from './CommunityTypes.tsx';
+import {Color} from '../../component/Color.tsx';
+import Icon from 'react-native-vector-icons/Fontisto.js';
 
+const style = StyleSheet.create({
+  textfield: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 0,
+    width: '95%',
+    alignSelf: 'center',
+    margin: 12,
+    padding: 12,
+    backgroundColor: 'white',
+    borderRadius: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'black',
+        shadowOpacity: 0.25,
+        shadowOffset: {width: 0, height: 1},
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+});
+
+function CommentTextField() {
+  const [text, setText] = useState('');
+  const placeholder = '첫 댓글 작성 시 포인트 3배 적립';
+
+  return (
+    <View style={style.textfield}>
+      <TextInput
+        style={{flex: 1}}
+        onChangeText={e => setText(e)}
+        value={text}
+        placeholder={placeholder}
+      />
+      <TouchableOpacity>
+        <Icon name="bell" size={18} color={Color.ui.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+}
 function CommentContainer({comment}: {comment: Comment}) {
   return (
-    <View
-      style={{
-        backgroundColor: 'darkgray',
-        padding: 12,
-        borderRadius: 12,
-      }}>
+    <View>
       <Text>{comment.userId}</Text>
-      <Text>{comment.content}</Text>
+      <View
+        style={{
+          borderWidth: 1,
+          borderColor: Color.ui.primary,
+          borderRadius: 12,
+          padding: 8,
+        }}>
+        <Text>{comment.content}</Text>
+      </View>
     </View>
   );
 }
 
-function CloseButton({onPress}: {onPress: Function}) {
-  return (
-    <TouchableOpacity
-      style={{
-        width: 28,
-        height: 28,
-        justifyContent: 'center',
-      }}
-      onPress={() => onPress()}>
-      <Text style={{fontSize: 14, textAlign: 'center'}}>X</Text>
-    </TouchableOpacity>
-  );
-}
-
-function PostScreen({route, navigation}: {route: any; navigation: any}) {
+function PostScreen({route, _}: {route: any; _: any}) {
   const post: Post = route.params.post;
+
   return (
     <SafeAreaView style={{flex: 1}}>
-      <ScrollView
-        style={{
-          padding: 12,
-          marginHorizontal: 12,
-          backgroundColor: 'lightgray',
-        }}>
-        <CloseButton onPress={() => navigation.goBack()} />
-        <View
+      <>
+        <ScrollView
           style={{
-            backgroundColor: 'lightgray',
-            padding: 12,
-            borderRadius: 12,
+            padding: 8,
+            marginHorizontal: 8,
           }}>
-          <Text>{post.title}</Text>
-          <Text>{post.content}</Text>
-        </View>
-        {post.comments.map(comment => (
-          <View style={{marginTop: 12}}>
-            <CommentContainer comment={comment} />
+          <View>
+            <Text>{post.author.name}</Text>
           </View>
-        ))}
-      </ScrollView>
+          <View
+            style={{
+              borderColor: Color.ui.primary,
+              backgroundColor: Color.ui.background,
+              borderWidth: 2,
+              padding: 8,
+              borderRadius: 8,
+            }}>
+            <Text style={{fontSize: 16, fontWeight: 'bold'}}>{post.title}</Text>
+            <Text>{post.content}</Text>
+          </View>
+          {post.comments.map(comment => (
+            <View style={{marginTop: 12}}>
+              <CommentContainer comment={comment} />
+            </View>
+          ))}
+        </ScrollView>
+        <CommentTextField />
+      </>
     </SafeAreaView>
   );
 }
