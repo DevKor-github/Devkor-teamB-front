@@ -50,28 +50,28 @@ import {
       </View>
     );
   }
-  function ExamProgress({progress}: {progress: number}) {
+  function ExamProgress({progress,text}: {progress: number,text:string}) {
     return (
       <View style={styles.item}>
-        <Text style={styles.text}>시험 관련 공지가 있었어요</Text>
-        <ProgressBar progress={progress} />
+        {/* <Text style={styles.text}>시험 관련 공지가 있었어요</Text> */}
+        <ProgressBar progress={progress} text={text}/>
       </View>
     );
   }
   
-  function AttendanceProgress({progress}: {progress: number}) {
+  function AttendanceProgress({progress,text}: {progress: number,text:string}) {
     return (
       <View style={styles.item}>
-        <Text style={styles.text}>출석 관련 공지가 있었어요</Text>
-        <ProgressBar progress={progress} />
+        {/* <Text style={styles.text}>출석 관련 공지가 있었어요</Text> */}
+        <ProgressBar progress={progress} text={text}/>
       </View>
     );
   }
-  function AssignmentProgress({progress}: {progress: number}) {
+  function AssignmentProgress({progress,text}: {progress: number,text:string}) {
     return (
       <View style={styles.item}>
-        <Text style={styles.text}>과제 관련 공지가 있었어요</Text>
-        <ProgressBar progress={progress} />
+        {/* <Text style={styles.text}>과제 관련 공지가 있었어요</Text> */}
+        <ProgressBar progress={progress} text={text}/>
       </View>
     );
   }
@@ -80,9 +80,9 @@ import {
     return (
       <View style={styles.container}>
         <BriefingHeader lectureName={lecture.name} />
-        <ExamProgress progress={60} />
-        <AttendanceProgress progress={45} />
-        <AssignmentProgress progress={90} />
+        <ExamProgress progress={60} text="시험 관련 공지가 있었어요"/>
+        <AttendanceProgress progress={45} text="출석 관련 공지가 있었어요"/>
+        <AssignmentProgress progress={90} text="과제 관련 공지가 있었어요"/>
       </View>
     );
   }
