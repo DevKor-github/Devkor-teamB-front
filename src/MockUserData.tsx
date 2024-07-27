@@ -268,7 +268,7 @@ export const mockCommunities: Community = new Map([
       {
         postId: 1,
         title: '오늘의 날씨',
-        author: new UserInfo('user001', 'USER1', 'https://picsum.photos/232'),
+        author: new UserInfo('user001', 'USER1', 'assets/images/hamster.png'),
         postDate: '2024-05-24 23:40:00',
         view: 10,
         content: '오늘은 날씨가 정말 좋네요! 밖에서 산책하기 딱 좋은 날이에요.',
@@ -276,12 +276,14 @@ export const mockCommunities: Community = new Map([
           {
             commentId: 0,
             userId: 'user123',
-            content: '맞아요! 날씨가 너무 좋아서 기분이 좋아지네요.',
+            content: '햠스터 조금 뚱뚱하네요. 간식을 줄이시고 식사는 탄단지 비율 잘 맞춰서 해주세요.\n주 3회 운동은 필수고요, 다이어트 하는 방법 다들 사실 알고계시잖아요? 적게 먹고 많이 움직이세요.',
+            date: '2024-03-24 22:19:05',
           },
           {
             commentId: 1,
             userId: 'user456',
             content: '그렇죠! 이런 날은 특별한 에너지를 받는 것 같아요.',
+            date: '2024-07-24 22:19:05'
           },
         ],
       },
@@ -297,8 +299,8 @@ export const mockCommunities: Community = new Map([
           {
             commentId: 0,
             userId: 'commenter3',
-            content:
-              '저도 책을 읽는 걸 좋아해요. 마음이 평화로워지는 기분이 들어요.',
+            content: '저도 책을 읽는 걸 좋아해요. 마음이 평화로워지는 기분이 들어요.',
+            date: '2024-03-24 22:19:05',
           },
         ],
       },
@@ -324,6 +326,8 @@ export const mockCommunities: Community = new Map([
             commentId: 0,
             userId: 'commenter4',
             content: '노래 추천 좋아요! 무슨 노래인지 궁금하네요.',
+            date: '2024-03-24 22:19:05',
+
           },
         ],
       },
@@ -339,14 +343,16 @@ export const mockCommunities: Community = new Map([
           {
             commentId: 0,
             userId: 'commenter5',
-            content:
-              "영화 추천이요? '인셉션' 같은 거 보시면 재미있을 것 같아요!",
+            content: "영화 추천이요? '인셉션' 같은 거 보시면 재미있을 것 같아요!",
+            date: '2024-03-24 22:19:05',
+
           },
           {
             commentId: 1,
             userId: 'commenter6',
-            content:
-              "'인셉션' 좋은 선택이에요. 시간 가는 줄 모르고 봤던 기억이 나네요.",
+            content: "'인셉션' 좋은 선택이에요. 시간 가는 줄 모르고 봤던 기억이 나네요.",
+            date: '2024-03-24 22:19:05',
+
           },
         ],
       },

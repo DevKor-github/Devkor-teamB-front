@@ -1,7 +1,7 @@
 export const Color = {
   subject: {
-    color1: 'rgb(231, 26, 122)',
-    color2: 'rgb(235, 112, 129)',
+    color1: 'rgb(231, 26, 122)', //#e71a7a
+    color2: 'rgb(235, 112, 129)', //#eb7081
     color3: 'rgb(121, 148, 249)',
     color4: 'rgb(240, 161, 117)',
     color5: 'rgb(236, 112, 226)',

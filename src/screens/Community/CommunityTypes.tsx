@@ -5,6 +5,7 @@ export interface Comment {
   commentId: number;
   userId: string;
   content: string;
+  date: string;
 }
 export interface Post {
   postId: number;
