@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface SearchBarProps {
   text: string;
-  placeholder?: string;
+  placeholder: string;
   onChangeText: Function;
   onSubmit: Function;
 }
@@ -38,6 +38,7 @@ const style = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     padding: 6,
+    margin: 12,
     borderColor: 'lightgray',
   },
   searchText: {
