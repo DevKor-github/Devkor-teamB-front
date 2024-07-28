@@ -277,11 +277,13 @@ export const mockCommunities: Community = new Map([
             commentId: 0,
             userId: 'user123',
             content: '맞아요! 날씨가 너무 좋아서 기분이 좋아지네요.',
+            date: '2024-01-01',
           },
           {
             commentId: 1,
             userId: 'user456',
             content: '그렇죠! 이런 날은 특별한 에너지를 받는 것 같아요.',
+            date: '2024-01-01',
           },
         ],
       },
@@ -299,6 +301,7 @@ export const mockCommunities: Community = new Map([
             userId: 'commenter3',
             content:
               '저도 책을 읽는 걸 좋아해요. 마음이 평화로워지는 기분이 들어요.',
+              date: '2024-01-01',
           },
         ],
       },
@@ -324,6 +327,7 @@ export const mockCommunities: Community = new Map([
             commentId: 0,
             userId: 'commenter4',
             content: '노래 추천 좋아요! 무슨 노래인지 궁금하네요.',
+            date: '2024-01-01',
           },
         ],
       },
@@ -341,12 +345,14 @@ export const mockCommunities: Community = new Map([
             userId: 'commenter5',
             content:
               "영화 추천이요? '인셉션' 같은 거 보시면 재미있을 것 같아요!",
+            date: '2024-01-01',
           },
           {
             commentId: 1,
             userId: 'commenter6',
             content:
               "'인셉션' 좋은 선택이에요. 시간 가는 줄 모르고 봤던 기억이 나네요.",
+            date: '2024-01-01',
           },
         ],
       },

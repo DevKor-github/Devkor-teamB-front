@@ -12,10 +12,14 @@ import {
 import Icon from 'react-native-vector-icons/Fontisto.js';
 import {mockLectures} from '../../MockUserData.tsx';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
+
+// Screens
 import CommunityScreen from '../Community/CommunityScreen.tsx';
 import PostScreen from '../Community/PostScreen.tsx';
 import WeeklyTimetableScreen from '../../component/Timetable.tsx';
 import DailyTimetableScreen from './DailyTimetableScreen.tsx';
+import PostCreationScreen from '../Community/CreatePostScreen.tsx';
+
 import {Color} from '../../component/Color.tsx';
 import {Lecture, PageType, Today} from './TimetableTypes.tsx';
 import Timetable from '../../component/Timetable.tsx';
@@ -181,7 +185,7 @@ function Footer({type}: {type: PageType}) {
   return (
     <View style={[style.row, style.center, {padding: 12}]}>
       {enumValues.map(e => (
-        <View style={getStyle(e)} />
+        <View key={e} style={getStyle(e)} />
       ))}
     </View>
   );
@@ -235,6 +239,14 @@ function TimetableScreen() {
           headerTitle: '게시물',
           headerBackTitleVisible: false,
           headerTintColor: Color.ui.primary,
+        }}
+      />
+      <Stack.Screen
+        name="PostCreationScreen"
+        component={PostCreationScreen}
+        options={{
+          headerTitle: '게시물 작성',
+          headerTintColor: Color.ui.primary
         }}
       />
     </Stack.Navigator>

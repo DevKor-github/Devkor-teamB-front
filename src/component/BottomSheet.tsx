@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import {Color} from './Color';
 
-enum BottomSheetState {
+export enum BottomSheetState {
   HALF,
   EXPANDED,
 }
@@ -118,9 +118,9 @@ const style = StyleSheet.create({
     borderTopRightRadius: 8,
     ...Platform.select({
       ios: {
-        shadowColor: 'black',
+        // shadowColor: 'black',
         shadowOpacity: 0.5,
-        shadowRadius: 5,
+        // shadowRadius: 5,
         shadowOffset: {width: 0, height: 0},
       },
       android: {

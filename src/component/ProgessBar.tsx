@@ -1,4 +1,4 @@
-import {View, Animated, Easing, StyleSheet} from 'react-native';
+import {View, Animated, Easing, StyleSheet, Text, Image} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {Color} from './Color';
 
@@ -13,9 +13,11 @@ function Knob({progress}: {progress: number}) {
       position: 'absolute',
       top: -1,
       right: -1,
-      width: size + 2,
-      height: size + 2,
-      borderRadius: size,
+      width: 30,
+      height: 30,
+      borderWidth: 1,
+      borderColor: '#F6F2F4',
+      borderRadius: 15,
       justifyContent: 'center',
       backgroundColor: 'white',
     },
@@ -45,22 +47,34 @@ function Knob({progress}: {progress: number}) {
   );
 }
 
-function ProgressBar({progress}: {progress: number}) {
+function ProgressBar({progress,text}: {progress: number, text: string}) {
   const [percentage] = useState(new Animated.Value(0));
   const styles = StyleSheet.create({
     outerBar: {
       width: '100%',
-      backgroundColor: defaultBackgroundColor,
-      borderRadius: size,
-      height: size,
+      backgroundColor: "white",
+      borderRadius: 15,
+      borderWidth: 1,
+      borderColor: '#F6F2F4',
+      height: 30,
     },
     innerBar: {
       position: 'absolute',
-      backgroundColor: defaultHighlightColor,
-      borderRadius: size,
-      height: size,
+      backgroundColor: "#FFE0EF",
+      borderRadius: 15,
+      borderWidth: 1,
+      borderColor: '#F6F2F4',
+      height: 30,
       alignItems: 'flex-end',
+      alignSelf: 'stretch'
     },
+    innerText: {
+      alignSelf: 'flex-start',
+      color: '#1A1A1A',
+      fontSize: 16,
+      fontFamily: 'Pretendard',
+      fontWeight: '400',
+    }
   });
 
   useEffect(() => {
@@ -79,10 +93,17 @@ function ProgressBar({progress}: {progress: number}) {
   });
 
   return (
-    <View style={styles.outerBar}>
+    <View style={styles.outerBar}>      
       <Animated.View style={[styles.innerBar, {width: barWidth}]}>
-        <Knob progress={progress} />
+        {/* <Knob progress={progress} /> */}
       </Animated.View>
+      <View style={{position:'absolute',display:'flex',flexDirection:'row',alignSelf:'flex-start',padding:5}}>
+          <Image
+            source={require('../assets/icons/smile.png')}
+            style={{width:20,height:20,marginLeft:10,marginRight:5}}
+          />
+          <Text style={styles.innerText}>{text}</Text>
+        </View>
     </View>
   );
 }
