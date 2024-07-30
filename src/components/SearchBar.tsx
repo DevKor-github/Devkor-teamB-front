@@ -1,16 +1,19 @@
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {View, StyleSheet, TextInput} from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import Colors from '@src/Colors';
+import {GlobalStyles} from '@src/GlobalStyles';
 
 interface SearchBarProps {
   text: string;
-  placeholder: string;
+  icon: ReactNode;
+  placeholder?: string;
   onChangeText: Function;
   onSubmit: Function;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
   text,
+  icon,
   placeholder,
   onChangeText,
   onSubmit,
@@ -18,11 +21,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <View style={style.searchBar}>
       <View style={style.row}>
-        <Icon name="search" size={20} color={'gray'} />
+        {icon}
         <TextInput
           style={style.searchText}
           value={text}
           maxLength={20}
+          placeholderTextColor={Colors.text.lightgray}
           onChangeText={e => onChangeText(e)}
           onEndEditing={_ => onSubmit()}
           placeholder={placeholder}
@@ -35,16 +39,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
 const style = StyleSheet.create({
   row: {flexDirection: 'row'},
   searchBar: {
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    padding: 6,
-    margin: 12,
-    borderColor: 'lightgray',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderColor: Colors.ui.disabled,
   },
   searchText: {
-    textAlign: 'center',
+    width: '100%',
+    textAlign: 'left',
     fontSize: 16,
-    marginHorizontal: 12,
+    marginHorizontal: 8,
+    ...GlobalStyles.text,
   },
 });
 

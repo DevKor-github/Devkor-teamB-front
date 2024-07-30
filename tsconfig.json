@@ -1,6 +1,15 @@
 {
   "extends": "@react-native/typescript-config/tsconfig.json",
-  // "compilerOptions": {
-  //   "typeRoots": ["./@types", "./node_modules/@types"]
-  // }
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "typeRoots": ["./@types", "./node_modules/@types"],
+    "baseUrl": ".",
+    "paths": {
+      "@src/*": ["./src/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@components/*": ["./src/components/*"],
+      "@screens/*": ["./src/screens/*"],
+      "@navigator/*": ["./src/navigator/*"],
+    },
+  },
 }

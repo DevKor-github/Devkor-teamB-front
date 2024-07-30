@@ -1,10 +1,9 @@
 import React, {useState} from 'react';
-import {View, TextInput, Button, StyleSheet, Text} from 'react-native';
-import {Post} from './CommunityTypes.tsx';
-import UserInfo from '../../UserTypes.tsx';
+import {View, TextInput, Button, StyleSheet} from 'react-native';
+import {Post, UserInfo} from '@src/Types';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {mockCommunities, mockLectures} from '../../MockUserData.tsx';
+import {mockPosts} from '@src/MockData';
 
 const styles = StyleSheet.create({
   container: {
@@ -41,7 +40,7 @@ function PostCreationScreen({route}: {route: any}) {
       view: 0,
     };
 
-    const communities = mockCommunities;
+    const communities = mockPosts;
     if (communities.has(lectureId)) {
       const posts = communities.get(lectureId) as Post[];
       posts.push(newPost);
@@ -59,14 +58,14 @@ function PostCreationScreen({route}: {route: any}) {
         placeholder="제목"
         value={title}
         // onChangeText={setTitle}
-        onChange={(e) => setTitle(e.nativeEvent.text)}
+        onChange={e => setTitle(e.nativeEvent.text)}
       />
       <TextInput
         style={styles.input}
         placeholder="내용"
         value={content}
         // onChangeText={setContent}
-        onChange={(e) => setContent(e.nativeEvent.text)}
+        onChange={e => setContent(e.nativeEvent.text)}
         multiline
       />
       <Button title="게시물 생성" onPress={handleSubmit} />

@@ -1,6 +1,7 @@
 import React, {Children, ReactElement, cloneElement} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {Color} from './Color';
+import Colors from '@src/Colors';
+import {GlobalStyles} from '@src/GlobalStyles';
 
 interface RadioGroupProps {
   option: number;
@@ -44,14 +45,14 @@ const RadioButton: React.FC<RadioButtonProps> = ({
       <View style={style.radio}>
         <View
           style={{
-            borderColor: selected ? Color.ui.primary : Color.ui.disabled,
+            borderColor: selected ? Colors.ui.primary : Colors.ui.disabled,
             ...style.radioButton,
           }}>
           <View style={selected ? style.radioEnabled : style.radioDisabled} />
         </View>
         <Text
           style={{
-            color: selected ? Color.text.primary : Color.text.default,
+            color: selected ? Colors.text.accent : Colors.text.black,
             ...style.radioLabel,
           }}>
           {label}
@@ -72,24 +73,26 @@ const style = StyleSheet.create({
     padding: 4,
   },
   radioButton: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   radioEnabled: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Color.ui.primary,
+    width: '70%',
+    height: '70%',
+    borderRadius: 10,
+    backgroundColor: Colors.ui.primary,
   },
   radioDisabled: {},
   radioLabel: {
-    marginHorizontal: 8,
+    marginLeft: 8,
+    marginRight: 16,
     fontSize: 14,
     textAlign: 'center',
+    ...GlobalStyles.text,
   },
 });
 

@@ -4,11 +4,11 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
 // Screens
-import HomeScreen from './screens/HomeScreen';
-import LoginScreen from './screens/LoginScreen';
-import EmailScreen from './screens/SignUp/EmailScreen';
-import SignUpScreen from './screens/SignUp/SignUpScreen';
-import RegistrationScreen from './screens/SignUp/RegisterationScreen';
+import HomeScreen from '@screens/HomeScreen';
+import LoginScreen from '@screens/LoginScreen';
+import EmailScreen from '@screens/SignUp/EmailScreen';
+import SignUpScreen from '@screens/SignUp/SignUpScreen';
+import RegistrationScreen from '@screens/SignUp/RegisterationScreen';
 
 export type RootStackParamList = {
   Home: undefined;

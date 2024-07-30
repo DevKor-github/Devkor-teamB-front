@@ -1,13 +1,14 @@
 // BottomTabNavigator.tsx
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Octicon from 'react-native-vector-icons/Octicons';
 
 // Screens
-import StoreScreen from '../screens/StoreScreen';
-import TimetableHomeScreen from '../screens/Timetable/TimetableHomeScreen';
-import MyPageScreen from '../screens/MyPageScreen';
+import StoreScreen from '@screens/StoreScreen';
+import MyPageScreen from '@screens/MyPageScreen';
+import TimetableScreen from '@screens/TimetableScreen';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Octicons from 'react-native-vector-icons/Octicons';
+import Colors from '@src/Colors';
 
 export type BottomTabNavigatorParamList = {
   Store: undefined;
@@ -17,29 +18,30 @@ export type BottomTabNavigatorParamList = {
 
 const BottomTab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 
+const getTabBarIcon = (route: any, color: string) => {
+  switch (route.name) {
+    case 'Store':
+      return <MaterialIcons name="store" size={30} color={color} />;
+    case 'Timetable':
+      return <Octicons name="table" size={20} color={color} />;
+    case 'Mypage':
+      return <MaterialIcons name="person" size={30} color={color} />;
+    default:
+      return null;
+  }
+};
+
 function BottomNavigator() {
   return (
     <BottomTab.Navigator
       initialRouteName="Timetable"
       screenOptions={({route}) => ({
-        tabBarIcon: ({color}) => {
-          if (route.name === 'Store') {
-            return <MaterialIcon name="store" size={30} color={color} />;
-          } else if (route.name === 'Timetable') {
-            return <Octicon name="table" size={20} color={color} />;
-          } else if (route.name === 'Mypage') {
-            return <MaterialIcon name="person" size={30} color={color} />;
-          }
-        },
-        tabBarActiveTintColor: '#FF1485',
-        tabBarInactiveTintColor: 'gray',
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#FFFAFC',
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-        },
+        tabBarIcon: ({color}) => getTabBarIcon(route, color),
+        tabBarActiveTintColor: Colors.ui.primary,
+        tabBarInactiveTintColor: Colors.ui.disabled,
+        tabBarStyle: {backgroundColor: Colors.ui.background},
+        tabBarLabelStyle: {fontSize: 12},
       })}>
       <BottomTab.Screen
         name="Store"
@@ -48,7 +50,7 @@ function BottomNavigator() {
       />
       <BottomTab.Screen
         name="Timetable"
-        component={TimetableHomeScreen}
+        component={TimetableScreen}
         options={{title: '시간표'}}
       />
       <BottomTab.Screen
