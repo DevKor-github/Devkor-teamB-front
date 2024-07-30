@@ -95,13 +95,6 @@ function ProgressBar({progress,text}: {progress: number, text: string}) {
   return (
     <View style={styles.outerBar}>      
         <Animated.View style={[styles.innerBar, {width: barWidth}]}>
-        <View style={{position:'absolute',display:'flex',flexDirection:'row',alignSelf:'flex-start',padding:5}}>
-          <Image
-            source={require('../assets/icons/smile.png')}
-            style={{width:20,height:20,marginLeft:10,marginRight:5}}
-          />
-          <Text style={styles.innerText}>{text}</Text>
-        </View>
         {/* <Knob progress={progress} /> */}
       </Animated.View>
       <View style={{position:'absolute',display:'flex',flexDirection:'row',alignSelf:'flex-start',padding:5}}>

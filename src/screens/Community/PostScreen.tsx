@@ -11,45 +11,122 @@ import {
   Image,
   Alert,
   Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import {Comment, Post} from './CommunityTypes.tsx';
 import {Color} from '../../component/Color.tsx';
 import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js'
 import Icon3 from 'react-native-vector-icons/AntDesign.js'
+import BottomSheet from '../../component/BottomSheet.tsx';
 import { BlurView } from '@react-native-community/blur';
 
 function CommentTextField() {
   const [text, setText] = useState('');
+  const [isModalVisible, setModalVisible] = useState(false);
   const placeholder = '첫 댓글 작성 시 포인트 3배 적립';
 
+  const toggleModal = () => {
+    // setModalVisible(!isModalVisible);
+    console.log('toggled')
+  };
+
+
   return (
-    <View style={style.textfield}>
-      <TextInput
-        style={{flex: 1}}
-        onChangeText={e => setText(e)}
-        value={text}
-        placeholder={placeholder}
-      />
-      <TouchableOpacity>
-        <Icon name="send" size={18} color={Color.ui.primary} />
+  //   <KeyboardAvoidingView style={{backgroundColor:'white'}}>
+  //   {/* <ScrollView style={style.container}> */}
+  //     <View style={style.textfield}>
+        // <TextInput
+        //   style={{flex: 1,color:'#000'}}
+        //   onChangeText={setText}
+        //   value={text}
+        //   placeholder={placeholder}
+        // />
+        // <TouchableOpacity>
+        //   <Icon name="send" size={18} color={Color.ui.primary} />
+        // </TouchableOpacity>
+  //     </View>
+  //   {/* </ScrollView> */}
+  // </KeyboardAvoidingView>
+    <>
+      <TouchableOpacity onPress={toggleModal} style={{justifyContent: 'flex-end'}}>
+        <View style={styles.textfield}>
+          <TextInput
+            style={{flex:1,color:'#000'}}
+            onChangeText={setText}
+            value={text}
+            placeholder={placeholder}
+          />
+          <TouchableOpacity>
+            <Icon name="send" size={18} color={Color.ui.primary} />
+          </TouchableOpacity>
+        </View>
       </TouchableOpacity>
-    </View>
+
+      {/* <Modal
+        visible={isModalVisible}
+        style={styles.modal}
+      >
+        <KeyboardAvoidingView>
+          <View style={styles.textfield}>
+            <TextInput
+              style={{ flex: 1, color: '#000' }}
+              onChangeText={setText}
+              value={text}
+              placeholder={placeholder}
+              placeholderTextColor="#999"
+              autoFocus
+            />
+            <TouchableOpacity>
+              <Icon name="send" size={18} color={Color.ui.primary} />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal> */}
+    </>
   );
 }
 
+const styles = StyleSheet.create({
+  textfield: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 0,
+    width: '95%',
+    alignSelf: 'center',
+    margin: 12,
+    padding: 12,
+    backgroundColor: 'white',
+    borderRadius: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'black',
+        shadowOpacity: 0.25,
+        shadowOffset: {width: 0, height: 1},
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  modal: {
+    justifyContent: 'flex-end',
+    margin:0,
+    height: 200,
+    backgroundColor: 'pink'
+  }
+})
 
 function CommentContainer({comment}: {comment: Comment}) {
   const [isModalVisible,setIsModalVisible] = useState(false);
-  const [isBlurVisible,setIsBluerVisible] = useState(true);
+  const [isBlurVisible,setIsBlurVisible] = useState(true);
   
   const toggleMenu = () => {
     setIsModalVisible(!isModalVisible);
-    console.log(comment);
   }
 
   const toggleBlur = () => {
-    setIsBluerVisible(false);
+    setIsBlurVisible(!isBlurVisible);
   }
 
   return (
@@ -72,11 +149,22 @@ function CommentContainer({comment}: {comment: Comment}) {
             <Icon name="more-vertical" size={24} color="#3D3D3D" /> 
           </TouchableOpacity>
       </View>
-
+      
       <View style={style.commentArea}>
-        <Text style={style.comment}>{comment.content}</Text>
-      </View>
+        <Text style={style.comment}>
+          {comment.content}
+        </Text>
+        {isBlurVisible && (
+          <View style={style.commentArea_Blur}>
+            <Text style={style.text_Blur}>포인트 사용하고 댓글 보기</Text>
+            <TouchableOpacity onPress={toggleBlur} style={style.button_Blur}>
+              <Text style={style.buttonText_Blur}>사용하기</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
+      </View>
+      
       <View style={style.buttonArea}>
         <TouchableOpacity style={style.button}>
           <Icon2 name="thumb-up" size={14} color="#ff1485"></Icon2>
@@ -143,7 +231,6 @@ function PostScreen({route}: {route: any}) {
               source={require('../../assets/images/hamster.png')} // 여기 수정 필요 (지금 하드코딩..)
               style={{width:52,height:51,flexShrink:0,borderRadius:25}}>
             </Image>
-
             <View style={style.userArea2}>
               <Text style={{color: "#3D3D3D",fontSize:16,fontWeight:"500"}}>{post.author.name}</Text>
               <View style={style.userArea3}>
@@ -195,8 +282,6 @@ function PostScreen({route}: {route: any}) {
             </Modal>
           </View>
 
-
-
           <View style={style.buttonArea}>
             <TouchableOpacity style={style.button}>
               <Icon2 name="thumb-up" size={14} color="#ff1485"></Icon2>
@@ -219,9 +304,9 @@ function PostScreen({route}: {route: any}) {
               <CommentContainer comment={comment} />
             </View>
           ))}
+          <View style={{margin:40}}></View>
         </ScrollView>
         <CommentTextField />
-        <View style={{height:60}}></View>
       </>
     </SafeAreaView>
   );
@@ -233,27 +318,6 @@ export default PostScreen;
 
 // style영역
 const style = StyleSheet.create({
-  textfield: {
-    flexDirection: 'row',
-    position: 'absolute',
-    bottom: 0,
-    width: '95%',
-    alignSelf: 'center',
-    margin: 12,
-    padding: 12,
-    backgroundColor: 'white',
-    borderRadius: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: 'black',
-        shadowOpacity: 0.25,
-        shadowOffset: {width: 0, height: 1},
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
   userArea: {
     display: "flex",
     width: 358,
@@ -345,11 +409,41 @@ const style = StyleSheet.create({
   },
   commentArea: {
     width: 359,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 25,
+    marginBottom: 8,
     borderRadius: 10,
     borderColor: "#FF1485",
     borderWidth: 0.5,
     backgroundColor: "#FFF8FC",
+  },
+  commentArea_Blur: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    bottom: 16,
+    right: 16,
+    backgroundColor: "#FFF8FCF0",
+  },
+  text_Blur:{ 
+    textAlign: 'center',
+    marginTop: 'auto',
+    // marginVertical: 'auto',
+    fontWeight: '500',
+    fontSize: 14
+  },
+  button_Blur: {
+    backgroundColor: '#FF1485',
+    margin: 'auto',
+    borderRadius: 5,
+    width: 50,
+    height: 20,
+  },
+  buttonText_Blur: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '700',
+    margin: 'auto'
   },
   comment: {
     color: "#3D3D3D",

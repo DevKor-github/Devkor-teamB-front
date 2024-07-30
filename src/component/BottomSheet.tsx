@@ -116,17 +116,17 @@ const style = StyleSheet.create({
     backgroundColor: Color.ui.white,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
-    ...Platform.select({
-      ios: {
-        // shadowColor: 'black',
-        shadowOpacity: 0.5,
-        // shadowRadius: 5,
-        shadowOffset: {width: 0, height: 0},
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    // ...Platform.select({
+    //   ios: {
+    //     // shadowColor: 'black',
+    //     shadowOpacity: 0.5,
+    //     // shadowRadius: 5,
+    //     shadowOffset: {width: 0, height: 1},
+    //   },
+    //   android: {
+    //     elevation: 3,
+    //   },
+    // }),
   },
   controller: {
     width: '100%',
