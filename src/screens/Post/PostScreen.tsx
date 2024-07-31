@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
 import {
   ScrollView,
   View,
@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
   Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import {Comment, Post} from '@src/Types';
 import Colors from '@src/Colors';
@@ -18,24 +19,84 @@ import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
 import Icon3 from 'react-native-vector-icons/AntDesign.js';
 
-function CommentTextField() {
+function CommentTextField({ addComment }: { addComment: (comment: Comment) => void }) {
   const [text, setText] = useState('');
+  const [inputHeight, setInputHeight] = useState(20);
   const placeholder = '첫 댓글 작성 시 포인트 3배 적립';
 
+  const handlePressButton = () => {
+    // console.log(text)
+    // console.log(text.trim().length)
+    if(text.trim().length>0){
+      const newComment : Comment = {
+        commentId: 2,
+        userId: 'sampleUserId',
+        content: text,
+        date: new Date().toString(),
+      }
+      addComment(newComment)
+      setText('')
+      setInputHeight(20)
+    }
+  }
+
   return (
-    <View style={style.textfield}>
-      <TextInput
-        style={{flex: 1}}
-        onChangeText={e => setText(e)}
-        value={text}
-        placeholder={placeholder}
-      />
-      <TouchableOpacity>
-        <Icon name="send" size={18} color={Colors.ui.primary} />
-      </TouchableOpacity>
-    </View>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={90}
+      style={styles.container}
+    >
+      <View style={styles.inner}>
+          <View style={[styles.textfield,{height:inputHeight+25}]}>
+            <TextInput
+              style={{flex: 1,paddingHorizontal:10,color:'#000',height:inputHeight}}
+              onChangeText={setText}
+              onContentSizeChange={(e)=>setInputHeight(e.nativeEvent.contentSize.height)}
+              value={text}
+              placeholder={placeholder}
+              multiline
+            />
+            <TouchableOpacity onPress={handlePressButton}>
+              <Icon name="send" size={18} color={Colors.ui.primary} />
+            </TouchableOpacity>
+          </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
+const styles = StyleSheet.create({
+  container: {
+    // flex: 1,
+    // paddingBottom: 700,
+  },
+  textfield: {
+    flexDirection: 'row',
+    position: 'absolute',
+    // bottom: 0,
+    width: '95%',
+    alignSelf: 'center',
+    alignItems: 'center',
+    margin: 12,
+    padding: 12,
+    backgroundColor: 'white',
+    borderRadius: 4,
+    ...Platform.select({
+      ios: {
+        shadowColor: 'black',
+        shadowOpacity: 0.25,
+        shadowOffset: {width: 0, height: 1},
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  inner: {
+    backgroundColor: 'white',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+})
 
 function CommentContainer({comment}: {comment: Comment}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -60,13 +121,9 @@ function CommentContainer({comment}: {comment: Comment}) {
         />
 
         <View style={style.userArea2_comment}>
-          <Text style={{color: '#3D3D3D', fontSize: 14, fontWeight: '500'}}>
-            {comment.userId}
-          </Text>
+          <Text style={{color: '#3D3D3D', fontSize: 14, fontWeight: '500'}}>{comment.userId}</Text>
           <View style={style.userArea3}>
-            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>
-              {comment.date}
-            </Text>
+            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{comment.date}</Text>
           </View>
         </View>
 
@@ -76,7 +133,17 @@ function CommentContainer({comment}: {comment: Comment}) {
       </View>
 
       <View style={style.commentArea}>
-        <Text style={style.comment}>{comment.content}</Text>
+        <Text style={style.comment}>
+          {comment.content}
+        </Text>
+        {isBlurVisible && (
+          <View style={style.commentArea_Blur}>
+            <Text style={style.text_Blur}>포인트 사용하고 댓글 보기</Text>
+            <TouchableOpacity onPress={toggleBlur} style={style.button_Blur}>
+              <Text style={style.buttonText_Blur}>사용하기</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <View style={style.buttonArea}>
@@ -118,6 +185,12 @@ function CommentContainer({comment}: {comment: Comment}) {
 function PostScreen({route}: {route: any}) {
   const post: Post = route.params.post;
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [comments, setComments] = useState(post.comments);
+
+  const addComment = (newComment: Comment) => {
+    setComments([newComment, ...comments]);
+    console.log(newComment)
+  };
 
   const toggleMenu = () => {
     setIsModalVisible(!isModalVisible);
@@ -145,6 +218,10 @@ function PostScreen({route}: {route: any}) {
         },
       },
     ]);
+
+    useEffect(()=>{
+      console.log(comments)
+    },[comments])
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -279,22 +356,21 @@ function PostScreen({route}: {route: any}) {
             </TouchableOpacity>
           </View>
 
-          {post.comments.map(comment => (
+          {comments.map(comment => (
             <View key={comment.commentId} style={{marginTop: 10}}>
               <CommentContainer comment={comment} />
             </View>
           ))}
+          <View style={{height:70}}></View>
         </ScrollView>
-        <CommentTextField />
-        <View style={{height: 60}} />
+        <CommentTextField addComment={addComment}/>
       </>
     </SafeAreaView>
   );
 }
-
 export default PostScreen;
 
-// style영역
+
 const style = StyleSheet.create({
   textfield: {
     flexDirection: 'row',
@@ -408,12 +484,41 @@ const style = StyleSheet.create({
   },
   commentArea: {
     width: 359,
-    padding: 16,
-    marginBottom: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 25,
+    marginBottom: 8,
     borderRadius: 10,
-    borderColor: '#FF1485',
+    borderColor: "#FF1485",
     borderWidth: 0.5,
-    backgroundColor: '#FFF8FC',
+    backgroundColor: "#FFF8FC",
+  },
+  commentArea_Blur: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    bottom: 16,
+    right: 16,
+    backgroundColor: "#FFF8FCF0",
+  },
+  text_Blur:{ 
+    textAlign: 'center',
+    marginTop: 'auto',
+    // marginVertical: 'auto',
+    fontWeight: '500',
+    fontSize: 14
+  },
+  button_Blur: {
+    backgroundColor: '#FF1485',
+    margin: 'auto',
+    borderRadius: 5,
+    width: 50,
+    height: 20,
+  },
+  buttonText_Blur: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '700',
+    margin: 'auto'
   },
   comment: {
     color: '#3D3D3D',
