@@ -65,6 +65,7 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({
   useEffect(() => {
     navigation.setOptions({title: `${lecture.name}`});
   }, [lecture, communities, navigation]);
+  
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>

@@ -72,6 +72,12 @@ export type Comment = {
   date: string;
 };
 
+export type Attachment = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
 export type Post = {
   postId: number;
   author: UserInfo;
@@ -80,4 +86,5 @@ export type Post = {
   view: number;
   content: string;
   comments: Comment[];
+  attachments: Attachment[];
 };

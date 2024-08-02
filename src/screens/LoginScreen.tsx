@@ -33,6 +33,7 @@ function LoginScreen({ navigation }: LoginScreenProps) {
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.container}
+            // keyboardVerticalOffset={90}
         >
             <View style={{ alignSelf: "flex-start", marginLeft: 40, marginBottom: 30 }}>
                 <Text style={styles.largeText}>로그인</Text>
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'flex-end',
         alignItems: 'center',
-        paddingTop: 70,
+        // paddingTop: 70,
     },
     inputContainer: {
         flexDirection: 'row',
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
     buttonContainer: {
         justifyContent: 'flex-end',
         alignItems: 'center',
-        marginBottom: 100
+        marginBottom: 70
     },
     loginButton: {
         padding: 5,

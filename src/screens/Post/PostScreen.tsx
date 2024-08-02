@@ -13,11 +13,12 @@ import {
   Modal,
   KeyboardAvoidingView,
 } from 'react-native';
-import {Comment, Post} from '@src/Types';
+import {Comment, Post, Attachment} from '@src/Types';
 import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
 import Icon3 from 'react-native-vector-icons/AntDesign.js';
+
 
 function CommentTextField({ addComment }: { addComment: (comment: Comment) => void }) {
   const [text, setText] = useState('');
@@ -275,28 +276,18 @@ function PostScreen({route}: {route: any}) {
               <Text style={style.postContent}>{post.content}</Text>
             </View>
 
-            <View style={style.postPhotoArea}>
-              <Image
-                source={require('@assets/images/hamster.png')}
-                style={{width: 82, height: 82, borderRadius: 9}}
-              />
-              <Image
-                source={require('@assets/images/hamster2.png')}
-                style={{width: 82, height: 82, borderRadius: 9}}
-              />
-              <TouchableOpacity
-                style={{
-                  width: 82,
-                  height: 82,
-                  borderRadius: 9,
-                  padding: 15,
-                  backgroundColor: '#EDDFDF',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
-                <Icon name="plus" size={35} color="#757575" />
-              </TouchableOpacity>
-            </View>
+            {post.attachments.length>0 && (
+              <View style={style.postPhotoArea}>
+                {post.attachments.map((attachment: Attachment, index: number) => (
+                  <Image
+                    key={index}
+                    source={{ uri: attachment.uri }}
+                    style={{ width: 82, height: 82, borderRadius: 9 }}
+                  />
+                ))}
+              </View>
+            )}
+
           </View>
 
           <View style={{marginTop: 10}}>

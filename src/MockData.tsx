@@ -1,4 +1,5 @@
-import {Lecture, Post, TimeSlot, UserInfo} from '@src/Types';
+import { Lecture, Post, TimeSlot, UserInfo } from '@src/Types';
+import { Asset } from 'react-native-image-picker';
 
 export const mockLectures: Lecture[] = [
   {
@@ -100,6 +101,10 @@ export const mockLectures: Lecture[] = [
   },
 ];
 
+// export const mockLectures: Lecture[] = [
+//   // existing mockLectures data
+// ];
+
 export const mockPosts: Map<string, Post[]> = new Map([
   [
     'ABCD123',
@@ -111,6 +116,13 @@ export const mockPosts: Map<string, Post[]> = new Map([
         postDate: '2024-05-24 23:40:00',
         view: 10,
         content: '오늘은 날씨가 정말 좋네요! 밖에서 산책하기 딱 좋은 날이에요.',
+        attachments: [
+          {
+            uri: 'https://picsum.photos/500',
+            name: 'weather.jpg',
+            type: 'image/jpeg',
+          },
+        ],
         comments: [
           {
             commentId: 0,
@@ -134,6 +146,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 8,
         content:
           '오늘은 책을 읽는 것만으로도 힐링이 되는 날이에요. 여러분은 어떻게 힐링하시나요?',
+        attachments: [],
         comments: [
           {
             commentId: 0,
@@ -152,6 +165,18 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 5,
         content:
           '오늘은 친구들과 함께 맛있는 저녁 식사를 했어요. 특별한 순간을 함께한 것 같아 기분이 좋네요.',
+        attachments: [
+          {
+            uri: 'https://picsum.photos/501',
+            name: 'dinner.jpg',
+            type: 'image/jpeg',
+          },
+          {
+            uri: 'https://picsum.photos/502',
+            name: 'table.jpg',
+            type: 'image/jpeg',
+          },
+        ],
         comments: [],
       },
       {
@@ -161,6 +186,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         postDate: '2023-12-22 8:13:39',
         view: 12,
         content: '최근에 들었던 음악 중에 너무 좋았던 노래가 있어요.',
+        attachments: [],
         comments: [
           {
             commentId: 0,
@@ -178,6 +204,13 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 3,
         content:
           '오늘은 집에서 영화를 보면서 푹 쉬는 날이에요. 특별한 영화 추천이 있을까요?',
+        attachments: [
+          {
+            uri: 'https://picsum.photos/503',
+            name: 'movie.jpg',
+            type: 'image/jpeg',
+          },
+        ],
         comments: [
           {
             commentId: 0,
@@ -212,6 +245,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 150,
         content:
           'Welcome to the Introduction to Python course. Feel free to ask any questions here.',
+        attachments: [],
         comments: [
           {
             commentId: 1,
@@ -239,6 +273,13 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 200,
         content:
           'This post will cover lists, dictionaries, and other data structures in Python.',
+        attachments: [
+          {
+            uri: 'https://example.com/data_structures.jpg',
+            name: 'data_structures.jpg',
+            type: 'image/jpeg',
+          },
+        ],
         comments: [
           {
             commentId: 3,
@@ -266,6 +307,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 175,
         content:
           'In this post, we will discuss loops, conditionals, and error handling in Python.',
+        attachments: [],
         comments: [
           {
             commentId: 5,
@@ -292,6 +334,13 @@ export const mockPosts: Map<string, Post[]> = new Map([
         postDate: '2024-01-04 14:15:00',
         view: 220,
         content: "Let's learn about defining and calling functions in Python.",
+        attachments: [
+          {
+            uri: 'https://example.com/functions.jpg',
+            name: 'functions.jpg',
+            type: 'image/jpeg',
+          },
+        ],
         comments: [
           {
             commentId: 7,
@@ -319,6 +368,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 190,
         content:
           'This post will cover how to use and create modules and packages in Python.',
+        attachments: [],
         comments: [
           {
             commentId: 9,
