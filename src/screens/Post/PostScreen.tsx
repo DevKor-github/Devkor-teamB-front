@@ -102,6 +102,11 @@ const styles = StyleSheet.create({
 function CommentContainer({comment}: {comment: Comment}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isBlurVisible, setIsBluerVisible] = useState(true);
+  
+
+  const onPressModalClose = () => {
+    setIsModalVisible(false);
+  };
 
   const toggleMenu = () => {
     setIsModalVisible(!isModalVisible);
@@ -109,7 +114,20 @@ function CommentContainer({comment}: {comment: Comment}) {
   };
 
   const toggleBlur = () => {
-    setIsBluerVisible(false);
+    Alert.alert('포인트를 사용하시겠습니까?','현재 보유 포인트: 40',[
+      {
+        text: '취소',
+        style: 'cancel'
+      },
+      {
+        text: '사용하기',
+        style: 'default',
+        onPress: () => {
+          setIsBluerVisible(false);
+          // 포인트 사용 로직
+        }
+      }
+    ])
   };
 
   return (
@@ -128,9 +146,28 @@ function CommentContainer({comment}: {comment: Comment}) {
           </View>
         </View>
 
-        <TouchableOpacity style={{marginLeft: 200}} onPress={toggleMenu}>
+        <TouchableOpacity style={{marginLeft: 210}} onPress={toggleMenu}>
           <Icon name="more-vertical" size={24} color="#3D3D3D" />
         </TouchableOpacity>
+      </View>
+
+      <View style={{marginTop: 10}}>
+        <Modal
+          visible={isModalVisible}
+          transparent={true}
+          onRequestClose={toggleMenu}>
+          <TouchableOpacity
+            onPressOut={onPressModalClose}
+            activeOpacity={1}
+            style={style.overlay}
+          >
+            <View style={style.menu}>
+              <TouchableOpacity style={style.menuItem}>
+                <Text style={{color:Colors.primary[500]}}>신고하기</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
 
       <View style={style.commentArea}>
@@ -295,16 +332,22 @@ function PostScreen({route}: {route: any}) {
               visible={isModalVisible}
               transparent={true}
               onRequestClose={toggleMenu}>
-              <View style={style.menu}>
-                <TouchableOpacity
-                  onPress={onPressModalClose}
-                  style={style.menuItem}>
-                  <Text>수정하기</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleDelete} style={style.menuItem}>
-                  <Text>삭제하기</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                onPressOut={onPressModalClose}
+                activeOpacity={1}
+                style={style.overlay}
+              >
+                <View style={style.menu}>
+                  <TouchableOpacity
+                    onPress={onPressModalClose}
+                    style={[style.menuItem,{borderBottomColor:Colors.text.lightgray,borderBottomWidth:1,paddingBottom: 10}]}>
+                    <Text>수정하기</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleDelete} style={style.menuItem}>
+                    <Text style={{color:Colors.primary[500]}}>삭제하기</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
             </Modal>
           </View>
 
@@ -531,11 +574,22 @@ const style = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
+    shadowOpacity: 0.25,
+    shadowOffset: {
+      width:1,
+      height:0,
+    }
   },
   menuItem: {
     alignSelf: 'flex-start',
-    marginLeft: 22,
-    width: 'auto',
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonArea: {
     display: 'flex',
