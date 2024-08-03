@@ -6,8 +6,8 @@ export const GlobalStyles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: 'black',
-        shadowOpacity: 0.25,
-        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.2,
+        shadowOffset: {width: 0, height: 0},
       },
       android: {
         elevation: 3,

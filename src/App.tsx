@@ -24,7 +24,7 @@ const App: React.FC = () => {
   return (
     <NavigationContainer>
       <RootStack.Navigator
-        initialRouteName="Login"
+        initialRouteName="Home"
         screenOptions={{headerShown: false}}>
         <RootStack.Screen name="Login" component={LoginScreen} />
         <RootStack.Screen name="Email" component={EmailScreen} />
