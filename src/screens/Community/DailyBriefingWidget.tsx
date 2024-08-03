@@ -1,15 +1,23 @@
-import {View, Text, StyleSheet, Image} from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import React from 'react';
 import ProgressBar from '@components/ProgessBar';
 import {Lecture} from '@src/Types';
 import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation} from '@react-navigation/native';
 
-const BriefingHeader = () => {
+const BriefingHeader = ({lecture}:{lecture:any}) => {
+  const navigation = useNavigation<StackNavigationProp<any>>();
+  const handlePressMore = () => {
+    console.log(lecture.name)
+    navigation.navigate('BriefingScreen', {lectureName: lecture.name})
+  }
+
   return (
     <View style={headerStyle.container}>
       <Text style={headerStyle.title}> 오늘의 브리핑</Text>
-      {/* <TouchableOpacity>
+      <TouchableOpacity onPress={handlePressMore}>
         <View style={GlobalStyles.row}>
           <Text style={headerStyle.more}>자세히 보기</Text>
           <Image
@@ -17,7 +25,7 @@ const BriefingHeader = () => {
             source={require('@assets/icons/arrow_right.png')}
           />
         </View>
-      </TouchableOpacity> */}
+      </TouchableOpacity>
     </View>
   );
 };
@@ -74,7 +82,7 @@ const AssignmentProgressBar = ({progress}: {progress: number}) => {
 const DailyBriefingWidget = ({lecture}: {lecture: Lecture}) => {
   return (
     <View style={styles.container}>
-      <BriefingHeader />
+      <BriefingHeader lecture={lecture}/>
       <AttendanceProgressBar progress={45} />
       <AssignmentProgressBar progress={100} />
       <NotificationProgressBar progress={60} />

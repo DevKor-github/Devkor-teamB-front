@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {View, Text, FlatList, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import {mockPosts, mockLectures} from '@src/MockData';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -16,24 +16,37 @@ interface CommunityScreenProps {
   navigation: any;
 }
 
-const PostItem = ({post}: {post: Post}) => {
+const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   return (
     <TouchableOpacity
       style={postStyles.postItem}
-      onPress={() => navigation.navigate('PostScreen', {post: post})}>
-      <View>
-        <Text style={postStyles.postText}>Q. {post.title}</Text>
+      onPress={() => navigation.navigate('PostScreen', {post: post, lectureName: lectureName})}>
+      <View style={{...GlobalStyles.row,gap:5}}>
+        <Text style={[postStyles.postText,{color: Colors.primary[500]}]}>Q.</Text>
+        <Text style={postStyles.postText}>{post.title}</Text>
       </View>
+      <Text style={{color:Colors.text.lightgray,marginTop:3}}>{post.postDate}</Text>
     </TouchableOpacity>
   );
 };
 
-const PostView = ({items, id}: {items: Post[]; id: string}) => {
+const PostView = ({items, id, lectureName}: {items: Post[]; id: string, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   return (
     <View style={postStyles.container}>
-      <Text style={postStyles.title}> 오늘의 수업 게시글 </Text>
+      <View style={headerStyle.container}>
+        <Text style={headerStyle.title}> 게시글 목록</Text>
+        <TouchableOpacity style={{marginVertical: 'auto'}}>
+          <View style={GlobalStyles.row}>
+            <Text style={headerStyle.more}>자세히 보기</Text>
+            <Image
+              style={headerStyle.arrow}
+              source={require('@assets/icons/arrow_right.png')}
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
       {items === undefined ? (
         <View style={postStyles.postEmpty}>
           <Text style={postStyles.postEmptyText}>아직 게시물이 없습니다</Text>
@@ -41,7 +54,7 @@ const PostView = ({items, id}: {items: Post[]; id: string}) => {
       ) : (
         <FlatList
           data={items}
-          renderItem={({item}: {item: Post}) => <PostItem post={item} />}
+          renderItem={({item}: {item: Post}) => <PostItem post={item} lectureName={lectureName}/>}
         />
       )}
       <FloatingButton
@@ -54,26 +67,46 @@ const PostView = ({items, id}: {items: Post[]; id: string}) => {
   );
 };
 
-const CommunityScreen: React.FC<CommunityScreenProps> = ({
-  route,
-  navigation,
-}) => {
+const CommunityScreen: React.FC<CommunityScreenProps> = ({route,navigation,}) => {
   const {id} = route.params;
   const communities = mockPosts;
   const lecture = mockLectures.find((e: Lecture) => e.id === id) as Lecture;
 
   useEffect(() => {
-    navigation.setOptions({title: `${lecture.name}`});
+    navigation.setOptions({title: `${lecture.name} 게시판`});
   }, [lecture, communities, navigation]);
   
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
       <DailyBriefingWidget lecture={lecture} />
-      <PostView items={communities.get(id) as Post[]} id={lecture.id} />
+      <PostView items={communities.get(id) as Post[]} id={lecture.id} lectureName={lecture.name}/>
     </SafeAreaView>
   );
 };
+
+const headerStyle = StyleSheet.create({
+  container: {
+    justifyContent: 'space-between',
+    ...GlobalStyles.row,
+    margin: 10,
+  },
+  title: {
+    textAlign: 'center',
+    color: Colors.text.black,
+    fontSize: FontSizes.large,
+    padding: 4,
+    ...GlobalStyles.boldText,
+  },
+  more: {
+    color: Colors.text.lightgray,
+    textAlign: 'center',
+    fontSize: FontSizes.medium,
+    ...GlobalStyles.text,
+  },
+  arrow: {width: 16, height: 16, tintColor: Colors.text.lightgray},
+});
+
 
 const styles = StyleSheet.create({
   container: {

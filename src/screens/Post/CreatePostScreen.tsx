@@ -6,10 +6,12 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { mockPosts } from '@src/MockData';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
+import DocumentPicker from 'react-native-document-picker'
 
 import { GlobalStyles } from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Octicons';
+import Icon2 from 'react-native-vector-icons/Feather';
 
 const styles = StyleSheet.create({
   container: {
@@ -102,6 +104,27 @@ function PostCreationScreen({ route }: { route: any }) {
     }
   };
 
+  const handleAttachFile = async () => {
+    try {
+      const result = await DocumentPicker.pick({
+        type: [DocumentPicker.types.allFiles],
+      });
+
+      const fileAttachments: Attachment[] = result.map((file) => ({
+        uri: file.uri,
+        name: file.name,
+        type: file.type || '',
+      }));
+      setAttachments([...attachments, ...fileAttachments]);
+    } catch (error) {
+      if (DocumentPicker.isCancel(error)) {
+        console.log('User cancelled file picker');
+      } else {
+        console.log('Error picking file:', error);
+      }
+    }
+  };
+
   const handleSubmit = () => {
     const newPost: Post = {
       title,
@@ -153,9 +176,17 @@ function PostCreationScreen({ route }: { route: any }) {
           </View>
         ))}
       </View>
-      <TouchableOpacity onPress={handleAttachPhoto}>
-        <Icon name="image" size={25} color={Colors.primary[500]}></Icon>
-      </TouchableOpacity>
+
+      <View style={{...GlobalStyles.row,gap:10,alignSelf:'flex-end'}}>
+        <TouchableOpacity onPress={handleAttachPhoto}>
+          <Icon name="image" size={25} color={Colors.primary[500]}></Icon>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleAttachFile}>
+          <Icon2 name="paperclip" size={25} color={Colors.primary[500]}></Icon2>
+        </TouchableOpacity>
+      </View>
+
+
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={[styles.buttonText, { ...GlobalStyles.boldText }]}>
           게시물 생성

@@ -18,6 +18,7 @@ import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
 import Icon3 from 'react-native-vector-icons/AntDesign.js';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 
 function CommentTextField({ addComment }: { addComment: (comment: Comment) => void }) {
@@ -220,8 +221,16 @@ function CommentContainer({comment}: {comment: Comment}) {
   );
 }
 
-function PostScreen({route}: {route: any}) {
+interface PostScreenProps {
+  route: any;
+  navigation: any;
+}
+const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
+
+// function PostScreen({route,navigation}: {route: any,navigation: any}) {
   const post: Post = route.params.post;
+  const lectureName: string = route.params.lectureName;
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [comments, setComments] = useState(post.comments);
 
@@ -260,6 +269,10 @@ function PostScreen({route}: {route: any}) {
     useEffect(()=>{
       console.log(comments)
     },[comments])
+
+    useEffect(() => {
+      navigation.setOptions({title: lectureName});
+    }, [lectureName,navigation]);
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -324,7 +337,6 @@ function PostScreen({route}: {route: any}) {
                 ))}
               </View>
             )}
-
           </View>
 
           <View style={{marginTop: 10}}>
