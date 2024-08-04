@@ -35,34 +35,38 @@ type RichTextType = Array<[string, RichTextOption]>;
 
 const RichText: React.FC<RichTextProps> = ({
   text,
-  textStyle = styles.base,
-  boldTextStyle = styles.bold,
-  lineThroughTextStyle = styles.lineThrough,
-  underlineTextStyle = styles.underline,
+  textStyle,
+  boldTextStyle,
+  lineThroughTextStyle,
+  underlineTextStyle,
 }) => {
   return (
     <Text style={textStyle}>
       {text.map(([val, type], idx) => {
         if (type === RichTextOption.bold) {
           return (
-            <Text key={idx} style={boldTextStyle}>
+            <Text key={idx} style={[styles.bold, boldTextStyle]}>
               {val}
             </Text>
           );
         } else if (type === RichTextOption.underline) {
           return (
-            <Text key={idx} style={underlineTextStyle}>
+            <Text key={idx} style={[styles.underline, underlineTextStyle]}>
               {val}
             </Text>
           );
         } else if (type === RichTextOption.lineThrough) {
           return (
-            <Text key={idx} style={lineThroughTextStyle}>
+            <Text key={idx} style={[styles.lineThrough, lineThroughTextStyle]}>
               {val}
             </Text>
           );
         } else {
-          return <Text key={idx}>{val}</Text>;
+          return (
+            <Text key={idx} style={[styles.default, textStyle]}>
+              {val}
+            </Text>
+          );
         }
       })}
     </Text>
@@ -70,7 +74,7 @@ const RichText: React.FC<RichTextProps> = ({
 };
 
 const styles = StyleSheet.create({
-  base: {
+  default: {
     fontSize: FontSizes.regular,
     color: Colors.text.black,
     ...GlobalStyles.text,

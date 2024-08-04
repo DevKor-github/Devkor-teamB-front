@@ -1,5 +1,5 @@
 // StoreScreen.tsx
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -16,14 +16,17 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import Colors from '@src/Colors';
 import ProgressBar from '@src/components/ProgessBar';
 import RichText, {RichTextOption, RichTextType} from '@src/components/RichText';
+import {useNavigation} from '@react-navigation/native';
+import {PointInstance} from '@src/MockData';
 
 // type StoreScreenProps = NativeStackScreenProps<
 //   BottomTabNavigatorParamList,
 //   'Store'
 // >;
+const pointInstance = PointInstance;
 
 const NotificationBanner = () => {
-  return <View style={{marginVertical: 24}} />;
+  return <View style={{marginVertical: 18}} />;
 };
 
 /** 포인트 관련 컴포넌트 */
@@ -53,26 +56,8 @@ const PointHistory = () => {
   );
 };
 
-const tipStyles = StyleSheet.create({
-  label: {
-    fontSize: FontSizes.medium,
-    color: Colors.text.black,
-    ...GlobalStyles.text,
-  },
-  accent: {
-    fontSize: FontSizes.regular,
-    color: Colors.text.accent,
-    ...GlobalStyles.boldText,
-  },
-  base: {
-    fontSize: FontSizes.regular,
-    color: Colors.text.black,
-    ...GlobalStyles.text,
-  },
-});
-
-const PointTips = () => {
-  const tips: Array<RichTextType> = [
+const tips: Array<RichTextType[]> = [
+  [
     [
       ['신입 회원 ', RichTextOption.default],
       ['100 ', RichTextOption.bold],
@@ -83,6 +68,8 @@ const PointTips = () => {
       ['5 ', RichTextOption.bold],
       ['포인트 적립', RichTextOption.default],
     ],
+  ],
+  [
     [
       ['오늘의 질문 답변 시 ', RichTextOption.default],
       ['10 ', RichTextOption.bold],
@@ -93,41 +80,73 @@ const PointTips = () => {
       ['20 ', RichTextOption.bold],
       ['포인트 적립', RichTextOption.default],
     ],
-  ];
+  ],
+];
+
+const PointTips = () => {
+  const renderItem = (key: any, item: RichTextType) => (
+    <View key={key} style={tipStyles.item}>
+      <View
+        style={{
+          width: 12,
+          height: 12,
+          marginRight: 4,
+          borderRadius: 4,
+          backgroundColor: Colors.primary[600],
+        }}
+      />
+      <RichText
+        textStyle={{fontSize: FontSizes.small}}
+        boldTextStyle={{fontSize: FontSizes.small}}
+        text={item}
+      />
+    </View>
+  );
 
   return (
     <View style={styles.card}>
       <Text style={tipStyles.label}>포인트 Tip</Text>
-      <View style={GlobalStyles.row}>
-        <View style={GlobalStyles.expand}>
-          <RichText text={tips[0]} />
-        </View>
-        <View style={GlobalStyles.expand}>
-          <RichText text={tips[1]} />
-        </View>
-      </View>
-      <View style={GlobalStyles.row}>
-        <View style={GlobalStyles.expand}>
-          <RichText text={tips[2]} />
-        </View>
-        <View style={GlobalStyles.expand}>
-          <RichText text={tips[3]} />
-        </View>
-      </View>
+      {tips.map((row, rowIdx) => {
+        return (
+          <View key={rowIdx} style={tipStyles.textRow}>
+            {row.map((tip, colIdx) => renderItem(colIdx, tip))}
+          </View>
+        );
+      })}
     </View>
   );
 };
 
 const PointInfoButton = () => {
+  const navigation = useNavigation<any>();
   return (
-    <TouchableOpacity style={{alignSelf: 'flex-end'}}>
-      <Text>nn 포인트 {'>'}</Text>
+    <TouchableOpacity
+      onPress={() => navigation.navigate('StoreHistoryScreen')}
+      style={pointStyles.button}>
+      <Image
+        style={pointStyles.buttonIcon}
+        source={require('@assets/icons/coin.png')}
+      />
+      <Text style={{marginLeft: 4}}>nn 포인트</Text>
+      <Image
+        style={pointStyles.buttonIcon}
+        source={require('@assets/icons/arrow_right.png')}
+      />
     </TouchableOpacity>
   );
 };
 
 const PointInfoSection = () => {
-  const point = 180;
+  const [point, setPoints] = useState(pointInstance.getPoints());
+  useEffect(() => {
+    const handlePointsChanged = setPoints;
+    pointInstance.addListener(handlePointsChanged);
+
+    return () => {
+      pointInstance.removeListener(handlePointsChanged);
+    };
+  }, []);
+
   return (
     <View>
       <Text style={styles.label}>적립 및 사용 내역</Text>
@@ -164,7 +183,19 @@ const PromotionBanner = () => {
 /** 상점 관련 컴포넌트 */
 const StoreItemCard = ({title, point}: {title: string; point: number}) => {
   const onStoreItemPress = () => {
-    Alert.alert(`${point}P를 사용합니다`);
+    Alert.alert(`${title}을 구매합니다`, '', [
+      {text: '취소', style: 'destructive'},
+      {
+        text: '확인',
+        onPress: () => {
+          if (!pointInstance.usePoints(point, `${title} 구매`)) {
+            Alert.alert('포인트가 부족합니다');
+          } else {
+            Alert.alert('구매 완료!');
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -173,7 +204,7 @@ const StoreItemCard = ({title, point}: {title: string; point: number}) => {
       onPress={onStoreItemPress}>
       <View style={storeStyles.iconContainer}>
         <Image
-          source={require('@assets/icons/box-open.png')}
+          source={require('@assets/icons/box_open.png')}
           style={storeStyles.icon}
         />
       </View>
@@ -201,6 +232,19 @@ const StoreItemSection = () => {
         <View style={storeStyles.divider} />
         <StoreItemCard title="30일 열람권" point={300} />
       </View>
+      <TouchableOpacity
+        style={{
+          margin: 12,
+          padding: 12,
+          borderRadius: 12,
+          backgroundColor: Colors.ui.secondary,
+          alignItems: 'center',
+        }}
+        onPress={() => {
+          pointInstance.addPoints(100);
+        }}>
+        <Text>100 포인트 추가</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -305,6 +349,15 @@ const pointStyles = StyleSheet.create({
     justifyContent: 'space-between',
     ...GlobalStyles.row,
   },
+  button: {
+    alignSelf: 'flex-end',
+    ...GlobalStyles.row,
+  },
+  buttonIcon: {
+    tintColor: Colors.text.gray,
+    width: 16,
+    height: 16,
+  },
 });
 
 const pointHistoryStyles = StyleSheet.create({
@@ -333,6 +386,34 @@ const pointHistoryStyles = StyleSheet.create({
     alignSelf: 'center',
     width: 28,
     height: 28,
+  },
+});
+
+const tipStyles = StyleSheet.create({
+  label: {
+    fontSize: FontSizes.medium,
+    color: Colors.text.black,
+    marginBottom: 4,
+    ...GlobalStyles.boldText,
+  },
+  item: {
+    alignItems: 'center',
+    ...GlobalStyles.expand,
+    ...GlobalStyles.row,
+  },
+  textRow: {
+    marginTop: 4,
+    ...GlobalStyles.row,
+  },
+  accent: {
+    fontSize: FontSizes.regular,
+    color: Colors.text.accent,
+    ...GlobalStyles.boldText,
+  },
+  base: {
+    fontSize: FontSizes.regular,
+    color: Colors.text.black,
+    ...GlobalStyles.text,
   },
 });
 

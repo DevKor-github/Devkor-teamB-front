@@ -3,15 +3,15 @@ import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 // Screens
-import StoreScreen from '@screens/StoreScreen';
 import MyPageScreen from '@screens/MyPageScreen';
 import TimetableScreen from '@screens/TimetableScreen';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Octicons from 'react-native-vector-icons/Octicons';
 import Colors from '@src/Colors';
+import StoreNavigator from '@src/navigator/StoreNavigator';
 
 export type BottomTabNavigatorParamList = {
-  Store: undefined;
+  StoreNavigator: undefined;
   Timetable: undefined;
   Mypage: undefined;
 };
@@ -20,7 +20,7 @@ const BottomTab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 
 const getTabBarIcon = (route: any, color: string) => {
   switch (route.name) {
-    case 'Store':
+    case 'StoreNavigator':
       return <MaterialIcons name="store" size={30} color={color} />;
     case 'Timetable':
       return <Octicons name="table" size={20} color={color} />;
@@ -44,8 +44,8 @@ function BottomNavigator() {
         tabBarLabelStyle: {fontSize: 12},
       })}>
       <BottomTab.Screen
-        name="Store"
-        component={StoreScreen}
+        name="StoreNavigator"
+        component={StoreNavigator}
         options={{title: '스토어'}}
       />
       <BottomTab.Screen

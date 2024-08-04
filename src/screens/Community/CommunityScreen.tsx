@@ -1,5 +1,12 @@
-import React, {useEffect} from 'react';
-import {View, Text, FlatList, TouchableOpacity, StyleSheet, Image} from 'react-native';
+import React, {useLayoutEffect} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from 'react-native';
 import {mockPosts, mockLectures} from '@src/MockData';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
@@ -10,28 +17,46 @@ import Colors from '@src/Colors';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import FloatingButton from '@src/components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
+import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
 
 interface CommunityScreenProps {
   route: any;
   navigation: any;
 }
 
-const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
+const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   return (
     <TouchableOpacity
       style={postStyles.postItem}
-      onPress={() => navigation.navigate('PostScreen', {post: post, lectureName: lectureName})}>
-      <View style={{...GlobalStyles.row,gap:5}}>
-        <Text style={[postStyles.postText,{color: Colors.primary[500]}]}>Q.</Text>
+      onPress={() =>
+        navigation.navigate('PostScreen', {
+          post: post,
+          lectureName: lectureName,
+        })
+      }>
+      <View style={{...GlobalStyles.row, gap: 5}}>
+        <Text style={[postStyles.postText, {color: Colors.primary[500]}]}>
+          Q.
+        </Text>
         <Text style={postStyles.postText}>{post.title}</Text>
       </View>
-      <Text style={{color:Colors.text.lightgray,marginTop:3}}>{post.postDate}</Text>
+      <Text style={{color: Colors.text.lightgray, marginTop: 3}}>
+        {post.postDate}
+      </Text>
     </TouchableOpacity>
   );
 };
 
-const PostView = ({items, id, lectureName}: {items: Post[]; id: string, lectureName: string}) => {
+const PostView = ({
+  items,
+  id,
+  lectureName,
+}: {
+  items: Post[];
+  id: string;
+  lectureName: string;
+}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   return (
     <View style={postStyles.container}>
@@ -54,7 +79,9 @@ const PostView = ({items, id, lectureName}: {items: Post[]; id: string, lectureN
       ) : (
         <FlatList
           data={items}
-          renderItem={({item}: {item: Post}) => <PostItem post={item} lectureName={lectureName}/>}
+          renderItem={({item}: {item: Post}) => (
+            <PostItem post={item} lectureName={lectureName} />
+          )}
         />
       )}
       <FloatingButton
@@ -67,20 +94,27 @@ const PostView = ({items, id, lectureName}: {items: Post[]; id: string, lectureN
   );
 };
 
-const CommunityScreen: React.FC<CommunityScreenProps> = ({route,navigation,}) => {
+const CommunityScreen: React.FC<CommunityScreenProps> = ({
+  route,
+  navigation,
+}) => {
   const {id} = route.params;
   const communities = mockPosts;
   const lecture = mockLectures.find((e: Lecture) => e.id === id) as Lecture;
 
-  useEffect(() => {
-    navigation.setOptions({title: `${lecture.name} 게시판`});
-  }, [lecture, communities, navigation]);
-  
+  useLayoutEffect(
+    () => setNavigationHeader(navigation, [lecture.name, lecture.professor]),
+    [lecture.name, lecture.professor, navigation],
+  );
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
       <DailyBriefingWidget lecture={lecture} />
-      <PostView items={communities.get(id) as Post[]} id={lecture.id} lectureName={lecture.name}/>
+      <PostView
+        items={communities.get(id) as Post[]}
+        id={lecture.id}
+        lectureName={lecture.name}
+      />
     </SafeAreaView>
   );
 };
@@ -106,7 +140,6 @@ const headerStyle = StyleSheet.create({
   },
   arrow: {width: 16, height: 16, tintColor: Colors.text.lightgray},
 });
-
 
 const styles = StyleSheet.create({
   container: {

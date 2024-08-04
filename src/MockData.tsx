@@ -1,5 +1,5 @@
-import { Lecture, Post, TimeSlot, UserInfo } from '@src/Types';
-import { Asset } from 'react-native-image-picker';
+import { getDateString } from '@src/screens/Community/CommunityUtils';
+import {Lecture, Post, TimeSlot, UserInfo} from '@src/Types';
 
 export const mockLectures: Lecture[] = [
   {
@@ -387,3 +387,59 @@ export const mockPosts: Map<string, Post[]> = new Map([
     ],
   ],
 ]);
+
+class PointsManager {
+  points = 0;
+  listeners: Function[] = [];
+  history: [number, string, string][] = [];
+
+  constructor() {
+    const time = getDateString(new Date().toString());
+    this.listeners = [];
+    this.points = 200;
+    this.history = [[200, '신규 회원 가입', time]];
+  }
+
+  getHistory() {
+    return this.history;
+  }
+
+  getPoints() {
+    return this.points;
+  }
+
+  addPoints(amount: number) {
+    if (amount > 0) {
+      const time = getDateString(new Date().toString());
+      this.points += amount;
+      this.history.unshift([amount, '포인트 적립', time]);
+      this.notifyListeners();
+    }
+  }
+
+  usePoints(amount: number, info: string) {
+    if (amount > 0 && amount <= this.points) {
+      const time = getDateString(new Date().toString());
+      this.points -= amount;
+      this.history.unshift([-amount, info, time]);
+      this.notifyListeners();
+      return true;
+    }
+    return false;
+  }
+
+  addListener(callback: Function) {
+    this.listeners.push(callback);
+  }
+
+  removeListener(callback: Function) {
+    this.listeners = this.listeners.filter(listener => listener !== callback);
+  }
+
+  notifyListeners() {
+    this.listeners.forEach((callback: Function) => callback(this.points));
+  }
+}
+
+const PointInstance = new PointsManager();
+export {PointInstance};
