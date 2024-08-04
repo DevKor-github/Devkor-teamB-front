@@ -4,7 +4,7 @@ import Colors from '@src/Colors';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const INSET = 18;
-const BUTTON_SIZE = 40;
+const BUTTON_SIZE = 48;
 
 interface FloatingButtonProps {
   onPress: Function;

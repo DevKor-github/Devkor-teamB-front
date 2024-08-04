@@ -118,7 +118,7 @@ const TimetableHeader = () => {
       <View style={headerStyles.container}>
         <View style={headerStyles.logoContainer}>
           <Image
-            source={require('@assets/icons/logo.png')}
+            source={require('@assets/icons/app_logo.png')}
             style={headerStyles.logo}
           />
           <Text style={headerStyles.logoText}>KU&A</Text>
