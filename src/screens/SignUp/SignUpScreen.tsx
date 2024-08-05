@@ -17,7 +17,7 @@ function SignUpScreen({navigation}:SignUpScreenProps){
     const isFormFilled = username!=="" && password!=="";
     
     const handleNext = () => {
-        navigation.navigate('Register');
+        navigation.navigate('RegisterInfo');
     }
 
     return(

@@ -174,7 +174,7 @@ const PromotionBanner = () => {
       <Image
         style={promotionStyles.banner}
         resizeMode="contain"
-        source={require('@assets/images/promotion-banner.png')}
+        source={require('@assets/images/promotion_banner.png')}
       />
     </View>
   );

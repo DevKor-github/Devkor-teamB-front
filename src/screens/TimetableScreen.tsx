@@ -292,6 +292,7 @@ const headerStyles = StyleSheet.create({
   },
   logoText: {
     fontSize: FontSizes.xxxLarge,
+    color: Colors.text.white,
     ...GlobalStyles.logo,
   },
   icon: {
