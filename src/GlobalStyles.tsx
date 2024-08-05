@@ -1,4 +1,3 @@
-import Colors from '@src/Colors';
 import {Platform, StyleSheet} from 'react-native';
 
 export const GlobalStyles = StyleSheet.create({
@@ -23,7 +22,6 @@ export const GlobalStyles = StyleSheet.create({
   logo: {
     fontFamily: 'Omnes',
     fontWeight: '900',
-    color: Colors.text.white,
   },
   text: {
     fontFamily: 'Pretendard',

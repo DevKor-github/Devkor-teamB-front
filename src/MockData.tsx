@@ -504,16 +504,22 @@ export const mockPosts: Map<string, Post[]> = new Map([
   ],
 ]);
 
+
+const dateToString = (date: Date): string => {
+  const hms = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+  const ymd = `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+  return `${ymd} ${hms}`;
+};
+
 class PointsManager {
   points = 0;
   listeners: Function[] = [];
   history: [number, string, string][] = [];
 
   constructor() {
-    const time = getDateString(new Date().toString());
     this.listeners = [];
     this.points = 200;
-    this.history = [[200, '신규 회원 가입', time]];
+    this.history = [[200, '신규 회원 가입', dateToString(new Date())]];
   }
 
   getHistory() {
@@ -526,18 +532,16 @@ class PointsManager {
 
   addPoints(amount: number) {
     if (amount > 0) {
-      const time = getDateString(new Date().toString());
       this.points += amount;
-      this.history.unshift([amount, '포인트 적립', time]);
+      this.history.unshift([amount, '포인트 적립', dateToString(new Date())]);
       this.notifyListeners();
     }
   }
 
   usePoints(amount: number, info: string) {
     if (amount > 0 && amount <= this.points) {
-      const time = getDateString(new Date().toString());
       this.points -= amount;
-      this.history.unshift([-amount, info, time]);
+      this.history.unshift([-amount, info, dateToString(new Date())]);
       this.notifyListeners();
       return true;
     }
