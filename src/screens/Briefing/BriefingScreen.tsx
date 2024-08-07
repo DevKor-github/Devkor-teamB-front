@@ -1,4 +1,4 @@
-import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity, Alert} from 'react-native';
 import { useEffect } from 'react';
 import React from 'react';
 import ProgressBar from '@components/ProgessBar';
@@ -48,6 +48,11 @@ interface BriefingScreenProps {
 const BriefingScreen: React.FC<BriefingScreenProps> = ({route,navigation,}) => {
   const lectureName=route.params.lectureName;
 
+  const handleBriefingAnswer = () => {
+    Alert.alert('브리핑 답변하기');
+    // 설문 추가 필요
+  };
+
   useEffect(() => {
     navigation.setOptions({title: `${lectureName}`});
   }, [navigation]);
@@ -79,7 +84,7 @@ const BriefingScreen: React.FC<BriefingScreenProps> = ({route,navigation,}) => {
         <BriefingHeader text='내가 답변한 브리핑' lectureName={lectureName}/>
         <View style={[styles.item,{alignItems:'center',paddingVertical:12,backgroundColor:Colors.primary[50]}]}>
           <Text style={{color: Colors.primary[500],marginBottom:5,fontSize:11}}>아직 {lectureName}의 브리핑을 답변하지 않았어요</Text>
-          <TouchableOpacity style={styles.button_Blur}>
+          <TouchableOpacity style={styles.button_Blur} onPress={handleBriefingAnswer}>
             <Text style={styles.buttonText_Blur}>답변하고 포인트 받기</Text>
           </TouchableOpacity>
         </View>
@@ -116,12 +121,13 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
     borderRadius: 12,
-    padding: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
     ...GlobalStyles.shadow,
-    gap:5
+    gap:12
   },
   progresscontainer: {
-    width: 280
+    width: 260,
   },
   textcontainer: {
     marginLeft: 12,
@@ -129,7 +135,7 @@ const styles = StyleSheet.create({
     ...GlobalStyles.row
   },
   item: {
-    paddingVertical: 10,
+    paddingVertical: 16,
     borderWidth: 2,
     borderColor: '#CDCDCD66',
     borderRadius: 5,

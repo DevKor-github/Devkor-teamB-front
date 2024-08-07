@@ -18,29 +18,51 @@ import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
 import Icon3 from 'react-native-vector-icons/AntDesign.js';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { GlobalStyles } from '@src/GlobalStyles';
+import { tagColors } from '@src/MockData';
+import { launchImageLibrary } from 'react-native-image-picker';
+import DocumentPicker from 'react-native-document-picker'
 
 
 function CommentTextField({ addComment }: { addComment: (comment: Comment) => void }) {
   const [text, setText] = useState('');
   const [inputHeight, setInputHeight] = useState(20);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const placeholder = '첫 댓글 작성 시 포인트 3배 적립';
 
   const handlePressButton = () => {
-    // console.log(text)
-    // console.log(text.trim().length)
+    console.log('pressed')
     if(text.trim().length>0){
       const newComment : Comment = {
-        commentId: 2,
+        commentId: 2, // 하드코딩됨
         userId: 'sampleUserId',
         content: text,
         date: new Date().toString(),
+        attachments,
       }
-      addComment(newComment)
-      setText('')
-      setInputHeight(20)
+      addComment(newComment);
+      setText('');
+      setInputHeight(20);
+      setAttachments([]);
     }
   }
+
+  const handleSelectAttachment = () => {
+    launchImageLibrary({ mediaType: 'mixed', selectionLimit: 3 }, (response) => {
+      if (response.assets) {
+        const newAttachments = response.assets.map(asset => ({
+          uri: asset.uri,
+          name: asset.fileName,
+          type: asset.type,
+        } as Attachment));
+        setAttachments([...attachments, ...newAttachments]);
+      }
+    });
+  };
+
+  const handleRemoveAttachment = (uri: string) => {
+    setAttachments(attachments.filter(attachment => attachment.uri !== uri));
+  };
 
   return (
     <KeyboardAvoidingView 
@@ -58,9 +80,28 @@ function CommentTextField({ addComment }: { addComment: (comment: Comment) => vo
               placeholder={placeholder}
               multiline
             />
-            <TouchableOpacity onPress={handlePressButton}>
-              <Icon name="send" size={18} color={Colors.ui.primary} />
-            </TouchableOpacity>
+            <View>
+              <TouchableOpacity onPress={handlePressButton}>
+                <Icon name="send" size={18} color={Colors.ui.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSelectAttachment}>
+                <Icon name="image" size={18} color={Colors.ui.primary} />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.attachmentPreviewContainer}>
+            {attachments.map(attachment => (
+              <View key={attachment.uri} style={[styles.attachmentWrapper,{paddingBottom: inputHeight}]}>
+                {attachment.type.startsWith('image/') ? (
+                  <Image source={{ uri: attachment.uri }} style={styles.previewImage} />
+                ) : (
+                  <Text style={styles.fileName}>{attachment.name}</Text>
+                )}
+                <TouchableOpacity onPress={() => handleRemoveAttachment(attachment.uri)} style={styles.removeButton}>
+                  <Icon name="x" size={18} color="white" />
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
       </View>
     </KeyboardAvoidingView>
@@ -96,7 +137,42 @@ const styles = StyleSheet.create({
   inner: {
     backgroundColor: 'white',
     justifyContent: 'flex-end',
+    // alignItems: 'center',
+    marginBottom:10,
+  },
+  attachmentPreviewContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 10,
+    marginBottom: 40,
+    marginLeft: 15,
+    marginRight: 45,
+  },
+  attachmentWrapper: {
+    position: 'relative',
     alignItems: 'center',
+    marginRight: 10,
+  },
+  previewImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 5,
+  },
+  fileName: {
+    width: 50,
+    height: 50,
+    borderRadius: 5,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    backgroundColor: '#f0f0f0',
+  },
+  removeButton: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    padding: 2,
   },
 })
 
@@ -175,6 +251,14 @@ function CommentContainer({comment}: {comment: Comment}) {
         <Text style={style.comment}>
           {comment.content}
         </Text>
+        {comment.attachments.map((attachment: Attachment, index: number) => (
+          <Image
+            key={index}
+            source={{ uri: attachment.uri }}
+            style={{ width: 82, height: 82, borderRadius: 9 }}
+          />
+        ))}
+
         {isBlurVisible && (
           <View style={style.commentArea_Blur}>
             <Text style={style.text_Blur}>포인트 사용하고 댓글 보기</Text>
@@ -226,7 +310,6 @@ interface PostScreenProps {
   navigation: any;
 }
 const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
-
 // function PostScreen({route,navigation}: {route: any,navigation: any}) {
   const post: Post = route.params.post;
   const lectureName: string = route.params.lectureName;
@@ -300,21 +383,17 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                 {post.author.name}
               </Text>
               <View style={style.userArea3}>
-                <TouchableOpacity style={style.postButtonPink}>
-                  <Text style={{fontSize: 12, fontWeight: '400'}}>
-                    #기말고사
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={style.postButtonBrown}>
-                  <Text
-                    style={{fontSize: 12, fontWeight: '400', color: '#FFF'}}>
-                    #질문
-                  </Text>
-                </TouchableOpacity>
+                <View style={{...GlobalStyles.row,gap:10}}>
+                  {post.tags.map(tag => (
+                      <View style={{backgroundColor:tagColors[tag.id],borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
+                          <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
+                      </View>
+                  ))}
+                </View>
               </View>
             </View>
 
-            <TouchableOpacity style={{marginLeft: 150}} onPress={toggleMenu}>
+            <TouchableOpacity style={{justifyContent:'center',right:0,position:'absolute'}} onPress={toggleMenu}>
               <Icon name="more-vertical" size={24} color="#3D3D3D" />
             </TouchableOpacity>
           </View>

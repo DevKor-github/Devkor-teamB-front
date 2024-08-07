@@ -33,6 +33,8 @@ const style = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: INSET,
+    backgroundColor: Colors.ui.background,
+    borderRadius:20,
     ...Platform.select({
       ios: {
         shadowColor: 'black',

@@ -1,11 +1,12 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
+import Colors from '@src/Colors';
 import BottomNavigator from '@navigator/BottomTabNavigator';
 import CommunityScreen from '@screens/Community/CommunityScreen';
 import PostScreen from '@screens/Post/PostScreen';
-import Colors from '@src/Colors';
 import PostCreationScreen from '@src/screens/Post/CreatePostScreen';
 import BriefingScreen from '@src/screens/Briefing/BriefingScreen';
+import PostListScreen from '@src/screens/Post/PostListScreen';
 
 const Stack = createStackNavigator();
 
@@ -46,6 +47,15 @@ const TimetableNavigator = () => {
       <Stack.Screen 
         name="BriefingScreen"
         component={BriefingScreen}
+        options={({route}: {route: any}) => ({
+          title: route.params.lectureName,
+          headerBackTitleVisible: false,
+          headerTintColor: Colors.ui.primary,
+        })}
+      />
+      <Stack.Screen 
+        name="PostListScreen"
+        component={PostListScreen}
         options={({route}: {route: any}) => ({
           title: route.params.lectureName,
           headerBackTitleVisible: false,
