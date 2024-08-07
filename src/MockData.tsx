@@ -1,5 +1,6 @@
 import { Lecture, Post, TimeSlot, UserInfo, Tag, Attachment } from '@src/Types';
 import Colors from './Colors';
+import { getDateString } from './screens/Community/CommunityUtils';
 
 export const mockTags: Tag[] = [
   {

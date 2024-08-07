@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useLayoutEffect} from 'react';
 import {View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Modal} from 'react-native';
 import {mockPosts, mockLectures} from '@src/MockData';
 import {useNavigation} from '@react-navigation/native';
