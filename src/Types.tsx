@@ -70,6 +70,7 @@ export type Comment = {
   userId: string;
   content: string;
   date: string;
+  attachments: Attachment[];
 };
 
 export type Attachment = {
@@ -77,6 +78,11 @@ export type Attachment = {
   name: string;
   type: string;
 };
+
+export type Tag = {
+  id: number;
+  name: string;
+}
 
 export type Post = {
   postId: number;
@@ -87,4 +93,5 @@ export type Post = {
   content: string;
   comments: Comment[];
   attachments: Attachment[];
+  tags: Tag[];
 };

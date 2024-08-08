@@ -1,4 +1,37 @@
-import {Lecture, Post, TimeSlot, UserInfo} from '@src/Types';
+import { Lecture, Post, TimeSlot, UserInfo, Tag, Attachment } from '@src/Types';
+import Colors from './Colors';
+import { getDateString } from './screens/Community/CommunityUtils';
+
+export const mockTags: Tag[] = [
+  {
+    id: 1,
+    name: '중간고사',
+  },
+  {
+    id: 2,
+    name: '브리핑',
+  },
+  {
+    id: 3,
+    name: '출석',
+  },
+  {
+    id: 4,
+    name: '기말고사',
+  },
+  {
+    id: 5,
+    name: '과제',
+  }
+]
+
+export const tagColors: { [key: number]: string} = {
+  1: '#FFE0EF',
+  2: '#E8E7FE',
+  3: 'lightgreen',
+  4: 'yellow',
+  5: 'orange',
+};
 
 export const mockLectures: Lecture[] = [
   {
@@ -100,10 +133,6 @@ export const mockLectures: Lecture[] = [
   },
 ];
 
-// export const mockLectures: Lecture[] = [
-//   // existing mockLectures data
-// ];
-
 export const mockPosts: Map<string, Post[]> = new Map([
   [
     'ABCD123',
@@ -122,18 +151,32 @@ export const mockPosts: Map<string, Post[]> = new Map([
             type: 'image/jpeg',
           },
         ],
+        tags: [
+          {
+            id: 5,
+            name: '과제',
+          }
+        ],
         comments: [
           {
             commentId: 0,
             userId: 'user123',
             content: '맞아요! 날씨가 너무 좋아서 기분이 좋아지네요.',
             date: '2024-01-01',
+            attachments: [
+              {
+                uri: 'https://picsum.photos/504',
+                name: 'sunny.jpg',
+                type: 'image/jpeg',
+              },
+            ],
           },
           {
             commentId: 1,
             userId: 'user456',
             content: '그렇죠! 이런 날은 특별한 에너지를 받는 것 같아요.',
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
@@ -146,6 +189,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         content:
           '오늘은 책을 읽는 것만으로도 힐링이 되는 날이에요. 여러분은 어떻게 힐링하시나요?',
         attachments: [],
+        tags: [],
         comments: [
           {
             commentId: 0,
@@ -153,6 +197,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
             content:
               '저도 책을 읽는 걸 좋아해요. 마음이 평화로워지는 기분이 들어요.',
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
@@ -176,6 +221,12 @@ export const mockPosts: Map<string, Post[]> = new Map([
             type: 'image/jpeg',
           },
         ],
+        tags: [
+          {
+            id: 1,
+            name: '중간고사',
+          }
+        ],
         comments: [],
       },
       {
@@ -186,12 +237,23 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 12,
         content: '최근에 들었던 음악 중에 너무 좋았던 노래가 있어요.',
         attachments: [],
+        tags: [
+          {
+            id: 1,
+            name: '중간고사',
+          },
+          {
+            id: 3,
+            name: '출석',
+          },
+        ],
         comments: [
           {
             commentId: 0,
             userId: 'commenter4',
             content: '노래 추천 좋아요! 무슨 노래인지 궁금하네요.',
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
@@ -210,6 +272,16 @@ export const mockPosts: Map<string, Post[]> = new Map([
             type: 'image/jpeg',
           },
         ],
+        tags: [
+          {
+            id: 1,
+            name: '중간고사',
+          },
+          {
+            id: 3,
+            name: '출석',
+          },
+        ],
         comments: [
           {
             commentId: 0,
@@ -217,6 +289,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
             content:
               "영화 추천이요? '인셉션' 같은 거 보시면 재미있을 것 같아요!",
             date: '2024-01-01',
+            attachments: [],
           },
           {
             commentId: 1,
@@ -224,6 +297,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
             content:
               "'인셉션' 좋은 선택이에요. 시간 가는 줄 모르고 봤던 기억이 나네요.",
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
@@ -245,18 +319,26 @@ export const mockPosts: Map<string, Post[]> = new Map([
         content:
           'Welcome to the Introduction to Python course. Feel free to ask any questions here.',
         attachments: [],
+        tags: [
+          {
+            id: 1,
+            name: '중간고사',
+          }
+        ],
         comments: [
           {
             commentId: 1,
             userId: 'user_02',
             content: 'Thank you for the introduction!',
             date: '2024-01-01',
+            attachments: [],
           },
           {
             commentId: 2,
             userId: 'user_03',
             content: 'Excited to start learning!',
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
@@ -279,18 +361,30 @@ export const mockPosts: Map<string, Post[]> = new Map([
             type: 'image/jpeg',
           },
         ],
+        tags: [
+          {
+            id: 1,
+            name: '중간고사',
+          },
+          {
+            id: 2,
+            name: '브리핑',
+          },
+        ],
         comments: [
           {
             commentId: 3,
             userId: 'user_05',
             content: 'What is the difference between a list and a tuple?',
             date: '2024-01-01',
+            attachments: [],
           },
           {
             commentId: 4,
             userId: 'user_06',
             content: 'Can you give examples of dictionary use cases?',
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
@@ -307,18 +401,26 @@ export const mockPosts: Map<string, Post[]> = new Map([
         content:
           'In this post, we will discuss loops, conditionals, and error handling in Python.',
         attachments: [],
+        tags: [
+          {
+            id: 2,
+            name: '브리핑',
+          },
+        ],
         comments: [
           {
             commentId: 5,
             userId: 'user_08',
             content: 'How do you handle exceptions in Python?',
             date: '2024-01-01',
+            attachments: [],
           },
           {
             commentId: 6,
             userId: 'user_09',
             content: 'What are the different types of loops in Python?',
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
@@ -340,18 +442,30 @@ export const mockPosts: Map<string, Post[]> = new Map([
             type: 'image/jpeg',
           },
         ],
+        tags: [
+          {
+            id: 1,
+            name: '중간고사',
+          },
+          {
+            id: 3,
+            name: '출석',
+          },
+        ],
         comments: [
           {
             commentId: 7,
             userId: 'user_11',
             content: 'What is the syntax for defining a function?',
             date: '2024-01-01',
+            attachments: [],
           },
           {
             commentId: 8,
             userId: 'user_12',
             content: 'Can functions return multiple values?',
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
@@ -368,18 +482,21 @@ export const mockPosts: Map<string, Post[]> = new Map([
         content:
           'This post will cover how to use and create modules and packages in Python.',
         attachments: [],
+        tags: [],
         comments: [
           {
             commentId: 9,
             userId: 'user_14',
             content: 'What is the difference between a module and a package?',
             date: '2024-01-01',
+            attachments: [],
           },
           {
             commentId: 10,
             userId: 'user_15',
             content: 'How do you import a module in Python?',
             date: '2024-01-01',
+            attachments: [],
           },
         ],
       },
