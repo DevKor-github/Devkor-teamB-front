@@ -26,13 +26,25 @@ const App: React.FC = () => {
   return (
     <NavigationContainer>
       <RootStack.Navigator
-        initialRouteName="Login"
+        initialRouteName="Home"
         screenOptions={{headerShown: false}}>
         <RootStack.Screen name="Login" component={LoginScreen} />
         <RootStack.Screen name="Email" component={EmailScreen} />
         <RootStack.Screen name="SignUp" component={SignUpScreen} />
-        <RootStack.Screen name="RegisterInfo" component={RegisterInfoScreen} />
-        <RootStack.Screen name="Register" component={RegisterScreen} />
+        <RootStack.Screen
+          name="RegisterInfo"
+          component={RegisterInfoScreen}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
+        <RootStack.Screen
+          name="Register"
+          component={RegisterScreen}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
         <RootStack.Screen name="Home" component={HomeScreen} />
       </RootStack.Navigator>
     </NavigationContainer>

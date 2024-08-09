@@ -6,8 +6,6 @@ import {
   Text,
   Image,
   ImageSourcePropType,
-  Animated,
-  PanResponder,
   Dimensions,
 } from 'react-native';
 import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
@@ -15,8 +13,7 @@ import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import WeeklyTimetableScreen from '@screens/Timetable/WeeklyTimetableScreen';
 import {SafeAreaView} from 'react-native-safe-area-context';
-
-const WINDOW_WIDTH = Dimensions.get('window').width;
+import {ScrollView} from 'react-native-gesture-handler';
 
 enum ViewMode {
   Daily,
@@ -142,86 +139,40 @@ const TimetableHeader = () => {
   );
 };
 
-const ANIMATE_TO_DAILY = (
-  anim: Animated.AnimatedValue,
-  setViewMode: Function,
-) => {
-  Animated.spring(anim, {
-    toValue: 0,
-    useNativeDriver: false,
-  }).start();
-  setViewMode(ViewMode.Daily);
-};
-
-const ANIMATE_TO_WEEKLY = (
-  anim: Animated.AnimatedValue,
-  setViewMode: Function,
-) => {
-  Animated.spring(anim, {
-    toValue: -WINDOW_WIDTH,
-    useNativeDriver: false,
-  }).start();
-  setViewMode(ViewMode.Weekly);
-};
-
 const TimetableScreen = () => {
   const [viewMode, setViewMode] = useState(ViewMode.Daily);
-  const translateX = useRef(new Animated.Value(0)).current;
-  const currentPage = useRef(viewMode);
-  const THRESHOLD = WINDOW_WIDTH / 3;
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, __) => true,
-      onPanResponderMove: (_, gestureState) => {
-        const dx = gestureState.dx;
-        if (!currentPage.current && dx < 0) {
-          translateX.setValue(dx);
-        } else if (currentPage.current && dx > 0) {
-          translateX.setValue(-WINDOW_WIDTH + dx);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        const dx = gestureState.dx;
-        if (currentPage.current) {
-          if (dx > THRESHOLD) {
-            currentPage.current = ViewMode.Daily;
-            ANIMATE_TO_DAILY(translateX, setViewMode);
-          } else {
-            ANIMATE_TO_WEEKLY(translateX, setViewMode);
-          }
-        } else {
-          if (dx < -THRESHOLD) {
-            currentPage.current = ViewMode.Weekly;
-            ANIMATE_TO_WEEKLY(translateX, setViewMode);
-          } else {
-            ANIMATE_TO_DAILY(translateX, setViewMode);
-          }
-        }
-      },
-    }),
-  ).current;
-  const onClick = (newMode: ViewMode) => {
-    if (newMode === ViewMode.Daily) {
-      ANIMATE_TO_DAILY(translateX, setViewMode);
-    } else {
-      ANIMATE_TO_WEEKLY(translateX, setViewMode);
-    }
+  const scrollViewRef = useRef<ScrollView | null>(null);
+  const width = Dimensions.get('window').width;
+  const handleScroll = (event: any) => {
+    const offset = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offset / width);
+    setViewMode(index);
   };
 
   return (
     <View style={styles.container}>
       <TimetableHeader />
-      <NavigationRow mode={viewMode} onClick={onClick} />
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{transform: [{translateX}], ...styles.content}}>
-        <View style={GlobalStyles.expand}>
+      <NavigationRow
+        mode={viewMode}
+        onClick={(mode: ViewMode) => {
+          scrollViewRef.current?.scrollTo({x: mode * width, animated: true});
+        }}
+      />
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        bounces={false}
+        onScroll={handleScroll}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}>
+        <View style={{width}}>
           <DailyTimetableScreen />
         </View>
-        <View style={GlobalStyles.expand}>
+        <View style={{width}}>
           <WeeklyTimetableScreen />
         </View>
-      </Animated.View>
+      </ScrollView>
     </View>
   );
 };
@@ -307,11 +258,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.ui.background,
     ...GlobalStyles.expand,
-  },
-  content: {
-    width: WINDOW_WIDTH * 2,
-    ...GlobalStyles.expand,
-    ...GlobalStyles.row,
   },
 });
 

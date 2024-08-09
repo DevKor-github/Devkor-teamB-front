@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {
   Alert,
   FlatList,
@@ -19,10 +19,7 @@ import {Lecture} from '@src/Types';
 import Timetable from '@components/Timetable/Timetable';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {useNavigation} from '@react-navigation/native';
-import {
-  createStackNavigator,
-  StackNavigationProp,
-} from '@react-navigation/stack';
+import {StackNavigationProp} from '@react-navigation/stack';
 import {doesOverlap} from '@components/Timetable/TimetableUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
@@ -350,8 +347,8 @@ const buttonStyles = StyleSheet.create({
     backgroundColor: Colors.primary[500],
     borderRadius: 100,
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 4,
+    paddingHorizontal: 18,
+    paddingVertical: 6,
   },
   addButtonText: {
     color: Colors.text.white,

@@ -65,7 +65,6 @@ const barNoChildStyle = StyleSheet.create({
 
 const barWithChildrenStyle = StyleSheet.create({
   background: {
-    width: '100%',
     backgroundColor: Colors.ui.background,
     borderRadius: 100,
     borderWidth: 1,
@@ -76,7 +75,7 @@ const barWithChildrenStyle = StyleSheet.create({
     position: 'absolute',
     backgroundColor: Colors.primary[50],
     borderRadius: 30,
-    height: 30,
+    height: 28,
   },
   content: {
     marginHorizontal: 12,

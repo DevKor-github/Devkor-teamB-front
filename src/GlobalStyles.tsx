@@ -6,7 +6,7 @@ export const GlobalStyles = StyleSheet.create({
       ios: {
         shadowColor: 'black',
         shadowOpacity: 0.2,
-        shadowOffset: {width: 0, height: 0},
+        shadowOffset: {width: 0, height: 1},
       },
       android: {
         elevation: 3,
