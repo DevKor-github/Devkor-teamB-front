@@ -1,6 +1,4 @@
-import { Lecture, Post, TimeSlot, UserInfo, Tag, Attachment } from '@src/Types';
-import Colors from './Colors';
-import { getDateString } from './screens/Community/CommunityUtils';
+import {Lecture, Post, TimeSlot, UserInfo, Tag} from '@src/Types';
 
 export const mockTags: Tag[] = [
   {
@@ -22,10 +20,10 @@ export const mockTags: Tag[] = [
   {
     id: 5,
     name: '과제',
-  }
-]
+  },
+];
 
-export const tagColors: { [key: number]: string} = {
+export const tagColors: {[key: number]: string} = {
   1: '#FFE0EF',
   2: '#E8E7FE',
   3: 'lightgreen',
@@ -155,7 +153,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
           {
             id: 5,
             name: '과제',
-          }
+          },
         ],
         comments: [
           {
@@ -225,7 +223,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
           {
             id: 1,
             name: '중간고사',
-          }
+          },
         ],
         comments: [],
       },
@@ -323,7 +321,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
           {
             id: 1,
             name: '중간고사',
-          }
+          },
         ],
         comments: [
           {
@@ -503,7 +501,6 @@ export const mockPosts: Map<string, Post[]> = new Map([
     ],
   ],
 ]);
-
 
 const dateToString = (date: Date): string => {
   const hms = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;

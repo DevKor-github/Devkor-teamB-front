@@ -1,5 +1,4 @@
-// StoreScreen.tsx
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -8,6 +7,8 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
+  FlatList,
+  ImageSourcePropType,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,7 +18,7 @@ import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Colors from '@src/Colors';
 import ProgressBar from '@src/components/ProgessBar';
-import RichText, {RichTextOption, RichTextType} from '@src/components/RichText';
+import RichText, {RichTextOption} from '@src/components/RichText';
 import {useNavigation} from '@react-navigation/native';
 import {PointInstance} from '@src/MockData';
 
@@ -58,52 +59,65 @@ const PointHistory = () => {
   );
 };
 
-const tips: Array<RichTextType[]> = [
+const tips: {
+  icon: ImageSourcePropType;
+  texts: [string, RichTextOption][];
+}[][] = [
   [
-    [
-      ['신입 회원 ', RichTextOption.default],
-      ['100 ', RichTextOption.bold],
-      ['포인트 적립', RichTextOption.default],
-    ],
-    [
-      ['게시글 답변 작성 시 ', RichTextOption.default],
-      ['5 ', RichTextOption.bold],
-      ['포인트 적립', RichTextOption.default],
-    ],
+    {
+      icon: require('@assets/icons/tip_new.png'),
+      texts: [
+        ['신입 회원 ', RichTextOption.default],
+        ['100 ', RichTextOption.bold],
+        ['포인트 적립', RichTextOption.default],
+      ],
+    },
+    {
+      icon: require('@assets/icons/tip_response.png'),
+      texts: [
+        ['게시글 답변 작성 시 ', RichTextOption.default],
+        ['5 ', RichTextOption.bold],
+        ['포인트 적립', RichTextOption.default],
+      ],
+    },
   ],
   [
-    [
-      ['오늘의 질문 답변 시 ', RichTextOption.default],
-      ['10 ', RichTextOption.bold],
-      ['포인트 적립', RichTextOption.default],
-    ],
-    [
-      ['게시글 답변 채택 시 ', RichTextOption.default],
-      ['20 ', RichTextOption.bold],
-      ['포인트 적립', RichTextOption.default],
-    ],
+    {
+      icon: require('@assets/icons/tip_question.png'),
+      texts: [
+        ['오늘의 질문 답변 시 ', RichTextOption.default],
+        ['10 ', RichTextOption.bold],
+        ['포인트 적립', RichTextOption.default],
+      ],
+    },
+    {
+      icon: require('@assets/icons/tip_accept.png'),
+      texts: [
+        ['게시글 답변 채택 시 ', RichTextOption.default],
+        ['20 ', RichTextOption.bold],
+        ['포인트 적립', RichTextOption.default],
+      ],
+    },
   ],
 ];
 
 const PointTips = () => {
-  const renderItem = (key: any, item: RichTextType) => (
-    <View key={key} style={tipStyles.item}>
-      <View
-        style={{
-          width: 12,
-          height: 12,
-          marginRight: 4,
-          borderRadius: 4,
-          backgroundColor: Colors.primary[600],
-        }}
-      />
-      <RichText
-        textStyle={{fontSize: FontSizes.small}}
-        boldTextStyle={{fontSize: FontSizes.small}}
-        text={item}
-      />
-    </View>
-  );
+  const renderItem = (
+    key: any,
+    icon: ImageSourcePropType,
+    texts: [string, RichTextOption][],
+  ) => {
+    return (
+      <View key={key} style={tipStyles.item}>
+        <Image style={tipStyles.icon} source={icon} />
+        <RichText
+          textStyle={{fontSize: FontSizes.small}}
+          boldTextStyle={{fontSize: FontSizes.small}}
+          text={texts}
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={styles.card}>
@@ -111,7 +125,7 @@ const PointTips = () => {
       {tips.map((row, rowIdx) => {
         return (
           <View key={rowIdx} style={tipStyles.textRow}>
-            {row.map((tip, colIdx) => renderItem(colIdx, tip))}
+            {row.map((tip, colIdx) => renderItem(colIdx, tip.icon, tip.texts))}
           </View>
         );
       })}
@@ -169,14 +183,75 @@ const PointInfoSection = () => {
   );
 };
 
+const FlatListIndicator = ({isCurrent}: {isCurrent: boolean}) => {
+  if (isCurrent) {
+    return (
+      <View
+        style={{
+          backgroundColor: Colors.ui.primary,
+          ...promotionStyles.dot,
+        }}
+      />
+    );
+  } else {
+    return (
+      <View
+        style={{
+          backgroundColor: Colors.ui.onPrimary,
+          ...promotionStyles.dot,
+        }}
+      />
+    );
+  }
+};
+
 /** 프로모션 배너 컴포넌트 */
 const PromotionBanner = () => {
+  const [width, setWidth] = useState(0);
+  const ads = [
+    {id: 0, text: 'Ad 1'},
+    {id: 1, text: 'Ad 2'},
+    {id: 2, text: 'Ad 3'},
+    {id: 3, text: 'Ad 4'},
+    {id: 4, text: 'Ad 5'},
+  ];
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList | null>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex(prevIndex => {
+        const nextIndex = (prevIndex + 1) % ads.length;
+        flatListRef.current?.scrollToIndex({index: nextIndex});
+        return nextIndex;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  });
+
   return (
-    <View style={promotionStyles.container}>
-      <Image
-        style={promotionStyles.banner}
-        resizeMode="contain"
-        source={require('@assets/images/promotion_banner.png')}
+    <View
+      style={promotionStyles.container}
+      onLayout={e => setWidth(e.nativeEvent.layout.width)}>
+      <View style={promotionStyles.indicator}>
+        {ads.map(({id}) => (
+          <FlatListIndicator key={id} isCurrent={id === currentIndex} />
+        ))}
+      </View>
+      <FlatList
+        data={ads}
+        ref={flatListRef}
+        horizontal
+        pagingEnabled
+        scrollEnabled={false}
+        showsHorizontalScrollIndicator={false}
+        renderItem={({item}) => (
+          <View style={{width, justifyContent: 'center', alignItems: 'center'}}>
+            <Text>{item.text}</Text>
+          </View>
+        )}
+        keyExtractor={item => item.id}
       />
     </View>
   );
@@ -234,6 +309,7 @@ const StoreItemSection = () => {
         <View style={storeStyles.divider} />
         <StoreItemCard title="30일 열람권" point={300} />
       </View>
+      {/* 테스트 후에 삭제할 컴포넌트 */}
       <TouchableOpacity
         style={{
           margin: 12,
@@ -265,6 +341,28 @@ const StoreScreen = () => {
     </SafeAreaView>
   );
 };
+
+const promotionStyles = StyleSheet.create({
+  indicator: {
+    position: 'absolute',
+    right: 0,
+    margin: 12,
+    flexDirection: 'row',
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 6,
+    marginRight: 4,
+  },
+  container: {
+    height: 92,
+    backgroundColor: Colors.ui.disabled,
+    borderRadius: 10,
+    marginVertical: 18,
+  },
+  banner: {width: 'auto'},
+});
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -325,11 +423,6 @@ const storeStyles = StyleSheet.create({
     padding: 6,
     ...GlobalStyles.shadow,
   },
-});
-
-const promotionStyles = StyleSheet.create({
-  container: {marginVertical: 18},
-  banner: {width: 'auto'},
 });
 
 const pointStyles = StyleSheet.create({
@@ -402,6 +495,11 @@ const tipStyles = StyleSheet.create({
     alignItems: 'center',
     ...GlobalStyles.expand,
     ...GlobalStyles.row,
+  },
+  icon: {
+    width: 10,
+    height: 10,
+    marginRight: 4,
   },
   textRow: {
     marginTop: 4,
