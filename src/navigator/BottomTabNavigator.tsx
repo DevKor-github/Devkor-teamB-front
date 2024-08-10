@@ -5,10 +5,10 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 // Screens
 import MyPageScreen from '@screens/MyPageScreen';
 import TimetableScreen from '@screens/TimetableScreen';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Octicons from 'react-native-vector-icons/Octicons';
 import Colors from '@src/Colors';
 import StoreNavigator from '@src/navigator/StoreNavigator';
+import {Image} from 'react-native-animatable';
+import {StyleSheet} from 'react-native';
 
 export type BottomTabNavigatorParamList = {
   StoreNavigator: undefined;
@@ -18,14 +18,45 @@ export type BottomTabNavigatorParamList = {
 
 const BottomTab = createBottomTabNavigator<BottomTabNavigatorParamList>();
 
-const getTabBarIcon = (route: any, color: string) => {
+const style = StyleSheet.create({
+  icon: {width: 20, height: 20},
+});
+
+const getTabBarIcon = (route: any, focused: boolean) => {
   switch (route.name) {
     case 'StoreNavigator':
-      return <MaterialIcons name="store" size={30} color={color} />;
+      return (
+        <Image
+          source={
+            focused
+              ? require('@assets/icons/store_active.png')
+              : require('@assets/icons/store_inactive.png')
+          }
+          style={style.icon}
+        />
+      );
     case 'Timetable':
-      return <Octicons name="table" size={20} color={color} />;
+      return (
+        <Image
+          source={
+            focused
+              ? require('@assets/icons/table_active.png')
+              : require('@assets/icons/table_inactive.png')
+          }
+          style={style.icon}
+        />
+      );
     case 'Mypage':
-      return <MaterialIcons name="person" size={30} color={color} />;
+      return (
+        <Image
+          source={
+            focused
+              ? require('@assets/icons/mypage_active.png')
+              : require('@assets/icons/mypage_inactive.png')
+          }
+          style={style.icon}
+        />
+      );
     default:
       return null;
   }
@@ -37,7 +68,7 @@ function BottomNavigator() {
       initialRouteName="Timetable"
       screenOptions={({route}) => ({
         headerShown: false,
-        tabBarIcon: ({color}) => getTabBarIcon(route, color),
+        tabBarIcon: ({focused}) => getTabBarIcon(route, focused),
         tabBarActiveTintColor: Colors.ui.primary,
         tabBarInactiveTintColor: Colors.ui.disabled,
         tabBarStyle: {backgroundColor: Colors.ui.background},
