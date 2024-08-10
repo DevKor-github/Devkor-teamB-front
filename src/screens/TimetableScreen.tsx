@@ -58,11 +58,22 @@ const NavigationButton = ({
   enabled: boolean;
   onPress: Function;
 }) => {
-  const style = enabled ? navigationStyles.enabled : navigationStyles.disabled;
   return (
     <TouchableOpacity style={navigationStyles.button} onPress={() => onPress()}>
-      <Image source={icon} style={navigationStyles.icon} />
-      <Text style={style}>{label}</Text>
+      <Image
+        source={icon}
+        style={[
+          navigationStyles.icon,
+          {tintColor: enabled ? Colors.ui.primary : Colors.ui.disabled},
+        ]}
+      />
+      <Text
+        style={[
+          navigationStyles.buttonText,
+          {color: enabled ? Colors.ui.primary : Colors.ui.disabled},
+        ]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 };
@@ -85,21 +96,13 @@ const NavigationRow = ({
       <View style={GlobalStyles.row}>
         <NavigationButton
           label="Daily"
-          icon={
-            mode === ViewMode.Daily
-              ? require('@assets/icons/daily1.png')
-              : require('@assets/icons/daily2.png')
-          }
+          icon={require('@assets/icons/icon_daily.png')}
           enabled={mode === ViewMode.Daily}
           onPress={() => onClick(ViewMode.Daily)}
         />
         <NavigationButton
           label="Weekly"
-          icon={
-            mode === ViewMode.Weekly
-              ? require('@assets/icons/weekly1.png')
-              : require('@assets/icons/weekly2.png')
-          }
+          icon={require('@assets/icons/icon_weekly.png')}
           enabled={mode === ViewMode.Weekly}
           onPress={() => onClick(ViewMode.Weekly)}
         />
@@ -197,16 +200,9 @@ const navigationStyles = StyleSheet.create({
     marginRight: 8,
     alignSelf: 'center',
   },
-  enabled: {
+  buttonText: {
     textAlign: 'center',
     fontSize: FontSizes.xxLarge,
-    color: Colors.text.accent,
-    ...GlobalStyles.boldText,
-  },
-  disabled: {
-    textAlign: 'center',
-    fontSize: FontSizes.xxLarge,
-    color: Colors.text.lightgray,
     ...GlobalStyles.boldText,
   },
   dateText: {
