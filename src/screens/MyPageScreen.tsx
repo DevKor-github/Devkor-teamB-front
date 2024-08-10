@@ -64,16 +64,11 @@ const styles = StyleSheet.create({
     },
     header: {
         backgroundColor: "#ff1485",
-        // paddingVertical: 0,
-        // paddingHorizontal: 16,
         position: 'relative',
-        
     },
     headerContent: {
-        marginTop: 100, // 배경색 아래쪽 공간 확보
-        // paddingLeft: 0, // 이미지와 텍스트 간격을 위한 여백
+        marginTop: 100, 
         flexDirection: "row",
-        // alignItems: "center",
         backgroundColor: 'white',
         width: 400,
         marginVertical: 0,
@@ -84,13 +79,13 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 30,
         position: 'absolute',
-        left: 16, // 이미지를 왼쪽에 고정
-        top: 40, // 배경색 경계선에 걸치도록 위치 설정
-        zIndex: 10, // 이미지의 zIndex를 높게 설정하여 다른 요소들 위에 오도록 함
+        left: 16, 
+        top: 40, 
+        zIndex: 10, 
     },
     userInfo: {
         marginLeft: 16,
-        zIndex: 10, // 이미지의 zIndex를 높게 설정하여 다른 요소들 위에 오도록 함
+        zIndex: 10, 
         paddingBottom: 15,
     },
     userName: {
@@ -98,13 +93,13 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "bold",
         color: "black",
-        zIndex: 10, // 이미지의 zIndex를 높게 설정하여 다른 요소들 위에 오도록 함
+        zIndex: 10, 
     },
     userSchool: {
         fontSize: 15,
         color: "black",
         marginVertical: 4,
-        zIndex: 10, // 이미지의 zIndex를 높게 설정하여 다른 요소들 위에 오도록 함
+        zIndex: 10, 
     },
     schoolCertificationButton: {
         backgroundColor: "#E8036E",
@@ -113,7 +108,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         alignSelf: "center",
         marginLeft: 10,
-        zIndex: 10, // 이미지의 zIndex를 높게 설정하여 다른 요소들 위에 오도록 함
+        zIndex: 10, 
     },
     userDetail:{
         flexDirection: "row",
@@ -126,14 +121,12 @@ const styles = StyleSheet.create({
         marginLeft: 3,
         marginRight: 3,
         fontWeight: 'bold',
-        
     },
     separator:{
         alignSelf: 'center',
-        height: 1, // 높이를 1px로 설정하여 얇은 선을 만듭니다.
-        width: '90%', // 가로로 화면 전체를 차지하도록 설정합니다.
-        backgroundColor: '#D9D9D9', // 선의 색상을 설정합니다.
-  // 선 위아래에 여백을 줄 수 있습니다.
+        height: 1,
+        width: '90%', 
+        backgroundColor: '#D9D9D9',
     },
     body: {
         flex: 1,
@@ -161,13 +154,11 @@ const styles = StyleSheet.create({
     itemText: {
         fontSize: 14,
         color: "#333",
-
     },
     watermark: {
-        resizeMode: 'contain', // 워터마크 이미지가 잘 보이도록 조정
-        opacity: 0.1, // 투명도 설정
+        resizeMode: 'contain', 
+        opacity: 0.1, 
     },
-    
 });
 
 export default MyPageScreen;

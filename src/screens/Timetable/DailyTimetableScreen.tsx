@@ -24,7 +24,6 @@ const getCurrentDay = () => {
   return days[today.getDay()];
 };
 
-
 const filterLecturesByDay = (lectures: any[], day: string) => {
   return lectures.filter(lecture =>
     lecture.time.some((timeSlot: any) => timeSlot.day === day)
@@ -126,10 +125,6 @@ const App = () => {
     const currentTime = convertTimeToMinutes(beforeConvert); // 현재 시간 "HH:mm" 형식으로 변환
     const startTime = convertTimeToMinutes(section.start);
     const endTime = convertTimeToMinutes(section.end);
-    // console.log("startTime: ", startTime, "endTime: ", endTime );
-    // console.log("beforeConvert: ", beforeConvert);
-    // console.log("currentTime: ", currentTime);
-    // console.log(section);
     return currentTime >= startTime && currentTime <= endTime;
   }
 
@@ -142,23 +137,12 @@ const App = () => {
     console.log({value});
 
     return(
-      <Animatable.View
-        duration={400}
-        // style={[
-        //   styles.lectureHeader,
-        //   isActive? styles.lectureHeaderActive : styles.lectureHeader,
-        //   // styles.lectureHeaderActive ,
-        //   // isNowInLectureTime(section)? (isActive? styles.nowLectureHeader  :  styles.lectureHeader) : {},
-        //   // isNowInLectureTime(section)? styles.nowLectureHeader  :  styles.lectureHeader,
-        // ]}
-        transition="backgroundColor">
+      <Animatable.View duration={400} transition="backgroundColor">
 
 <Animatable.View  style={[
           styles.lectureHeader,
           isNowInLectureTime(section) && styles.nowLectureHeader, // 현재 시간이 수업 시간이라면 적용
           isActive && styles.lectureHeaderActive, // 활성 상태라면 적용
-          // isNowInLectureTime(section)? styles.nowLectureHeader :{} ,
-          // isActive? styles.lectureHeaderActive : styles.lectureHeader, 
          ]}>
           <View style={styles.headerRow}>
         <Image source={ isTouched(section)? 
@@ -198,33 +182,12 @@ const App = () => {
           }
         
  </Animatable.View>
-
-        
+  
       </Animatable.View>
     );
   };
 
   const renderContent = (section: any, _: any, isActive: boolean) => {
-    // if (isActive) {
-    //   return (
-    //     <View style={styles.lectureContent}>
-    //       <View>
-    //         {section.content.map((item: any, index: any) => (
-    //           <View key={index} style={styles.checkboxContainer}>
-    //             <Text style={styles.contentText}>{item}</Text>
-    //           </View>
-    //         ))}
-    //         <TouchableOpacity
-    //           style={styles.briefingButton}
-    //           onPress={() => {navigation.navigate('Community', { id: section.id })}}
-    //         >
-    //           <Text style={styles.briefingText}>{section.briefing}</Text>
-    //         </TouchableOpacity>
-    //       </View>
-    //     </View>
-    //   );
-    // }
-    
     return null; // isActive가 false일 때는 아무것도 렌더링하지 않음
   };
   
@@ -344,10 +307,6 @@ const styles = StyleSheet.create({
     height: 85,
     elevation: 8,
     overflow: 'hidden',
-
-    // backgroundColor: '#FFF',
-    // borderColor: '#FF1485',
-    // height: 300,
     
   },
   lectureHeaderActive: {
