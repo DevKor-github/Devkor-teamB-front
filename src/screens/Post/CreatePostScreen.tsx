@@ -27,6 +27,11 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: 'white',
   },
+  tagContainer: {
+    ...GlobalStyles.row,
+    flexWrap : 'wrap',
+    marginBottom: 10,
+  },
   inputTitle: {
     marginBottom: 16,
     width: 358,
@@ -103,13 +108,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+  tag: {
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    // ...GlobalStyles.shadow,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'lightgray',
+    // backgroundColor: 'white',
+    margin: 2
+  },
+  tagPressed: {
+    // paddingVertical: 3,
+    // paddingHorizontal: 8,
+    // ...GlobalStyles.shadow,
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    // borderRadius: 12,
+    backgroundColor: 'pink',
+    margin: 2
+  },
+  tagText: {
+    color: "#A0A0A0",
+    fontWeight: 300,
+    fontSize: 12,
+    ...GlobalStyles.text
+  },
+  tagTextPressed: {
+    color: "black",
+    fontWeight: 300,
+    fontSize: 12,
+    ...GlobalStyles.text
+  }
 });
 
-// type Attachment = {
-//   uri: string;
-//   name: string;
-//   type: string;
-// };
 
 
 function PostCreationScreen({ route }: { route: any }) {
@@ -120,6 +154,12 @@ function PostCreationScreen({ route }: { route: any }) {
   const [files, setFiles] = useState<Attachment[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const navigation = useNavigation<StackNavigationProp<any>>();
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+
+  useEffect(()=>{
+    fetchTags();
+  },[])
 
   const handleAttachPhoto = async () => {
     console.log(images)
@@ -156,10 +196,10 @@ function PostCreationScreen({ route }: { route: any }) {
     setFiles(files.filter(file => file.uri !== uri));
   };
 
-  const handleRemoveAttachment = (uri: string) => {
-    console.log('pressed')
-    setAttachments(attachments.filter(attachment => attachment.uri !== uri));
-  };
+  // const handleRemoveAttachment = (uri: string) => {
+  //   console.log('pressed')
+  //   setAttachments(attachments.filter(attachment => attachment.uri !== uri));
+  // };
 
   const handleAttachFile = async () => {
     try {
@@ -210,7 +250,7 @@ function PostCreationScreen({ route }: { route: any }) {
   };
 
 
-  const sample = async ()=>{
+  const fetchTags = async ()=>{
     const API_URL = "http://15.165.198.75:8000"
     try {
       const token = await AsyncStorage.getItem('userToken')
@@ -221,24 +261,55 @@ function PostCreationScreen({ route }: { route: any }) {
           },
         },
       );
-      console.log(response)
-      console.log(response.data)
+      // console.log(response.status)
+      if(response.status===200){
+        const fetchedTags: Tag[] = response.data
+          .filter((data: any) => data.id > 2) 
+          .map((data: any) => ({
+            id: data.id,
+            name: data.name,
+          }));
+        setTags(fetchedTags); 
+        console.log(tags[2])
+      }
+      
     } catch (error) {
       console.error('Error fetching tags:', error);
     }
   }
 
+  const toggleTagSelection = (tagId: number) => {
+    if (selectedTags.includes(tagId)) {
+      setSelectedTags(selectedTags.filter(id => id !== tagId));
+    } else {
+      setSelectedTags([...selectedTags, tagId]);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
 
+      <Text style={{color: Colors.text.black,...GlobalStyles.text,fontSize: 18,fontWeight: 600,marginBottom:10,}}>키워드 선택하기</Text>
+      <View style={styles.tagContainer}>
+        {tags.map((data)=>(
+          <TouchableOpacity
+            key={data.id} 
+            style={[styles.tag, selectedTags.includes(data.id) && styles.tagPressed]}
+            onPress={() => toggleTagSelection(data.id)}
+          >
+            <Text style={[styles.tagText, selectedTags.includes(data.id) && styles.tagTextPressed]}>{data.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+
+      <Text style={{color: Colors.text.black,...GlobalStyles.text,fontSize: 18,fontWeight: 600,marginBottom:10,}}>게시글 작성하기</Text>
       <TextInput
         style={styles.inputTitle}
         placeholder="제목"
         value={title}
         onChangeText={setTitle}
       />
-      <Text>키워드 선택하기</Text>
-
       <TextInput
         style={styles.inputText}
         placeholder="내용을 입력하세요."
@@ -247,24 +318,9 @@ function PostCreationScreen({ route }: { route: any }) {
         multiline
       />
 
-
-      <View style={{alignSelf: 'flex-start'}}>
-        <TouchableOpacity onPress={sample}>
-          <Text>#태그입력하기</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={{...GlobalStyles.row,gap:10,alignSelf:'flex-end'}}>
-        <TouchableOpacity onPress={handleAttachPhoto}>
-          <Icon name="image" size={25} color={Colors.primary[500]}></Icon>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleAttachFile}>
-          <Icon2 name="paperclip" size={25} color={Colors.primary[500]}></Icon2>
-        </TouchableOpacity>
-      </View>
-
       <TouchableOpacity 
         onPress={handleAttachFile}
-        style={{backgroundColor: '#F2F2F2',paddingHorizontal: 130,paddingVertical:12,borderRadius:5,display:'flex',flexDirection:'row'}}  
+        style={{backgroundColor: '#F2F2F2',marginTop:10,paddingHorizontal: 130,paddingVertical:12,borderRadius:5,display:'flex',flexDirection:'row'}}  
       >
         <Icon name="plus" size={15} color={Colors.primary[500]}></Icon>
         <Text style={{color: Colors.primary[500]}}> 문서 첨부하기</Text>    
@@ -274,9 +330,14 @@ function PostCreationScreen({ route }: { route: any }) {
         {files.map((attachment, index) => (
           <View key={index}>
             {attachment.uri ? (
-              <View>
-                <Text>{attachment.name}</Text>
-                <TouchableOpacity onPress={()=>handleRemoveFile(attachment.uri)}><Text>x</Text></TouchableOpacity>
+              <View style={{...GlobalStyles.row,marginTop:7,backgroundColor: 'lightgray',justifyContent: 'space-between'}}>
+                <Text style={{justifyContent: 'center',alignSelf:'center'}}>{attachment.name}</Text>
+                <TouchableOpacity 
+                  onPress={()=>handleRemoveFile(attachment.uri)}
+                  style={{backgroundColor:'gray',width:20,height:20,borderRadius:10,alignItems:'center',marginRight:10,}}
+                >
+                  <Text style={{color:'white'}}>x</Text>
+                </TouchableOpacity>
               </View>
             ): <Text>none</Text>}
           </View>

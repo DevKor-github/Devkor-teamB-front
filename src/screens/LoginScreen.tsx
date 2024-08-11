@@ -24,13 +24,6 @@ function LoginScreen({ navigation }: LoginScreenProps) {
     const API_URL = "http://15.165.198.75:8000"
 
     const handleLogin = async (username: string, password: string) => {
-        // if(username===sampleID && password===samplePW){
-        //     setIsVerified(true);
-        //     setError(false);
-        //     navigation.navigate('Home');
-        // } else{
-        //     setError(true);
-        // }
         const userData = {
             username: username,
             password: password,  
@@ -48,7 +41,6 @@ function LoginScreen({ navigation }: LoginScreenProps) {
                 setIsVerified(true);
                 setError(false);
                 
-                // Navigate to Home screen
                 navigation.navigate('Home');
             }
         } catch(e){

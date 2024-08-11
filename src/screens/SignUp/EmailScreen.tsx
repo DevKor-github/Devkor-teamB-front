@@ -28,8 +28,10 @@ function EmailScreen({navigation}:EmailScreenProps){
 
         try {
             const response = await axios.post(`${API_URL}/student/send-code/`, emailData);
-            setShowVerification(true)
-            console.log(response);
+            console.log(response.status);
+            if(response.status==201){
+                setShowVerification(true)
+            }
         } catch (error) {
             console.error('Error fetching tags:', error);
         }
