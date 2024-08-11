@@ -48,4 +48,4 @@ const style = StyleSheet.create({
   },
 });
 
-export default FloatingButton;
+export default FloatingButton

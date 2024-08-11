@@ -10,6 +10,8 @@ import {
   FlatList,
   ImageSourcePropType,
 } from 'react-native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import {NativeStackScreenProps} from '@react-navigation/native-stack';
 // import {BottomTabNavigatorParamList} from '../navigator/BottomTabNavigator';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';

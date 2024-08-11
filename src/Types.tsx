@@ -92,6 +92,8 @@ export type Post = {
   view: number;
   content: string;
   comments: Comment[];
-  attachments: Attachment[];
+  // attachments: Attachment[];
+  images : Attachment[];
+  files: Attachment[];
   tags: Tag[];
 };

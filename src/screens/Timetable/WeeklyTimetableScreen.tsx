@@ -11,6 +11,7 @@ function WeeklyTimetableScreen() {
   const [contentHeight, setContentHeight] = useState(0);
   const [scrollEnabled, setScrollEnabled] = useState(false);
   const navigation = useNavigation<StackNavigationProp<any>>();
+  
   useEffect(
     () => setScrollEnabled(contentHeight > viewHeight),
     [contentHeight, viewHeight],

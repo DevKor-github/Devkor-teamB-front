@@ -5,6 +5,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../App";
 import Icon from 'react-native-vector-icons/AntDesign';
 import FeatherIcon from 'react-native-vector-icons/Feather'
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type LoginScreenProps = NativeStackScreenProps<RootStackParamList, "Login">;
 
@@ -12,20 +14,37 @@ type LoginScreenProps = NativeStackScreenProps<RootStackParamList, "Login">;
 const sampleID = '123';
 const samplePW = '123!';
 
+
 function LoginScreen({ navigation }: LoginScreenProps) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isVerified, setIsVerified] = useState(false);
     const [error, setError] = useState(false);
     const isFormFilled = username!=="" && password!=="";
+    const API_URL = "http://15.165.198.75:8000"
 
-    const handleLogin = () => {
-        if(username===sampleID && password===samplePW){
-            setIsVerified(true);
-            setError(false);
-            navigation.navigate('Home');
-        } else{
-            setError(true);
+    const handleLogin = async (username: string, password: string) => {
+        const userData = {
+            username: username,
+            password: password,  
+        }
+
+        try{
+            const response = await axios.post(`${API_URL}/student/login/`, userData);
+            console.log(response.status);
+            if(response.status==200){
+                const token = response.data.Token
+                await AsyncStorage.setItem('userToken', token);
+                const a = await AsyncStorage.getItem('userToken')
+                console.log(a)
+
+                setIsVerified(true);
+                setError(false);
+                
+                navigation.navigate('Home');
+            }
+        } catch(e){
+            console.error(e);
         }
     };
 
@@ -78,7 +97,7 @@ function LoginScreen({ navigation }: LoginScreenProps) {
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity
                             style={[styles.loginButton, isFormFilled ? styles.loginButtonActive:styles.loginButtonInactive]}
-                            onPress={handleLogin}
+                            onPress={() => handleLogin(username, password)}
                         >
                             <Text style={styles.loginButtonText}>로그인</Text>
                         </TouchableOpacity>

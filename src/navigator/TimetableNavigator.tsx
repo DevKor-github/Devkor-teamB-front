@@ -66,6 +66,7 @@ const TimetableNavigator = () => {
         component={PostCreationScreen}
         options={{
           headerTitle: '게시물 작성',
+          headerBackTitleVisible: false,
           headerTintColor: Colors.ui.primary,
         }}
       />

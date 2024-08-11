@@ -3,6 +3,7 @@ import React,{useState} from "react";
 import { View,Text, TextInput,TouchableOpacity,StyleSheet, KeyboardAvoidingView, Platform} from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
+import axios from "axios";
 
 type EmailScreenProps = NativeStackScreenProps<RootStackParamList,"Email">
 
@@ -11,10 +12,45 @@ function EmailScreen({navigation}:EmailScreenProps){
     const [verificationNum,setVerficationNum] = useState("");
     const [showVerification, setShowVerification]=useState(false);
     const [verified, setVerified] = useState(false);
+
+    const API_URL = "http://15.165.198.75:8000"
     
     const handleNext = () => {
         if(verified){
             navigation.navigate('SignUp');
+        }
+    }
+
+    const handleEmailSend = async (email:string) => {
+        const emailData = {
+            email: email,
+        };
+
+        try {
+            const response = await axios.post(`${API_URL}/student/send-code/`, emailData);
+            console.log(response.status);
+            if(response.status==201){
+                setShowVerification(true)
+            }
+        } catch (error) {
+            console.error('Error fetching tags:', error);
+        }
+    };
+
+    const handleVerification = async (email: string, verificationNum: string) => {
+        const emailData = {
+            email: email,
+            code: verificationNum,
+        };
+
+        try{
+            const response = await axios.post(`${API_URL}/student/check-code/`, emailData);
+            console.log(response.status);
+            if(response.status==201){
+                setVerified(true)
+            }
+        } catch(e){
+            console.error(e);
         }
     }
 
@@ -42,7 +78,7 @@ function EmailScreen({navigation}:EmailScreenProps){
                 <TouchableOpacity
                     style={styles.smallBtn}
                     onPress={()=>setShowVerification(true)}>
-                    <Text style={styles.smallBtnText}>전송 요청</Text>
+                    <Text onPress={()=>handleEmailSend(email)} style={styles.smallBtnText}>전송 요청</Text>
                 </TouchableOpacity>
             </View>
             
@@ -65,9 +101,8 @@ function EmailScreen({navigation}:EmailScreenProps){
                         </View>
                         <TouchableOpacity
                             style={styles.smallBtn}
-                            onPress={()=>setVerified(true)}>
+                            onPress={()=>handleVerification(email,verificationNum)}>
                                 <Text style={styles.smallBtnText}>확인</Text>
-                                
                         </TouchableOpacity>
                     </View>
                 </View>

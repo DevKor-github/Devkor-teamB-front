@@ -1,4 +1,4 @@
-import React, {useState,useEffect} from 'react';
+import React, {useState,useEffect, useRef} from 'react';
 import {
   ScrollView,
   View,
@@ -179,7 +179,10 @@ const styles = StyleSheet.create({
 function CommentContainer({comment}: {comment: Comment}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isBlurVisible, setIsBluerVisible] = useState(true);
-  
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const moreButtonRef = useRef<TouchableOpacity>(null);
+  const [point, setPoint] = useState(40); // 샘플
+
 
   const onPressModalClose = () => {
     setIsModalVisible(false);
@@ -190,8 +193,34 @@ function CommentContainer({comment}: {comment: Comment}) {
     console.log(comment);
   };
 
-  const toggleBlur = () => {
-    Alert.alert('포인트를 사용하시겠습니까?','현재 보유 포인트: 40',[
+  const onPressMore = () => {
+    if(moreButtonRef.current){
+        moreButtonRef.current.measure((fx:any, fy:any, width:any, height:any, px:any, py:any) => {
+          setMenuPosition({ top: py + height, left: px - 178 + width });
+          toggleMenu();
+        });
+    }
+
+  }
+
+  const handleReport = () => {
+    Alert.alert('신고하시겠습니까?','',[
+      {
+        text: '취소',
+        style: 'cancel'
+      },
+      {
+        text: '신고하기',
+        style: 'destructive',
+        onPress: () => {
+          // 신고 로직
+        }
+      }
+    ])
+  }
+
+  const toggleBlur = (point:number) => {
+    Alert.alert('포인트를 사용하시겠습니까?',`현재 보유 포인트: ${point}`,[
       {
         text: '취소',
         style: 'cancel'
@@ -223,7 +252,7 @@ function CommentContainer({comment}: {comment: Comment}) {
           </View>
         </View>
 
-        <TouchableOpacity style={{marginLeft: 210}} onPress={toggleMenu}>
+        <TouchableOpacity ref={moreButtonRef} style={{marginLeft: 190}} onPress={onPressMore}>
           <Icon name="more-vertical" size={24} color="#3D3D3D" />
         </TouchableOpacity>
       </View>
@@ -238,8 +267,8 @@ function CommentContainer({comment}: {comment: Comment}) {
             activeOpacity={1}
             style={style.overlay}
           >
-            <View style={style.menu}>
-              <TouchableOpacity style={style.menuItem}>
+            <View style={[style.menu_comment,menuPosition]}>
+              <TouchableOpacity style={style.menuItem} onPress={handleReport}>
                 <Text style={{color:Colors.primary[500]}}>신고하기</Text>
               </TouchableOpacity>
             </View>
@@ -262,7 +291,7 @@ function CommentContainer({comment}: {comment: Comment}) {
         {isBlurVisible && (
           <View style={style.commentArea_Blur}>
             <Text style={style.text_Blur}>포인트 사용하고 댓글 보기</Text>
-            <TouchableOpacity onPress={toggleBlur} style={style.button_Blur}>
+            <TouchableOpacity onPress={()=>toggleBlur(point)} style={style.button_Blur}>
               <Text style={style.buttonText_Blur}>사용하기</Text>
             </TouchableOpacity>
           </View>
@@ -405,17 +434,18 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
               <Text style={style.postContent}>{post.content}</Text>
             </View>
 
-            {post.attachments.length>0 && (
-              <View style={style.postPhotoArea}>
-                {post.attachments.map((attachment: Attachment, index: number) => (
-                  <Image
-                    key={index}
-                    source={{ uri: attachment.uri }}
-                    style={{ width: 82, height: 82, borderRadius: 9 }}
-                  />
-                ))}
-              </View>
-            )}
+            { post.images && (
+              post.images.length>0 && (
+                <View style={style.postPhotoArea}>
+                  {post.images.map((attachment: Attachment, index: number) => (
+                    <Image
+                      key={index}
+                      source={{ uri: attachment.uri }}
+                      style={{ width: 82, height: 82, borderRadius: 9 }}
+                    />
+                  ))}
+                </View>
+            ))}
           </View>
 
           <View style={{marginTop: 10}}>
@@ -660,9 +690,24 @@ const style = StyleSheet.create({
     top: 160,
     right: 16,
     width: 178,
-    height: 70,
+    height: 85,
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 15,
+    shadowOpacity: 0.25,
+    shadowOffset: {
+      width:1,
+      height:0,
+    }
+  },
+  menu_comment: {
+    backgroundColor: '#FFF',
+    borderRadius: 5,
+    position: 'absolute',
+    marginTop: 10,
+    width: 178,
+    height: 50,
     justifyContent: 'center',
     gap: 10,
     shadowOpacity: 0.25,
