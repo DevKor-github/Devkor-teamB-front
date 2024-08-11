@@ -4,7 +4,7 @@ import Colors from '@src/Colors';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const INSET = 18;
-const BUTTON_SIZE = 48;
+const BUTTON_SIZE = 20;
 
 interface FloatingButtonProps {
   onPress: Function;
@@ -12,7 +12,7 @@ interface FloatingButtonProps {
   useSafeArea?: boolean;
 }
 
-const FloatingButton: React.FC<FloatingButtonProps> = ({
+const FloatingButton2: React.FC<FloatingButtonProps> = ({
   onPress,
   children,
   useSafeArea = false,
@@ -47,13 +47,16 @@ const style = StyleSheet.create({
     }),
   },
   button: {
-    backgroundColor: Colors.primary[500],
+    backgroundColor: 'gray',
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
     borderRadius: BUTTON_SIZE,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'absolute',
+    top: -75,
+    right: -55
   },
 });
 
-export default FloatingButton
+export default FloatingButton2;

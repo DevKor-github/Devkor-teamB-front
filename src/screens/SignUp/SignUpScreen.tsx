@@ -3,21 +3,38 @@ import React,{useState} from "react";
 import { View,Text, TextInput,TouchableOpacity,StyleSheet, KeyboardAvoidingView, Platform} from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../App";
+import axios from "axios";
 
 type SignUpScreenProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 function SignUpScreen({navigation}:SignUpScreenProps){
-    const [email, setEmail] = useState("");
-    const [verificationNum,setVerficationNum] = useState("");
-    const [showVerification, setShowVerification]=useState(false);
-    const [verified, setVerified] = useState(false);
-
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const isFormFilled = username!=="" && password!=="";
-    
-    const handleNext = () => {
-        navigation.navigate('RegisterInfo');
+
+    const API_URL = "http://15.165.198.75:8000"
+
+
+    const handleNext = async (username: string, password: string) => {
+        const userData = {
+            username: username,
+            first_name: 'youjin',
+            last_name: 'kim',
+            email: 'zinzinyou@naver.com', // 변수로 앞에서 넘겨주기
+            password: password,
+            group: 'test'    
+        }
+
+        try{
+            const response = await axios.post(`${API_URL}/student/signup/`, userData);
+            console.log(response.status);
+            if(response.status==200){
+                navigation.navigate('RegisterInfo');
+            }
+
+        } catch(e){
+            console.error(e);
+        }
     }
 
     return(
@@ -49,7 +66,7 @@ function SignUpScreen({navigation}:SignUpScreenProps){
 
             <TouchableOpacity 
                 style={isFormFilled?styles.largeBtnActive:styles.largeBtnInactive}
-                onPress={handleNext}>
+                onPress={() => handleNext(username, password)}>
                 <Text style={styles.largeBtnText}>다음</Text>
             </TouchableOpacity>
         </KeyboardAvoidingView>
