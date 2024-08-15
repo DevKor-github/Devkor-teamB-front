@@ -1,16 +1,16 @@
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import React from 'react';
 import ProgressBar from '@components/ProgessBar';
-import {Lecture} from '@src/Types';
+import {CourseMinimal} from '@src/Types';
 import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
 
-const BriefingHeader = ({lecture}: {lecture: any}) => {
+const BriefingHeader = ({course}: {course: CourseMinimal}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const handlePressMore = () => {
-    navigation.navigate('BriefingScreen', {lectureName: lecture.name});
+    navigation.navigate('BriefingScreen', {lectureName: course.course_name});
   };
 
   return (
@@ -77,10 +77,10 @@ const AssignmentProgressBar = ({progress}: {progress: number}) => {
   );
 };
 
-const DailyBriefingWidget = ({lecture}: {lecture: Lecture}) => {
+const DailyBriefingWidget = ({course}: {course: CourseMinimal}) => {
   return (
     <View style={styles.container}>
-      <BriefingHeader lecture={lecture} />
+      <BriefingHeader course={course} />
       <AttendanceProgressBar progress={45} />
       <AssignmentProgressBar progress={100} />
       <NotificationProgressBar progress={60} />

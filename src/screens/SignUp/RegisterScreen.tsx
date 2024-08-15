@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -12,18 +13,21 @@ import Colors from '@src/Colors';
 import BottomSheet, {BottomSheetState} from '@components/BottomSheet';
 import FloatingButton from '@components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
-import {mockLectures} from '@src/MockData';
 import {RadioButton, RadioGroup} from '@components/RadioButton';
 import SearchBar from '@components/SearchBar';
-import {Lecture} from '@src/Types';
+import {Course, CourseProps, Lecture} from '@src/Types';
 import Timetable from '@components/Timetable/Timetable';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {doesOverlap} from '@components/Timetable/TimetableUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import axios from 'axios';
 
 type NavigationProps = StackNavigationProp<any>;
+
+const API_URL = 'http://15.165.198.75:8000';
+const USER_TOKEN = 'd9af3812b659426945446564d4529d77925cea55';
 
 const LectureAddButton = ({onPress}: {onPress: Function}) => {
   return (
@@ -42,30 +46,33 @@ const LectureItem = ({
   onItemAdd,
   selected,
 }: {
-  item: Lecture;
+  item: Course;
   onItemAdd: Function;
   selected: boolean;
 }) => {
   return (
     <View
+      key={item.id}
       style={selected ? itemStyles.selectedContainer : itemStyles.container}>
       <View>
         <View style={GlobalStyles.row}>
-          <Text style={itemStyles.courseName}>{item.name}</Text>
-          <Text style={itemStyles.courseMate}>함께 듣는 사람 {item.mate}</Text>
+          <Text style={itemStyles.courseName}>{item.course_name}</Text>
+          <Text style={itemStyles.courseMate}>
+            함께 듣는 사람 {item.enrollment}
+          </Text>
         </View>
-        <Text style={itemStyles.lecturer}>{item.professor}</Text>
+        <Text style={itemStyles.lecturer}>{item.instructor}</Text>
       </View>
       <View style={GlobalStyles.row}>
         <View style={GlobalStyles.expand}>
           <View style={GlobalStyles.row}>
-            <Text style={itemStyles.courseInfo}>{item.timeInfo}</Text>
-            <Text style={itemStyles.courseInfo}>{item.room}</Text>
+            <Text style={itemStyles.courseInfo}>{item.getTimeInfo()}</Text>
+            <Text style={itemStyles.courseInfo}>{item.course_room}</Text>
           </View>
           <View style={GlobalStyles.row}>
-            <Text style={itemStyles.courseInfo}>{item.type}</Text>
-            <Text style={itemStyles.courseInfo}>{item.credit}</Text>
-            <Text style={itemStyles.courseInfo}>{item.id}</Text>
+            <Text style={itemStyles.courseInfo}>{item.classification}</Text>
+            <Text style={itemStyles.courseInfo}>{item.credits}</Text>
+            <Text style={itemStyles.courseInfo}>{item.course_id}</Text>
           </View>
         </View>
         {selected && <LectureAddButton onPress={() => onItemAdd(item)} />}
@@ -79,7 +86,7 @@ const LectureList = ({
   onItemAdd,
   onTap,
 }: {
-  items: Lecture[];
+  items: Course[];
   onItemAdd: Function;
   onTap: Function;
 }) => {
@@ -133,13 +140,15 @@ const CompleteButton = ({disabled}: {disabled: boolean}) => {
 const RegistrationBottomSheet = ({
   state,
   onStateChange,
+  height,
+  items,
   onItemAdd,
   onItemSelect,
-  height,
 }: {
   state: BottomSheetState;
   onStateChange: Function;
   onItemAdd: Function;
+  items: Course[];
   onItemSelect: Function;
   height: number;
 }) => {
@@ -165,35 +174,34 @@ const RegistrationBottomSheet = ({
         <RadioButton label="교수명" />
         <RadioButton label="과목코드" />
       </RadioGroup>
-      <LectureList
-        items={mockLectures}
-        onTap={onItemSelect}
-        onItemAdd={onItemAdd}
-      />
+      <LectureList items={items} onTap={onItemSelect} onItemAdd={onItemAdd} />
     </BottomSheet>
   );
 };
 
-const RegistrationBody = () => {
+const RegistrationBody = ({courses}: {courses: Course[]}) => {
   const [state, setState] = useState(BottomSheetState.HIDDEN);
-  const [items, setItems] = useState([] as Lecture[]);
-  const [candidate, setCandidate] = useState<Lecture | undefined>(undefined);
+  const [addedCourses, setAddedCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(
+    undefined,
+  );
   const [contentHeight, setContentHeight] = useState(0);
 
   return (
     <View style={GlobalStyles.expand}>
       <View onLayout={e => setContentHeight(e.nativeEvent.layout.height)}>
         <Timetable
-          lectures={items}
-          scrollable={true}
-          candidate={candidate}
-          onPress={(id: string) =>
+          courses={addedCourses}
+          scrollable
+          candidate={selectedCourse}
+          onPress={(id: number) =>
             Alert.alert('수업을 삭제하겠습니까?', '', [
               {text: '취소'},
               {
                 text: '삭제',
                 style: 'destructive',
-                onPress: () => setItems(items.filter(e => e.id !== id)),
+                onPress: () =>
+                  setAddedCourses(addedCourses.filter(e => e.id !== id)),
               },
             ])
           }
@@ -202,20 +210,21 @@ const RegistrationBody = () => {
           <Icon name="plus" size={24} color={Colors.ui.background} />
         </FloatingButton>
       </View>
-      <CompleteButton disabled={items.length === 0} />
+      <CompleteButton disabled={addedCourses.length === 0} />
       <RegistrationBottomSheet
-        height={contentHeight + 16}
         state={state}
         onStateChange={setState}
-        onItemSelect={(e: Lecture) => setCandidate(e)}
-        onItemAdd={(item: Lecture) => {
+        height={contentHeight + 16}
+        items={courses}
+        onItemSelect={(e: Course) => setSelectedCourse(e)}
+        onItemAdd={(newCourse: Course) => {
           setState(BottomSheetState.HALF);
-          if (items.find(e => e.id === item.id)) {
+          if (addedCourses.find(e => e.id === newCourse.id)) {
             Alert.alert('이미 등록된 수업입니다');
-          } else if (doesOverlap(item, items)) {
+          } else if (doesOverlap(newCourse, addedCourses)) {
             Alert.alert('다른 수업과 시간이 겹칩니다');
           } else {
-            setItems([...items, item]);
+            setAddedCourses([...addedCourses, newCourse]);
           }
         }}
       />
@@ -232,7 +241,50 @@ const RegistrationHeader = ({subTitle}: {subTitle: string}) => {
   );
 };
 
+const fetchLectureInfo = async (id: number[]) => {
+  try {
+    const items: Course[] = await Promise.all(
+      id.map(async (x: number) => {
+        const response = await axios.get(`${API_URL}/courses/${x}/`, {
+          headers: {
+            authorization: `token ${USER_TOKEN}`,
+          },
+        });
+        return Course.fromJson(response.data);
+      }),
+    );
+    return items;
+  } catch (e) {
+    console.error(e);
+  }
+};
+
 const RegisterScreen = () => {
+  const [loading, setLoading] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_URL}/courses/`, {
+          headers: {
+            authorization: `token ${USER_TOKEN}`,
+          },
+        });
+        const lectureInfo = (response.data as CourseProps[]).map(e => e.id);
+        const value = await fetchLectureInfo(lectureInfo);
+        setCourses(value!);
+        setLoading(false);
+      } catch (e) {
+        console.error(e);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [setCourses]);
+
   return (
     <View style={styles.background}>
       <SafeAreaView edges={['top']} style={styles.safeArea} />
@@ -241,9 +293,16 @@ const RegisterScreen = () => {
         <View style={styles.bottom} />
         <View style={styles.content}>
           <RegistrationHeader subTitle={'2024학년도 1학기'} />
-          <RegistrationBody />
+          <RegistrationBody courses={courses} />
         </View>
       </View>
+      {loading && (
+        <ActivityIndicator
+          size={'large'}
+          color={Colors.ui.primary}
+          style={GlobalStyles.indicator}
+        />
+      )}
     </View>
   );
 };

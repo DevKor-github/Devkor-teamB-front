@@ -17,7 +17,7 @@ import {
 } from '@components/Timetable/TimetableUtils';
 
 import {GlobalStyles} from '@src/GlobalStyles';
-import {Lecture, SimpleLecture} from '@src/Types';
+import {Course, CourseMinimal} from '@src/Types';
 import Colors from '@src/Colors';
 
 const slotHeight = 48;
@@ -28,9 +28,9 @@ const smallFontSize = 11;
 const singleSlotHeight = 4;
 
 interface TimetableProps {
-  lectures: Lecture[];
+  courses: Course[];
   onPress: Function;
-  candidate?: Lecture | undefined;
+  candidate?: Course;
   scrollable?: boolean;
 }
 
@@ -50,36 +50,36 @@ const TimetableHeader = ({labels}: {labels: string[]}) => {
 };
 
 const ClickableLecture = ({
-  lecture,
+  course,
   onPress,
 }: {
-  lecture: SimpleLecture;
+  course: CourseMinimal;
   onPress: Function;
 }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      onPress={() => onPress(lecture.id)}
+      onPress={() => onPress(course)}
       style={{
-        backgroundColor: getLectureColor(lecture.id),
-        top: singleSlotHeight * convertToSlot(lecture.start),
+        backgroundColor: getLectureColor(course.id),
+        top: singleSlotHeight * convertToSlot(course.start),
         height:
           singleSlotHeight *
-            (convertToSlot(lecture.end) - convertToSlot(lecture.start)) -
+            (convertToSlot(course.end) - convertToSlot(course.start)) -
           innerBorderSize,
         ...clickableLectureStyle.container,
       }}>
-      <Text style={clickableLectureStyle.nameText}>{lecture.name}</Text>
-      <Text style={clickableLectureStyle.roomText}>{lecture.room}</Text>
+      <Text style={clickableLectureStyle.nameText}>{course.course_name}</Text>
+      <Text style={clickableLectureStyle.roomText}>{course.course_room}</Text>
     </TouchableOpacity>
   );
 };
 
-const TimetableBody: TimetableType = ({lectures, candidate, onPress}) => {
+const TimetableBody: TimetableType = ({courses, candidate, onPress}) => {
   const candidates = candidate === undefined ? [] : [candidate];
-  const slotCount = calculateTotalSlots([...lectures, ...candidates]);
-  const labels = getLabels(lectures);
-  const lecturesByDay = groupByDay(lectures);
+  const slotCount = calculateTotalSlots([...courses, ...candidates]);
+  const labels = getLabels(courses);
+  const coursesByDay = groupByDay(courses);
   const candidateByDay = groupByDay(candidates);
 
   return (
@@ -98,16 +98,16 @@ const TimetableBody: TimetableType = ({lectures, candidate, onPress}) => {
           {Array.from({length: slotCount}, (_, slot) => (
             <View key={`slot-${day}-${slot}`} style={styles.slot} />
           ))}
-          {lecturesByDay[day].map(lecture => (
+          {coursesByDay[day].map(e => (
             <ClickableLecture
-              key={`lecture-${lecture.id}-${day}`}
-              lecture={lecture}
+              key={`lecture-${e.id}-${day}-${e.end}`}
+              course={e}
               onPress={onPress}
             />
           ))}
           {candidateByDay[day].map(e => (
             <View
-              key={`candidate-${e.id}-${day}`}
+              key={`candidate-${e.id}-${day}-${e.end}`}
               style={{
                 top: singleSlotHeight * convertToSlot(e.start),
                 height:
@@ -124,20 +124,20 @@ const TimetableBody: TimetableType = ({lectures, candidate, onPress}) => {
   );
 };
 
-const TimetableFooter: TimetableType = ({lectures, onPress}) => {
-  if (lectures.length === 0) {
+const TimetableFooter: TimetableType = ({courses, onPress}) => {
+  if (courses.length === 0) {
     return null;
   }
 
   return (
     <View>
-      {lectures.map(lecture => {
+      {courses.map(course => {
         return (
           <TouchableOpacity
-            key={lecture.id}
+            key={course.id}
             style={styles.list}
-            onPress={() => onPress(lecture.id)}>
-            <Text style={styles.text}>{lecture.name}</Text>
+            onPress={() => onPress(course.id)}>
+            <Text style={styles.text}>{course.course_name}</Text>
           </TouchableOpacity>
         );
       })}
@@ -146,25 +146,28 @@ const TimetableFooter: TimetableType = ({lectures, onPress}) => {
 };
 
 const Timetable: TimetableType = ({
-  lectures,
+  courses,
   onPress,
   candidate,
   scrollable = false,
 }) => {
   const maxHeight = scrollable ? slotHeight * 7 + labelSize + 4 : null;
-  const scrollViewRef = useRef(null);
+  const scrollViewRef = useRef<ScrollView | null>(null);
 
   useEffect(() => {
     if (candidate !== undefined) {
-      const minHeight = candidate.time.length
-        ? singleSlotHeight * convertToSlot(candidate.time[0].start)
+      const courseSlot = candidate.getCourseSlot();
+      const minHeight = courseSlot.length
+        ? singleSlotHeight * convertToSlot(courseSlot[0].start)
         : 1e5;
 
-      (scrollViewRef.current as any).scrollTo({
-        x: 0,
-        y: minHeight,
-        animated: true,
-      });
+      if (scrollViewRef.current !== null) {
+        scrollViewRef.current.scrollTo({
+          x: 0,
+          y: minHeight,
+          animated: true,
+        });
+      }
     }
   });
 
@@ -174,19 +177,19 @@ const Timetable: TimetableType = ({
         maxHeight: maxHeight,
         ...styles.container,
       }}>
-      <TimetableHeader labels={getLabels(lectures)} />
+      <TimetableHeader labels={getLabels(courses)} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
         bounces={false}
         ref={scrollViewRef}>
         <TimetableBody
-          lectures={lectures}
+          courses={courses}
           onPress={onPress}
           candidate={candidate}
         />
         <TimetableFooter
-          lectures={filterOnlineLecture(lectures)}
+          courses={filterOnlineLecture(courses)}
           onPress={onPress}
         />
       </ScrollView>

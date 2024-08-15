@@ -1,9 +1,16 @@
-import React, {useEffect, useState, useLayoutEffect} from 'react';
-import {View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Modal} from 'react-native';
-import {mockPosts, mockLectures} from '@src/MockData';
+import React, {useState, useLayoutEffect, useEffect} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Modal,
+} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {Lecture, Post, UserInfo} from '@src/Types';
+import {Post, UserInfo, CourseMinimal, Lecture} from '@src/Types';
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
@@ -15,6 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
+import axios from 'axios';
 
 interface CommunityScreenProps {
   route: any;
@@ -103,15 +111,19 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: string; lectu
   const [isFabOpen, setFabOpen] = useState(false);
  
   const handlePressMore = () => {
-    console.log(lectureName)
-    navigation.navigate('PostListScreen', {lectureName: lectureName, id: id, items: items})
-  }
+    console.log(lectureName);
+    navigation.navigate('PostListScreen', {
+      lectureName: lectureName,
+      id: id,
+      items: items,
+    });
+  };
 
   const handlePressPlus = () => {
     // navigation.navigate('PostCreationScreen', {lectureId: id});
-    console.log(isFabOpen)
+    console.log(isFabOpen);
     setFabOpen(!isFabOpen);
-  }
+  };
 
   const handleNavigate = (screen: string) => {
     setFabOpen(false);
@@ -145,8 +157,7 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: string; lectu
           )}
         />
       )}
-      <FloatingButton
-        onPress={handlePressPlus}>
+      <FloatingButton onPress={handlePressPlus}>
         <Icon name="plus" size={24} color={Colors.ui.background} />
       </FloatingButton>
 
@@ -155,34 +166,33 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: string; lectu
         transparent={true}
         onRequestClose={handlePressPlus}>
         <TouchableOpacity
-          onPressOut={()=>setFabOpen(false)}
+          onPressOut={() => setFabOpen(false)}
           activeOpacity={1}
           style={styles.overlay}>
           <Animatable.View
             duration={500}
-            style={{width:70}}
+            style={{width: 70}}
             // style={[styles.fabOption, { bottom: 80 }]}
           >
-            <TouchableOpacity 
-              onPress={() => handleNavigate('PostCreationScreen')}
-            >
-              <Image 
-                source={require('@assets/icons/create_file.png')} 
-                style={styles.fabIcon}>  
-              </Image>
+            <TouchableOpacity
+              onPress={() => handleNavigate('PostCreationScreen')}>
+              <Image
+                source={require('@assets/icons/create_file.png')}
+                style={styles.fabIcon}
+              />
               <Text style={styles.fabText}>게시글 작성</Text>
             </TouchableOpacity>
           </Animatable.View>
           <Animatable.View
             duration={500}
-            style={{width:70}}
+            style={{width: 70}}
             // style={[styles.fabOption, { bottom: 140 }]}
           >
             <TouchableOpacity onPress={() => handleNavigate('BriefingScreen')}>
-            <Image 
-                source={require('@assets/icons/faq.png')} 
-                style={styles.fabIcon}>  
-              </Image>
+              <Image
+                source={require('@assets/icons/faq.png')}
+                style={styles.fabIcon}
+              />
               <Text style={styles.fabText}>브리핑 답변</Text>
             </TouchableOpacity>
           </Animatable.View>
@@ -194,85 +204,46 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: string; lectu
 
 
 
+// 여기 조금 수정했어!
 const CommunityScreen: React.FC<CommunityScreenProps> = ({
   route,
   navigation,
 }) => {
-  const {id} = route.params; // 여기로 학수번호가 와야됨
-  // const communities = mockPosts;
-  const lecture = mockLectures.find((e: Lecture) => e.id === id) as Lecture;
-
+  const {course}: {course: CourseMinimal} = route.params;
   const [posts, setPosts] = useState<Post[]>([]);
-  const [lectureName, setLectureName] = useState(''); //임시
-  const [lectureId, setLectureId] = useState(''); //임시
-
-  
-  useEffect(()=>{
-    fetchPost()
-  },[])
-
-  const fetchPost = async ()=>{
-    const API_URL = "http://15.165.198.75:8000"
-    try {
-      const token = await AsyncStorage.getItem('userToken')
-      
-      const a = await axios.get(`${API_URL}/courses/12/`,  
-        {
-          // params: {
-          //   id: 'test1' // 학수번호로 쿼리
-          // },
-          headers: {
-            authorization: `token ${token}`,
-          },
-        },
-      );
-      // console.log('a:',a.data.course_name)
-      setLectureName(a.data.course_name)
-      setLectureId(a.data.id)
-
-      const response = await axios.get(`${API_URL}/posts/`,  // 5, 8, 9가 테스트게시글
-        {
+  useEffect(() => {
+    const fetchData = async () => {
+      const API_URL = 'http://15.165.198.75:8000';
+      const USER_TOKEN = 'd9af3812b659426945446564d4529d77925cea55';
+      try {
+        const response = await axios.get(`${API_URL}/posts/`, {
           params: {
-            course_id: 'test1' // 학수번호로 쿼리
+            course_index: course.id,
           },
           headers: {
-            authorization: `token ${token}`,
+            authorization: `token ${USER_TOKEN}`,
           },
-        },
-      );
-      // console.log(response.data)
-      const fetchedPosts: Post[] = response.data
-        // .filter((data:any)=>data.id==5 || data.id==8 || data.id==9)
-        .map((data:any)=>({
-          postId: data.id,
-          title: data.title,
-        }))
-      // console.log(fetchedPosts)
-      setPosts(fetchedPosts)
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    }
-  }
-
+        });
+        //setPosts(response.data)
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    fetchData();
+  });
   useLayoutEffect(
-    () => setNavigationHeader(navigation, [lecture.name, lecture.professor]),
-    [lecture.name, lecture.professor, navigation],
+    () =>
+      setNavigationHeader(navigation, [course.course_name, course.instructor]),
+    [course, navigation],
   );
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
-      <DailyBriefingWidget lecture={lecture} />
-      {/* <PostView
-        items={communities.get(id) as Post[]}
-        id={lecture.id}
-        lectureName={lecture.name}
-      /> */}
-      <PostView 
-        items={posts as Post[]}
-        // id={lecture.id}
-        // lectureName={lecture.name}
-        id = {lectureId}
-        lectureName={lectureName}
+      <DailyBriefingWidget course={course} />
+      <PostView
+        items={posts}
+        id={course.course_id}
+        lectureName={course.course_name}
       />
     </SafeAreaView>
   );
@@ -309,15 +280,15 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     ...GlobalStyles.row,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)', 
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     // alignItems: 'center',
     paddingTop: 600,
-    gap:80,
+    gap: 80,
   },
   fabOption: {
     position: 'absolute',
-    backgroundColor:'pink',
+    backgroundColor: 'pink',
     right: 20,
     borderRadius: 50,
     width: 50,
@@ -327,11 +298,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   fabIcon: {
-    width:70,
-    height:70,
-    borderRadius:35,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     ...GlobalStyles.shadow,
-    backgroundColor: 'gray'
+    backgroundColor: 'gray',
   },
   fabText: {
     fontSize: 13,
@@ -340,7 +311,7 @@ const styles = StyleSheet.create({
     color: Colors.text.white,
     alignSelf: 'center',
     ...GlobalStyles.text,
-  }
+  },
 });
 
 const postStyles = StyleSheet.create({

@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,8 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
-  FlatList,
   ImageSourcePropType,
 } from 'react-native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {NativeStackScreenProps} from '@react-navigation/native-stack';
-// import {BottomTabNavigatorParamList} from '../navigator/BottomTabNavigator';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Colors from '@src/Colors';
@@ -21,16 +16,12 @@ import ProgressBar from '@src/components/ProgessBar';
 import RichText, {RichTextOption} from '@src/components/RichText';
 import {useNavigation} from '@react-navigation/native';
 import {PointInstance} from '@src/MockData';
+import Banner from '@src/components/Banner';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
-// type StoreScreenProps = NativeStackScreenProps<
-//   BottomTabNavigatorParamList,
-//   'Store'
-// >;
 const pointInstance = PointInstance;
-
-const NotificationBanner = () => {
-  return <View style={{marginVertical: 18}} />;
-};
+const API_URL = 'http://15.165.198.75:8000';
 
 /** 포인트 관련 컴포넌트 */
 const PointHistory = () => {
@@ -183,92 +174,46 @@ const PointInfoSection = () => {
   );
 };
 
-const FlatListIndicator = ({isCurrent}: {isCurrent: boolean}) => {
-  if (isCurrent) {
-    return (
-      <View
-        style={{
-          backgroundColor: Colors.ui.primary,
-          ...promotionStyles.dot,
-        }}
-      />
-    );
-  } else {
-    return (
-      <View
-        style={{
-          backgroundColor: Colors.ui.onPrimary,
-          ...promotionStyles.dot,
-        }}
-      />
-    );
-  }
-};
-
-/** 프로모션 배너 컴포넌트 */
-const PromotionBanner = () => {
-  const [width, setWidth] = useState(0);
-  const ads = [
-    {id: 0, text: 'Ad 1'},
-    {id: 1, text: 'Ad 2'},
-    {id: 2, text: 'Ad 3'},
-    {id: 3, text: 'Ad 4'},
-    {id: 4, text: 'Ad 5'},
-  ];
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<FlatList | null>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex(prevIndex => {
-        const nextIndex = (prevIndex + 1) % ads.length;
-        flatListRef.current?.scrollToIndex({index: nextIndex});
-        return nextIndex;
-      });
-    }, 5000);
-
-    return () => clearInterval(interval);
-  });
-
-  return (
-    <View
-      style={promotionStyles.container}
-      onLayout={e => setWidth(e.nativeEvent.layout.width)}>
-      <View style={promotionStyles.indicator}>
-        {ads.map(({id}) => (
-          <FlatListIndicator key={id} isCurrent={id === currentIndex} />
-        ))}
-      </View>
-      <FlatList
-        data={ads}
-        ref={flatListRef}
-        horizontal
-        pagingEnabled
-        scrollEnabled={false}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({item}) => (
-          <View style={{width, justifyContent: 'center', alignItems: 'center'}}>
-            <Text>{item.text}</Text>
-          </View>
-        )}
-        keyExtractor={item => item.id}
-      />
-    </View>
-  );
-};
-
 /** 상점 관련 컴포넌트 */
-const StoreItemCard = ({title, point}: {title: string; point: number}) => {
+const StoreItemCard = ({
+  title,
+  point,
+  type,
+}: {
+  title: string;
+  point: number;
+  type: string;
+}) => {
+  const fetchPoints = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.post(
+        `${API_URL}/student/use-points/`,
+        {point_costs: type},
+        {
+          headers: {
+            authorization: `token ${token}`,
+          },
+        },
+      );
+      return response.status === 200;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
   const onStoreItemPress = () => {
     Alert.alert(`${title}을 구매합니다`, '', [
       {text: '취소', style: 'destructive'},
       {
         text: '확인',
-        onPress: () => {
-          if (!pointInstance.usePoints(point, `${title} 구매`)) {
-            Alert.alert('포인트가 부족합니다');
-          } else {
+        onPress: async () => {
+          const request = await fetchPoints();
+          if (request) {
             Alert.alert('구매 완료!');
+          } else {
+            Alert.alert('포인트가 부족합니다');
           }
         },
       },
@@ -293,76 +238,43 @@ const StoreItemCard = ({title, point}: {title: string; point: number}) => {
   );
 };
 
-/** 아이템을 하드코딩해도 괜찮을까..? */
 const StoreItemSection = () => {
   return (
     <View>
       <Text style={styles.label}>상점</Text>
       <View style={GlobalStyles.row}>
-        <StoreItemCard title="1일 열람권" point={80} />
+        <StoreItemCard title="1일 열람권" point={80} type="1" />
         <View style={storeStyles.divider} />
-        <StoreItemCard title="7일 열람권" point={160} />
+        <StoreItemCard title="7일 열람권" point={160} type="7" />
       </View>
       <View style={storeStyles.divider} />
       <View style={GlobalStyles.row}>
-        <StoreItemCard title="14일 열람권" point={240} />
+        <StoreItemCard title="14일 열람권" point={240} type="14" />
         <View style={storeStyles.divider} />
-        <StoreItemCard title="30일 열람권" point={300} />
+        <StoreItemCard title="30일 열람권" point={300} type="30" />
       </View>
-      {/* 테스트 후에 삭제할 컴포넌트 */}
-      <TouchableOpacity
-        style={{
-          margin: 12,
-          padding: 12,
-          borderRadius: 12,
-          backgroundColor: Colors.ui.secondary,
-          alignItems: 'center',
-        }}
-        onPress={() => {
-          pointInstance.addPoints(100);
-        }}>
-        <Text>100 포인트 추가</Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
 const StoreScreen = () => {
+  const promotions = [
+    require('@assets/images/promotion_banner.png'),
+    {uri: 'https://picsum.photos/1000/500'},
+    {uri: 'https://picsum.photos/900/400'},
+  ];
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView>
         <View style={styles.container}>
-          <NotificationBanner />
           <PointInfoSection />
-          <PromotionBanner />
+          <Banner items={promotions} />
           <StoreItemSection />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
-
-const promotionStyles = StyleSheet.create({
-  indicator: {
-    position: 'absolute',
-    right: 0,
-    margin: 12,
-    flexDirection: 'row',
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 6,
-    marginRight: 4,
-  },
-  container: {
-    height: 92,
-    backgroundColor: Colors.ui.disabled,
-    borderRadius: 10,
-    marginVertical: 18,
-  },
-  banner: {width: 'auto'},
-});
 
 const styles = StyleSheet.create({
   safeArea: {
