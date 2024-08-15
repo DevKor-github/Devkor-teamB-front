@@ -42,8 +42,8 @@ export const mockLectures: Lecture[] = [
     credit: '3학점',
     timeInfo: '월, 수 (1)',
     time: [
-      new TimeSlot('월', '09:00', '10:15'),
-      new TimeSlot('수', '09:00', '10:15'),
+      {day: '월', start: '09:00', end: '10:15'},
+      {day: '수', start: '09:00', end: '10:15'},
     ],
   },
   {
@@ -55,7 +55,7 @@ export const mockLectures: Lecture[] = [
     type: '전공선택',
     credit: '3학점',
     timeInfo: '금 (2)',
-    time: [new TimeSlot('금', '10:30', '11:45')],
+    time: [{day: '금', start: '10:30', end: '11:45'}],
   },
   {
     name: '과목C (영강)',
@@ -67,8 +67,8 @@ export const mockLectures: Lecture[] = [
     credit: '3학점',
     timeInfo: '월, 수 (3)',
     time: [
-      new TimeSlot('월', '12:00', '13:15'),
-      new TimeSlot('수', '12:00', '13:15'),
+      {day: '월', start: '12:00', end: '13:15'},
+      {day: '수', start: '12:00', end: '13:15'},
     ],
   },
   {
@@ -81,8 +81,8 @@ export const mockLectures: Lecture[] = [
     credit: '3학점',
     timeInfo: '월, 수 (4)',
     time: [
-      new TimeSlot('월', '13:30', '14:45'),
-      new TimeSlot('수', '13:30', '14:45'),
+      {day: '월', start: '13:30', end: '14:45'},
+      {day: '수', start: '13:30', end: '14:45'},
     ],
   },
   {
@@ -116,7 +116,7 @@ export const mockLectures: Lecture[] = [
     type: '전공선택',
     credit: '3학점',
     timeInfo: '목 (5-6)',
-    time: [new TimeSlot('목', '15:00', '17:45')],
+    time: [{day: '목', start: '15:00', end: '17:45'}],
   },
   {
     name: '미술과문화',
@@ -127,7 +127,7 @@ export const mockLectures: Lecture[] = [
     type: '학문의기초',
     credit: '3학점',
     timeInfo: '화 (1-2)',
-    time: [new TimeSlot('화', '09:00', '11:45')],
+    time: [{day: '화', start: '09:00', end: '11:45'}],
   },
 ];
 

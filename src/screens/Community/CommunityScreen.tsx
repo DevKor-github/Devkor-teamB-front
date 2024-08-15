@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {Post, UserInfo, CourseMinimal, Lecture} from '@src/Types';
+import {Post, UserInfo, CourseBlock, PostMinimal, PostMinimalData, Lecture} from '@src/Types';
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
@@ -236,6 +236,11 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) 
         },
       );
       // console.log(response.data)
+      const postMinmal = response.data.map((json: PostMinimalData) =>
+        PostMinimal.fromJson(json),
+      );
+      console.log(postMinmal);
+
       const fetchedPosts: Post[] = response.data
         .map((data:any)=>({
           postId: data.id,

@@ -14,10 +14,11 @@ import {
   getLectureColor,
   convertTo12HourFormat,
   convertToSlot,
+  getCourseSlot,
 } from '@components/Timetable/TimetableUtils';
 
 import {GlobalStyles} from '@src/GlobalStyles';
-import {Course, CourseMinimal} from '@src/Types';
+import {Course, CourseBlock} from '@src/Types';
 import Colors from '@src/Colors';
 
 const slotHeight = 48;
@@ -53,7 +54,7 @@ const ClickableLecture = ({
   course,
   onPress,
 }: {
-  course: CourseMinimal;
+  course: CourseBlock;
   onPress: Function;
 }) => {
   return (
@@ -98,21 +99,21 @@ const TimetableBody: TimetableType = ({courses, candidate, onPress}) => {
           {Array.from({length: slotCount}, (_, slot) => (
             <View key={`slot-${day}-${slot}`} style={styles.slot} />
           ))}
-          {coursesByDay[day].map(e => (
+          {coursesByDay[day].map(course => (
             <ClickableLecture
-              key={`lecture-${e.id}-${day}-${e.end}`}
-              course={e}
+              key={`lecture-${course.id}-${day}-${course.end}`}
+              course={course}
               onPress={onPress}
             />
           ))}
-          {candidateByDay[day].map(e => (
+          {candidateByDay[day].map(course => (
             <View
-              key={`candidate-${e.id}-${day}-${e.end}`}
+              key={`candidate-${course.id}-${day}-${course.end}`}
               style={{
-                top: singleSlotHeight * convertToSlot(e.start),
+                top: singleSlotHeight * convertToSlot(course.start),
                 height:
                   singleSlotHeight *
-                    (convertToSlot(e.end) - convertToSlot(e.start)) -
+                    (convertToSlot(course.end) - convertToSlot(course.start)) -
                   innerBorderSize,
                 ...clickableLectureStyle.candidate,
               }}
@@ -156,7 +157,7 @@ const Timetable: TimetableType = ({
 
   useEffect(() => {
     if (candidate !== undefined) {
-      const courseSlot = candidate.getCourseSlot();
+      const courseSlot = getCourseSlot(candidate);
       const minHeight = courseSlot.length
         ? singleSlotHeight * convertToSlot(courseSlot[0].start)
         : 1e5;
