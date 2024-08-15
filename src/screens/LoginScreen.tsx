@@ -31,7 +31,6 @@ function LoginScreen({ navigation }: LoginScreenProps) {
 
         try{
             const response = await axios.post(`${API_URL}/student/login/`, userData);
-            console.log(response.status);
             if(response.status==200){
                 const token = response.data.Token
                 await AsyncStorage.setItem('userToken', token);

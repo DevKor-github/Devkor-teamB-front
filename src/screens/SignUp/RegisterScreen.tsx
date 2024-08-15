@@ -15,12 +15,12 @@ import FloatingButton from '@components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
 import {RadioButton, RadioGroup} from '@components/RadioButton';
 import SearchBar from '@components/SearchBar';
-import {Course, CourseProps, Lecture} from '@src/Types';
+import {Course, CourseMinimal, CourseMinimalData, Lecture} from '@src/Types';
 import Timetable from '@components/Timetable/Timetable';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {doesOverlap} from '@components/Timetable/TimetableUtils';
+import {doesOverlap, getTimeInfo} from '@components/Timetable/TimetableUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -66,7 +66,7 @@ const LectureItem = ({
       <View style={GlobalStyles.row}>
         <View style={GlobalStyles.expand}>
           <View style={GlobalStyles.row}>
-            <Text style={itemStyles.courseInfo}>{item.getTimeInfo()}</Text>
+            <Text style={itemStyles.courseInfo}>{getTimeInfo(item)}</Text>
             <Text style={itemStyles.courseInfo}>{item.course_room}</Text>
           </View>
           <View style={GlobalStyles.row}>
@@ -241,12 +241,12 @@ const RegistrationHeader = ({subTitle}: {subTitle: string}) => {
   );
 };
 
-const fetchLectureInfo = async (id: number[]) => {
+const fetchLectureInfo = async (courseMinimal: CourseMinimal[]) => {
   try {
     const items: Course[] = await Promise.all(
-      id.map(async (x: number) => {
+      courseMinimal.map(async (data: CourseMinimalData) => {
         const token = await AsyncStorage.getItem('userToken');
-        const response = await axios.get(`${API_URL}/courses/${x}/`, {
+        const response = await axios.get(`${API_URL}/courses/${data.id}/`, {
           headers: {
             authorization: `token ${token}`,
           },
@@ -274,8 +274,10 @@ const RegisterScreen = () => {
             authorization: `token ${token}`,
           },
         });
-        const lectureInfo = (response.data as CourseProps[]).map(e => e.id);
-        const value = await fetchLectureInfo(lectureInfo);
+        const courseMinimal = response.data.map((e: CourseMinimalData) =>
+          CourseMinimal.fromJson(e),
+        );
+        const value = await fetchLectureInfo(courseMinimal);
         setCourses(value!);
         setLoading(false);
       } catch (e) {

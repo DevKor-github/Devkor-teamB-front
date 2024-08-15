@@ -4,7 +4,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useEffect, useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import Timetable from '@components/Timetable/Timetable';
-import {Course, CourseProps, CourseMinimal} from '@src/Types';
+import {Course, CourseData, CourseBlock} from '@src/Types';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -46,7 +46,7 @@ function WeeklyTimetableScreen() {
             authorization: `token ${token}`,
           },
         });
-        const lectureInfo = (response.data as CourseProps[]).map(e => e.id);
+        const lectureInfo = (response.data as CourseData[]).map(e => e.id);
         const value = await fetchLectureInfo(lectureInfo);
         setCourses(value!);
       } catch (e) {
@@ -73,7 +73,7 @@ function WeeklyTimetableScreen() {
         onLayout={e => setContentHeight(e.nativeEvent.layout.height)}>
         <Timetable
           courses={courses}
-          onPress={(course: CourseMinimal) => {
+          onPress={(course: CourseBlock) => {
             navigation.navigate('Community', {course: course});
           }}
         />

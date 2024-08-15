@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {Post, CourseMinimal} from '@src/Types';
+import {Post, CourseBlock, PostMinimal, PostMinimalData} from '@src/Types';
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
@@ -162,8 +162,14 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({
   route,
   navigation,
 }) => {
-  const {course}: {course: CourseMinimal} = route.params;
-  const [posts, setPosts] = useState<Post[]>([]);
+  const {course}: {course: CourseBlock} = route.params;
+
+  useLayoutEffect(
+    () =>
+      setNavigationHeader(navigation, [course.course_name, course.instructor]),
+    [course, navigation],
+  );
+  // const [posts, setPosts] = useState<Post[]>([]);
   useEffect(() => {
     const fetchData = async () => {
       const API_URL = 'http://15.165.198.75:8000';
@@ -177,25 +183,22 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({
             authorization: `token ${token}`,
           },
         });
-        console.log(response.data);
-        setPosts([]);
+        const postMinmal = response.data.map((json: PostMinimalData) =>
+          PostMinimal.fromJson(json),
+        );
+        console.log(postMinmal);
       } catch (e) {
         console.log(e);
       }
     };
     fetchData();
   });
-  useLayoutEffect(
-    () =>
-      setNavigationHeader(navigation, [course.course_name, course.instructor]),
-    [course, navigation],
-  );
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
       <DailyBriefingWidget course={course} />
       <PostView
-        items={posts}
+        items={[]}
         id={course.course_id}
         lectureName={course.course_name}
       />
