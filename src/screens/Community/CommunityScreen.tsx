@@ -21,6 +21,7 @@ import * as Animatable from 'react-native-animatable';
 
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CommunityScreenProps {
   route: any;
@@ -166,17 +167,18 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       const API_URL = 'http://15.165.198.75:8000';
-      const USER_TOKEN = 'd9af3812b659426945446564d4529d77925cea55';
+      const token = await AsyncStorage.getItem('userToken');
       try {
         const response = await axios.get(`${API_URL}/posts/`, {
           params: {
             course_index: course.id,
           },
           headers: {
-            authorization: `token ${USER_TOKEN}`,
+            authorization: `token ${token}`,
           },
         });
-        //setPosts(response.data)
+        console.log(response.data);
+        setPosts([]);
       } catch (e) {
         console.log(e);
       }

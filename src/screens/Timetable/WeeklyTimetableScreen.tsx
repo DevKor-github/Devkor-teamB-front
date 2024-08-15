@@ -6,17 +6,18 @@ import {ScrollView, StyleSheet, View} from 'react-native';
 import Timetable from '@components/Timetable/Timetable';
 import {Course, CourseProps, CourseMinimal} from '@src/Types';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = 'http://15.165.198.75:8000';
-const USER_TOKEN = 'd9af3812b659426945446564d4529d77925cea55';
 
 const fetchLectureInfo = async (id: number[]) => {
   try {
     const items: Course[] = await Promise.all(
       id.map(async (x: number) => {
+        const token = await AsyncStorage.getItem('userToken');
         const response = await axios.get(`${API_URL}/courses/${x}/`, {
           headers: {
-            authorization: `token ${USER_TOKEN}`,
+            authorization: `token ${token}`,
           },
         });
         return Course.fromJson(response.data);
@@ -39,9 +40,10 @@ function WeeklyTimetableScreen() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = await AsyncStorage.getItem('userToken');
         const response = await axios.get(`${API_URL}/courses/`, {
           headers: {
-            authorization: `token ${USER_TOKEN}`,
+            authorization: `token ${token}`,
           },
         });
         const lectureInfo = (response.data as CourseProps[]).map(e => e.id);
