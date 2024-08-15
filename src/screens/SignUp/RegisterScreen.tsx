@@ -23,11 +23,11 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {doesOverlap} from '@components/Timetable/TimetableUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type NavigationProps = StackNavigationProp<any>;
 
 const API_URL = 'http://15.165.198.75:8000';
-const USER_TOKEN = 'd9af3812b659426945446564d4529d77925cea55';
 
 const LectureAddButton = ({onPress}: {onPress: Function}) => {
   return (
@@ -245,9 +245,10 @@ const fetchLectureInfo = async (id: number[]) => {
   try {
     const items: Course[] = await Promise.all(
       id.map(async (x: number) => {
+        const token = await AsyncStorage.getItem('userToken');
         const response = await axios.get(`${API_URL}/courses/${x}/`, {
           headers: {
-            authorization: `token ${USER_TOKEN}`,
+            authorization: `token ${token}`,
           },
         });
         return Course.fromJson(response.data);
@@ -267,9 +268,10 @@ const RegisterScreen = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const token = await AsyncStorage.getItem('userToken');
         const response = await axios.get(`${API_URL}/courses/`, {
           headers: {
-            authorization: `token ${USER_TOKEN}`,
+            authorization: `token ${token}`,
           },
         });
         const lectureInfo = (response.data as CourseProps[]).map(e => e.id);
