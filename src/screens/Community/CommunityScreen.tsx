@@ -1,18 +1,26 @@
-import React, {useEffect, useState, useLayoutEffect} from 'react';
-import {View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Modal} from 'react-native';
-import {mockPosts, mockLectures} from '@src/MockData';
+import React, {useState, useLayoutEffect, useEffect} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Modal,
+} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {Lecture, Post} from '@src/Types';
+import {Post, CourseMinimal} from '@src/Types';
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Octicons';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import FloatingButton from '@src/components/FloatingButton';
-import * as Animatable from 'react-native-animatable'
+import * as Animatable from 'react-native-animatable';
 
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
+import axios from 'axios';
 
 interface CommunityScreenProps {
   route: any;
@@ -56,26 +64,32 @@ const PostView = ({
   const [isFabOpen, setFabOpen] = useState(false);
 
   const handlePressMore = () => {
-    console.log(lectureName)
-    navigation.navigate('PostListScreen', {lectureName: lectureName, id: id, items: items})
-  }
+    console.log(lectureName);
+    navigation.navigate('PostListScreen', {
+      lectureName: lectureName,
+      id: id,
+      items: items,
+    });
+  };
 
   const handlePressPlus = () => {
     // navigation.navigate('PostCreationScreen', {lectureId: id});
-    console.log(isFabOpen)
+    console.log(isFabOpen);
     setFabOpen(!isFabOpen);
-  }
+  };
 
   const handleNavigate = (screen: string) => {
     setFabOpen(false);
-    navigation.navigate(screen, { lectureId: id, lectureName: lectureName});
+    navigation.navigate(screen, {lectureId: id, lectureName: lectureName});
   };
 
   return (
     <View style={postStyles.container}>
       <View style={headerStyle.container}>
         <Text style={headerStyle.title}> 게시글 목록</Text>
-        <TouchableOpacity style={{marginVertical: 'auto'}} onPress={handlePressMore}>
+        <TouchableOpacity
+          style={{marginVertical: 'auto'}}
+          onPress={handlePressMore}>
           <View style={GlobalStyles.row}>
             <Text style={headerStyle.more}>자세히 보기</Text>
             <Image
@@ -97,8 +111,7 @@ const PostView = ({
           )}
         />
       )}
-      <FloatingButton
-        onPress={handlePressPlus}>
+      <FloatingButton onPress={handlePressPlus}>
         <Icon name="plus" size={24} color={Colors.ui.background} />
       </FloatingButton>
 
@@ -107,34 +120,33 @@ const PostView = ({
         transparent={true}
         onRequestClose={handlePressPlus}>
         <TouchableOpacity
-          onPressOut={()=>setFabOpen(false)}
+          onPressOut={() => setFabOpen(false)}
           activeOpacity={1}
           style={styles.overlay}>
           <Animatable.View
             duration={500}
-            style={{width:70}}
+            style={{width: 70}}
             // style={[styles.fabOption, { bottom: 80 }]}
           >
-            <TouchableOpacity 
-              onPress={() => handleNavigate('PostCreationScreen')}
-            >
-              <Image 
-                source={require('@assets/icons/create_file.png')} 
-                style={styles.fabIcon}>  
-              </Image>
+            <TouchableOpacity
+              onPress={() => handleNavigate('PostCreationScreen')}>
+              <Image
+                source={require('@assets/icons/create_file.png')}
+                style={styles.fabIcon}
+              />
               <Text style={styles.fabText}>게시글 작성</Text>
             </TouchableOpacity>
           </Animatable.View>
           <Animatable.View
             duration={500}
-            style={{width:70}}
+            style={{width: 70}}
             // style={[styles.fabOption, { bottom: 140 }]}
           >
             <TouchableOpacity onPress={() => handleNavigate('BriefingScreen')}>
-            <Image 
-                source={require('@assets/icons/faq.png')} 
-                style={styles.fabIcon}>  
-              </Image>
+              <Image
+                source={require('@assets/icons/faq.png')}
+                style={styles.fabIcon}
+              />
               <Text style={styles.fabText}>브리핑 답변</Text>
             </TouchableOpacity>
           </Animatable.View>
@@ -144,26 +156,46 @@ const PostView = ({
   );
 };
 
+// 여기 조금 수정했어!
 const CommunityScreen: React.FC<CommunityScreenProps> = ({
   route,
   navigation,
 }) => {
-  const {id} = route.params;
-  const communities = mockPosts;
-  const lecture = mockLectures.find((e: Lecture) => e.id === id) as Lecture;
-
+  const {course}: {course: CourseMinimal} = route.params;
+  const [posts, setPosts] = useState<Post[]>([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const API_URL = 'http://15.165.198.75:8000';
+      const USER_TOKEN = 'd9af3812b659426945446564d4529d77925cea55';
+      try {
+        const response = await axios.get(`${API_URL}/posts/`, {
+          params: {
+            course_index: course.id,
+          },
+          headers: {
+            authorization: `token ${USER_TOKEN}`,
+          },
+        });
+        //setPosts(response.data)
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    fetchData();
+  });
   useLayoutEffect(
-    () => setNavigationHeader(navigation, [lecture.name, lecture.professor]),
-    [lecture.name, lecture.professor, navigation],
+    () =>
+      setNavigationHeader(navigation, [course.course_name, course.instructor]),
+    [course, navigation],
   );
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
-      <DailyBriefingWidget lecture={lecture} />
+      <DailyBriefingWidget course={course} />
       <PostView
-        items={communities.get(id) as Post[]}
-        id={lecture.id}
-        lectureName={lecture.name}
+        items={posts}
+        id={course.course_id}
+        lectureName={course.course_name}
       />
     </SafeAreaView>
   );
@@ -200,15 +232,15 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     ...GlobalStyles.row,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)', 
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     // alignItems: 'center',
     paddingTop: 600,
-    gap:80,
+    gap: 80,
   },
   fabOption: {
     position: 'absolute',
-    backgroundColor:'pink',
+    backgroundColor: 'pink',
     right: 20,
     borderRadius: 50,
     width: 50,
@@ -218,11 +250,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   fabIcon: {
-    width:70,
-    height:70,
-    borderRadius:35,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     ...GlobalStyles.shadow,
-    backgroundColor: 'gray'
+    backgroundColor: 'gray',
   },
   fabText: {
     fontSize: 13,
@@ -231,7 +263,7 @@ const styles = StyleSheet.create({
     color: Colors.text.white,
     alignSelf: 'center',
     ...GlobalStyles.text,
-  }
+  },
 });
 
 const postStyles = StyleSheet.create({

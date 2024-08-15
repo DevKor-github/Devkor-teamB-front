@@ -1,8 +1,8 @@
-import {Lecture, SimpleLecture} from '@src/Types';
+import {Course, CourseSlot, CourseMinimal} from '@src/Types';
 import Colors from '@src/Colors.tsx';
 import {ColorValue} from 'react-native';
 
-const colorMap: Map<string, number> = new Map();
+const colorMap: Map<number, number> = new Map();
 const defaultSlotCount = 7;
 const defaultStartTime = 9;
 const defaultLabel = ['월', '화', '수', '목', '금'];
@@ -21,7 +21,7 @@ export const convertTo12HourFormat = (index: number) => {
 };
 
 // 강의 블럭의 색상을 구하는 함수
-export const getLectureColor = (id: string): ColorValue => {
+export const getLectureColor = (id: number): ColorValue => {
   const colors: ColorValue[] = Object.values(Colors.subject);
 
   if (!colorMap.has(id)) {
@@ -42,15 +42,24 @@ export const convertToSlot = (time: string) => {
 };
 
 // 강의를 요일 별로 분류하는 함수
-export const groupByDay = (lectures: Lecture[]) => {
-  const items: Record<string, SimpleLecture[]> = {};
+export const groupByDay = (courses: Course[]) => {
+  const items: Record<string, CourseMinimal[]> = {};
   defaultLabel.forEach(day => (items[day] = []));
 
-  lectures.forEach(lecture => {
-    const {name, id, room, time} = lecture;
-    time.forEach(timeSlot => {
-      const {day, start, end} = timeSlot;
-      items[day].push({name, id, room, start, end});
+  courses.forEach((course: Course) => {
+    const courseSlots: CourseSlot[] = course.getCourseSlot();
+    courseSlots.forEach(slot => {
+      const {day, start, end} = slot;
+      const newCourse: CourseMinimal = {
+        id: course.id,
+        course_id: course.course_id,
+        course_name: course.course_name,
+        course_room: course.course_room,
+        instructor: course.instructor,
+        start,
+        end,
+      };
+      items[day].push(newCourse);
     });
   });
 
@@ -58,15 +67,15 @@ export const groupByDay = (lectures: Lecture[]) => {
 };
 
 // 시간표의 전체 슬롯 수를 계산하는 함수
-export const calculateTotalSlots = (lectures: Lecture[]) => {
-  if (lectures.length === 0) {
+export const calculateTotalSlots = (courses: Course[]) => {
+  if (courses.length === 0) {
     return defaultSlotCount;
   }
-
+  const coursesSlots = courses.map(e => e.getCourseSlot());
   let latestEndTime = defaultStartTime;
-  lectures.forEach(lecture => {
-    lecture.time.forEach(timeSlot => {
-      let [hour, minute] = strToInt(timeSlot.end);
+  coursesSlots.forEach(e => {
+    e.forEach(slot => {
+      let [hour, minute] = strToInt(slot.end);
       hour -= minute === 0 ? 1 : 0; // 주어진 시간이 정각인지 확인하는 구문
       latestEndTime = Math.max(hour, latestEndTime);
     });
@@ -75,18 +84,15 @@ export const calculateTotalSlots = (lectures: Lecture[]) => {
   return Math.max(defaultSlotCount, slotCount);
 };
 
-export const getLabels = (lectures: Lecture[]) => {
+export const getLabels = (courses: Course[]) => {
   const label = [...defaultLabel];
-  if (lectures.length === 0) {
+  if (courses.length === 0) {
     return label;
   }
 
-  let hasSaturday = lectures.some(lec =>
-    lec.time.some(time => time.day === '토'),
-  );
-  let hasSunday = lectures.some(lec =>
-    lec.time.some(time => time.day === '일'),
-  );
+  const coursesSlots = courses.map(e => e.getCourseSlot());
+  let hasSaturday = coursesSlots.some(e => e.some(v => v.day === '토'));
+  let hasSunday = coursesSlots.some(e => e.some(v => v.day === '일'));
   if (hasSaturday || hasSunday) {
     label.push('토');
     if (hasSunday) {
@@ -96,13 +102,13 @@ export const getLabels = (lectures: Lecture[]) => {
   return label;
 };
 
-export const filterOnlineLecture = (lectures: Lecture[]) =>
-  lectures.filter(lec => lec.time.length === 0);
+export const filterOnlineLecture = (courses: Course[]) =>
+  courses.filter(course => course.course_period.length === 0);
 
-export function doesOverlap(target: Lecture, desc: Lecture[]): boolean {
-  for (const timeSlot of target.time) {
+export function doesOverlap(target: Course, desc: Course[]): boolean {
+  for (const timeSlot of target.getCourseSlot()) {
     for (const existingLecture of desc) {
-      for (const existingTimeSlot of existingLecture.time) {
+      for (const existingTimeSlot of existingLecture.getCourseSlot()) {
         if (timeSlot.overlap(existingTimeSlot)) {
           return true;
         }
