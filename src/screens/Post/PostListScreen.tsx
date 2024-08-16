@@ -67,10 +67,16 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
     }
   }
 
+  const handleNavigate = () => {
+    console.log(fetchedPost)
+    console.log(lectureName)
+    navigation.navigate('PostScreen', {post: fetchedPost, lectureName: lectureName});
+  }
+
   return (
     <TouchableOpacity
       style={postStyles.postItem}
-      onPress={() => navigation.navigate('PostScreen', {post: fetchedPost, lectureName: lectureName})}>
+      onPress={handleNavigate}>
 
       <View style={{...GlobalStyles.row, justifyContent: 'space-between'}}>
         <View>
@@ -93,7 +99,7 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   );
 };
 
-const PostView = ({items, id, lectureName}: {items: Post[]; id: string, lectureName: string}) => {
+const PostView = ({items, id, lectureName}: {items: Post[]; id: number, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [query, setQuery] = useState("");
 
@@ -151,6 +157,9 @@ const PostListScreen: React.FC<CommunityScreenProps> = ({route,navigation,}) => 
     navigation.setOptions({title: `${route.params.lectureName}`});
   }, [lecture, communities, navigation]);
   
+  useEffect(()=>{
+    console.log('postlistscreen:',id)
+  },[])
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>

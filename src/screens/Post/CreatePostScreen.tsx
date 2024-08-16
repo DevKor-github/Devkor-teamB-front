@@ -156,6 +156,7 @@ function PostCreationScreen({ route }: { route: any }) {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
   useEffect(()=>{
+    console.log('course_fk:',lectureId)
     fetchTags();
   },[])
 
@@ -236,10 +237,10 @@ function PostCreationScreen({ route }: { route: any }) {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('content', content);
-      formData.append('course_fk', 3); // course_fk 앞에서 받아와야됨
+      formData.append('course_fk', lectureId); // course_fk 앞에서 받아와야됨 [완료]
       formData.append('student', userid);
       formData.append('tags', selectedTags);
-      if (images && images.length > 0) {
+      if (images && images.length > 0) { // 여기 수정 필요
         images.forEach((file) => {
           formData.append('attached_file', {
             uri: file.uri,
@@ -263,8 +264,6 @@ function PostCreationScreen({ route }: { route: any }) {
     }
     
 
-  
-
     const newPost: Post = {
       postId: Date.now(),
       author: new UserInfo('user1111', '게시물 작성자', 'no-image'),
@@ -285,7 +284,7 @@ function PostCreationScreen({ route }: { route: any }) {
     } else {
       communities.set(lectureId, [newPost]);
     }
-    // navigation.goBack();
+    navigation.goBack();
   };
 
 

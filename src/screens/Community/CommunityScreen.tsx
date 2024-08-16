@@ -22,7 +22,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
-import axios from 'axios';
 
 interface CommunityScreenProps {
   route: any;
@@ -56,18 +55,18 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
         postId: data.id,
         title: data.title,
         author: new UserInfo(
-          'user_07',
-          'Carol Davis',
-          'https://example.com/image3.jpg',
+          data.author.id,
+          data.author.nickname,
+          'https://example.com/image3.jpg', //하드코딩
         ),
         postDate: data.created_at,
-        view: 10,
+        view: 10, // 하드코딩
         content: data.content,
         images : data.attached_file,
         files: data.attached_file,
         tags: data.tags,
       }
-      console.log('newpost:',newPost)
+      // console.log('newpost:',newPost)
       setFetchedPost(newPost)
       // console.log(newPost.title)
     } catch (error) {
@@ -76,8 +75,8 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   }
 
   const handleNavigate = () => {
-    console.log(fetchedPost)
-    console.log(lectureName)
+    // console.log(fetchedPost)
+    // console.log(lectureName)
     navigation.navigate('PostScreen',{
       post: fetchedPost,
       lecture: lectureName,
@@ -87,11 +86,6 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   return (
     <TouchableOpacity
       style={postStyles.postItem}
-      // onPress={() =>
-      //   navigation.navigate('PostScreen', {
-      //     post: fetchedPost,
-      //     lectureName: lectureName,
-      //   })}
       onPress = {handleNavigate}
       >
       <View style={{...GlobalStyles.row, justifyContent: 'space-between', alignItems: 'center'}}>
@@ -106,12 +100,16 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   );
 };
 
-const PostView = ({ items, id, lectureName,}: { items: Post[]; id: string; lectureName: string;}) => {
+const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectureName: string;}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [isFabOpen, setFabOpen] = useState(false);
  
+  useEffect(()=>{
+    console.log(items)
+    console.log(lectureName)
+  },[])
+
   const handlePressMore = () => {
-    console.log(lectureName);
     navigation.navigate('PostListScreen', {
       lectureName: lectureName,
       id: id,
@@ -145,7 +143,7 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: string; lectu
           </View>
         </TouchableOpacity>
       </View>
-      {items === undefined ? (
+      {items.length===0 ? (
         <View style={postStyles.postEmpty}>
           <Text style={postStyles.postEmptyText}>아직 게시물이 없습니다</Text>
         </View>
@@ -186,7 +184,6 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: string; lectu
           <Animatable.View
             duration={500}
             style={{width: 70}}
-            // style={[styles.fabOption, { bottom: 140 }]}
           >
             <TouchableOpacity onPress={() => handleNavigate('BriefingScreen')}>
               <Image
@@ -205,44 +202,59 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: string; lectu
 
 
 // 여기 조금 수정했어!
-const CommunityScreen: React.FC<CommunityScreenProps> = ({
-  route,
-  navigation,
-}) => {
+const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
   const {course}: {course: CourseMinimal} = route.params;
   const [posts, setPosts] = useState<Post[]>([]);
+  const [lectureName, setLectureName] = useState(''); //임시
+  const [lectureId, setLectureId] = useState(''); //임시
+
   useEffect(() => {
-    const fetchData = async () => {
-      const API_URL = 'http://15.165.198.75:8000';
-      const USER_TOKEN = 'd9af3812b659426945446564d4529d77925cea55';
-      try {
-        const response = await axios.get(`${API_URL}/posts/`, {
-          params: {
-            course_index: course.id,
-          },
-          headers: {
-            authorization: `token ${USER_TOKEN}`,
-          },
-        });
-        //setPosts(response.data)
-      } catch (e) {
-        console.log(e);
-      }
-    };
-    fetchData();
-  });
-  useLayoutEffect(
-    () =>
-      setNavigationHeader(navigation, [course.course_name, course.instructor]),
+    // fetchData();
+    console.log('course:',course.id) // course_fk
+    fetchPost();
+  },[]);
+
+  useLayoutEffect(() =>
+    setNavigationHeader(navigation, [course.course_name, course.instructor]),
     [course, navigation],
   );
+
+
+  const fetchPost = async ()=>{
+    const API_URL = "http://15.165.198.75:8000"
+    try {
+      const token = await AsyncStorage.getItem('userToken')
+
+      const response = await axios.get(`${API_URL}/posts/`, 
+        {
+          params: {
+            course_id: course.course_name
+          },
+          headers: {
+            authorization: `token ${token}`,
+          },
+        },
+      );
+      // console.log(response.data)
+      const fetchedPosts: Post[] = response.data
+        .map((data:any)=>({
+          postId: data.id,
+          title: data.title,
+        }))
+      // console.log('fetchedPost:',fetchedPosts)
+      setPosts(fetchedPosts)
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    }
+  }
+
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
       <DailyBriefingWidget course={course} />
       <PostView
         items={posts}
-        id={course.course_id}
+        id={course.id}
         lectureName={course.course_name}
       />
     </SafeAreaView>
