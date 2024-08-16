@@ -35,7 +35,7 @@ const NotificationProgressBar = ({progress}: {progress: number}) => {
       <ProgressBar progress={progress}>
         <View style={GlobalStyles.row}>
           <Image
-            source={require('@assets/icons/icon_smile.png')}
+            source={require('@assets/icons/icon_slight_smile.png')}
             style={styles.icon}
           />
           <Text style={styles.text}>공지가 있었어요!</Text>
@@ -51,7 +51,7 @@ const AttendanceProgressBar = ({progress}: {progress: number}) => {
       <ProgressBar progress={progress}>
         <View style={GlobalStyles.row}>
           <Image
-            source={require('@assets/icons/icon_smile.png')}
+            source={require('@assets/icons/icon_slight_smile.png')}
             style={styles.icon}
           />
           <Text style={styles.text}>출석체크를 진행했어요!</Text>
@@ -67,7 +67,7 @@ const AssignmentProgressBar = ({progress}: {progress: number}) => {
       <ProgressBar progress={progress}>
         <View style={GlobalStyles.row}>
           <Image
-            source={require('@assets/icons/icon_smile.png')}
+            source={require('@assets/icons/icon_slight_smile.png')}
             style={styles.icon}
           />
           <Text style={styles.text}>과제가 있었어요!</Text>

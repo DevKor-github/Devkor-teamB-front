@@ -1,9 +1,9 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, FlatList, TouchableOpacity, StyleSheet, Image} from 'react-native';
 import {mockPosts, mockLectures} from '@src/MockData';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {Lecture, Post} from '@src/Types';
+import {Lecture, Post, UserInfo} from '@src/Types';
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
@@ -11,6 +11,9 @@ import { tagColors } from '@src/MockData';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import FloatingButton from '@src/components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
+import { TextInput } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 interface CommunityScreenProps {
   route: any;
@@ -21,48 +24,111 @@ interface CommunityScreenProps {
 
 const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
+  const [fetchedPost, setFetchedPost] = useState<Post>();
 
   useEffect(()=>{
-    console.log(post.tags)
-  })
+    // console.log('post:',post)
+    // console.log('lectureName2:',lectureName)
+    fetchPostInfo(post.postId)
+  },[])
+
+  const fetchPostInfo = async (postId:number) => {
+    const API_URL = "http://15.165.198.75:8000"
+    try{
+      const token = await AsyncStorage.getItem('userToken')
+      const response = await axios.get(`${API_URL}/posts/${postId}/`,  
+        {
+          headers: {
+            authorization: `token ${token}`,
+          },
+        },
+      );
+      // console.log('response:',response.data)
+      const data = response.data
+      const newPost : Post = {
+        postId: data.id,
+        title: data.title,
+        author: new UserInfo(
+          data.author.id,
+          data.author.nickname,
+          'https://example.com/image3.jpg', // 이거 어카지
+        ),
+        postDate: data.created_at,
+        view: 10, // 예시
+        content: data.content,
+        images : data.attached_file,
+        files: data.attached_file,
+        tags: data.tags,
+      }
+      // console.log('newpost:',newPost)
+      setFetchedPost(newPost)
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+    }
+  }
 
   return (
     <TouchableOpacity
       style={postStyles.postItem}
-      onPress={() => navigation.navigate('PostScreen', {post: post, lectureName: lectureName})}>
-      <View style={{...GlobalStyles.row,gap:5}}>
-        <Text style={[postStyles.postText,{color: Colors.primary[500]}]}>Q.</Text>
-        <Text style={postStyles.postText}>{post.title}</Text>
+      onPress={() => navigation.navigate('PostScreen', {post: fetchedPost, lectureName: lectureName})}>
+
+      <View style={{...GlobalStyles.row, justifyContent: 'space-between'}}>
+        <View>
+          <Text style={postStyles.postText}>{post.title}</Text>
+          <View style={{...GlobalStyles.row,gap:5,flexWrap : 'wrap',}}>
+            {fetchedPost && fetchedPost.tags.map(tag => (
+                <View style={{backgroundColor:tagColors[tag.id],borderRadius:12,paddingHorizontal:8,paddingVertical:3,}}>
+                    <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
+                </View>
+            ))}
+          </View>
+          <Text style={{color:Colors.text.lightgray,marginTop: 7}}>{fetchedPost && fetchedPost.postDate.substring(0,10)} | 조회 {post.view} | 댓글 {10} | 좋아요 0</Text>
+        </View>
+        {fetchedPost && fetchedPost.images && fetchedPost.images.length > 0 && (
+          <Image source={{uri: fetchedPost.images[0].uri}} style={{width:65,height:65,borderRadius:5,alignSelf: 'center'}}/>
+        )}
       </View>
-      <Text style={{color:Colors.text.lightgray,marginVertical:3}}>{post.postDate}</Text>
-      <View style={{...GlobalStyles.row,gap:10}}>
-        {post.tags.map(tag => (
-            <View style={{backgroundColor:tagColors[tag.id],borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
-                <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
-            </View>
-        ))}
-      </View>
+
     </TouchableOpacity>
   );
 };
 
 const PostView = ({items, id, lectureName}: {items: Post[]; id: string, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
+  const [query, setQuery] = useState("");
+
+  useEffect(()=>{
+    console.log('items:',items)
+    console.log('id:',id)
+    console.log('lectureName:',lectureName)
+  })
+
   return (
-    <View style={postStyles.container}>
-      <View style={headerStyle.container}>
-        <Text style={headerStyle.title}> 게시글 목록</Text>
-      </View>
-      {items === undefined ? (
-        <View style={postStyles.postEmpty}>
-          <Text style={postStyles.postEmptyText}>아직 게시물이 없습니다</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={items}
-          renderItem={({item}: {item: Post}) => <PostItem post={item} lectureName={lectureName}/>}
+    <View>
+      <View style={styles.searchContainer}>
+        <Icon name="search" size={15} color="#BAABB2"></Icon>
+        <TextInput
+          style={styles.textInput}
+          onChangeText = {setQuery}
+          value = {query}
+          placeholder = "키워드 및 검색어를 입력해주세요"
         />
-      )}
+      </View>
+      <View style={postStyles.container}>
+        {items === undefined ? (
+          <View style={postStyles.postEmpty}>
+            <Text style={postStyles.postEmptyText}>아직 게시물이 없습니다</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={items}
+            renderItem={({item}: {item: Post}) => (
+              <PostItem post={item} lectureName={lectureName} />
+            )}
+          />
+        )}
+
+      </View>
 
       <FloatingButton
         onPress={() => {
@@ -71,6 +137,7 @@ const PostView = ({items, id, lectureName}: {items: Post[]; id: string, lectureN
         <Icon name="plus" size={24} color={Colors.ui.background} />
       </FloatingButton>
     </View>
+
   );
 };
 
@@ -117,18 +184,35 @@ const headerStyle = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.ui.background,
+    backgroundColor: "#F9F5F7",
     padding: 12,
     ...GlobalStyles.expand,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EBE4E7',
+    marginLeft: 5,
+    paddingLeft: 10,
+    width: 358,
+    height: 34,
+    borderRadius: 17,
+  },
+  textInput: {
+    // flex: 1,
+    height: 40,
+    margin: 5
+},
 });
 
 const postStyles = StyleSheet.create({
   container: {
     marginTop: 16,
+    paddingBottom: 60,
     borderRadius: 10,
-    backgroundColor: Colors.ui.background,
-    ...GlobalStyles.expand,
+    // backgroundColor: Colors.ui.background,
+    // ...GlobalStyles.expand,
+    minHeight: 680,
     ...GlobalStyles.shadow,
   },
   title: {
@@ -146,7 +230,7 @@ const postStyles = StyleSheet.create({
     ...GlobalStyles.text,
   },
   postItem: {
-    marginHorizontal: 12,
+    // marginHorizontal: 12,
     marginVertical: 4,
     padding: 12,
     borderRadius: 5,
@@ -156,7 +240,8 @@ const postStyles = StyleSheet.create({
   postText: {
     color: Colors.text.black,
     fontSize: FontSizes.large,
-    ...GlobalStyles.boldText,
+    fontWeight: 600,
+    marginBottom: 8,
   },
 });
 

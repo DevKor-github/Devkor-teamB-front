@@ -13,7 +13,7 @@ import {
   Modal,
   KeyboardAvoidingView,
 } from 'react-native';
-import {Comment, Post, Attachment} from '@src/Types';
+import {Comment, Post, Attachment, Tag} from '@src/Types';
 import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
@@ -22,28 +22,59 @@ import { GlobalStyles } from '@src/GlobalStyles';
 import { tagColors } from '@src/MockData';
 import { launchImageLibrary } from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 
-function CommentTextField({ addComment }: { addComment: (comment: Comment) => void }) {
+function CommentTextField({ addComment, postId }: { addComment: (comment: Comment) => void, postId: number}) {
   const [text, setText] = useState('');
   const [inputHeight, setInputHeight] = useState(20);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const placeholder = '첫 댓글 작성 시 포인트 3배 적립';
 
-  const handlePressButton = () => {
-    console.log('pressed')
+  const handleAddComment = async () => {
+    const commentData = {
+      content: text,
+      is_chosen: false,
+      post: postId, 
+      student: 1, // 하드코딩
+    }
+    
     if(text.trim().length>0){
-      const newComment : Comment = {
-        commentId: 2, // 하드코딩됨
-        userId: 'sampleUserId',
-        content: text,
-        date: new Date().toString(),
-        attachments,
+      const API_URL = "http://15.165.198.75:8000"
+      try{
+        const token = await AsyncStorage.getItem('userToken')
+        const nickname = await AsyncStorage.getItem('userNickname')
+        
+        // 예외처리
+        if (!token || !nickname) {
+          console.error('Error: token or userId is null');
+          return;
+        }
+        const response = await axios.post(`${API_URL}/comments/`,commentData,
+          {
+            headers: {
+              authorization: `token ${token}`,
+            },
+          },
+        );
+
+        const newComment: Comment = {
+          commentId: response.data.id,
+          author: nickname,
+          content: response.data.content,
+          date: response.data.created_at.substring(0,10),
+          updatedDate: response.data.updated_at.substring(0,10),
+          isChosen: response.data.is_chosen,
+          postId: response.data.post,
+        }
+        addComment(newComment);
+        setText('');
+        setInputHeight(20);
+        setAttachments([]);
+      } catch (error) {
+        console.error(error)
       }
-      addComment(newComment);
-      setText('');
-      setInputHeight(20);
-      setAttachments([]);
     }
   }
 
@@ -67,7 +98,6 @@ function CommentTextField({ addComment }: { addComment: (comment: Comment) => vo
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={90}
       style={styles.container}
     >
       <View style={styles.inner}>
@@ -81,15 +111,15 @@ function CommentTextField({ addComment }: { addComment: (comment: Comment) => vo
               multiline
             />
             <View>
-              <TouchableOpacity onPress={handlePressButton}>
+              <TouchableOpacity onPress={handleAddComment}>
                 <Icon name="send" size={18} color={Colors.ui.primary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleSelectAttachment}>
+              {/* <TouchableOpacity onPress={handleSelectAttachment}>
                 <Icon name="image" size={18} color={Colors.ui.primary} />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
-          <View style={styles.attachmentPreviewContainer}>
+          {/* <View style={styles.attachmentPreviewContainer}>
             {attachments.map(attachment => (
               <View key={attachment.uri} style={[styles.attachmentWrapper,{paddingBottom: inputHeight}]}>
                 {attachment.type.startsWith('image/') ? (
@@ -102,20 +132,22 @@ function CommentTextField({ addComment }: { addComment: (comment: Comment) => vo
                 </TouchableOpacity>
               </View>
             ))}
-          </View>
+          </View> */}
       </View>
     </KeyboardAvoidingView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     // flex: 1,
     // paddingBottom: 700,
+    // backgroundColor: 'white'
   },
   textfield: {
     flexDirection: 'row',
     position: 'absolute',
-    // bottom: 0,
+    bottom:70,
     width: '95%',
     alignSelf: 'center',
     alignItems: 'center',
@@ -176,12 +208,21 @@ const styles = StyleSheet.create({
   },
 })
 
-function CommentContainer({comment}: {comment: Comment}) {
+
+function CommentContainer({comment, handleDeleteComment}: {comment: Comment, handleDeleteComment: (commentId:number)=>void}) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isBlurVisible, setIsBluerVisible] = useState(true);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const moreButtonRef = useRef<TouchableOpacity>(null);
   const [point, setPoint] = useState(40); // 샘플
+  const date = new Date(comment.date)
+
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; 
+  const day = date.getDate();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const seconds = date.getSeconds();
 
 
   const onPressModalClose = () => {
@@ -203,17 +244,41 @@ function CommentContainer({comment}: {comment: Comment}) {
 
   }
 
-  const handleReport = () => {
-    Alert.alert('신고하시겠습니까?','',[
+  const handleDelete =  () => {
+    Alert.alert('댓글을 삭제하시겠습니까?','',[
       {
         text: '취소',
         style: 'cancel'
       },
       {
-        text: '신고하기',
+        text: '삭제하기',
         style: 'destructive',
-        onPress: () => {
-          // 신고 로직
+        onPress: async () => {
+          // 삭제 로직
+          const API_URL = "http://15.165.198.75:8000"
+          const token = await AsyncStorage.getItem('userToken')
+          try{
+            const response = await axios.delete(`${API_URL}/comments/${comment.commentId}/`,
+              {
+                headers: {
+                  authorization: `token ${token}`,
+                },
+              },
+            );
+            if(response.status==204){
+              Alert.alert('삭제되었습니다','',[
+                {
+                  text: '확인',
+                  style: 'cancel'
+                }
+              ])
+              handleDeleteComment(comment.commentId);
+            }
+            // console.log('deleted')
+          } catch(error) {
+            console.error(error)
+          }
+
         }
       }
     ])
@@ -246,13 +311,15 @@ function CommentContainer({comment}: {comment: Comment}) {
         />
 
         <View style={style.userArea2_comment}>
-          <Text style={{color: '#3D3D3D', fontSize: 14, fontWeight: '500'}}>{comment.userId}</Text>
-          <View style={style.userArea3}>
-            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{comment.date}</Text>
+          <Text style={{color: '#3D3D3D', fontSize: 14, fontWeight: '500'}}>{comment.author}</Text>
+          <View style={style.userArea3_comment}>
+            {/* <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{comment.date.substring(0,10)}</Text> */}
+            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{month}월 {day}일</Text>
+            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{hours}:{minutes}</Text>
           </View>
         </View>
 
-        <TouchableOpacity ref={moreButtonRef} style={{marginLeft: 190}} onPress={onPressMore}>
+        <TouchableOpacity ref={moreButtonRef} style={{marginLeft: 210}} onPress={onPressMore}>
           <Icon name="more-vertical" size={24} color="#3D3D3D" />
         </TouchableOpacity>
       </View>
@@ -268,8 +335,8 @@ function CommentContainer({comment}: {comment: Comment}) {
             style={style.overlay}
           >
             <View style={[style.menu_comment,menuPosition]}>
-              <TouchableOpacity style={style.menuItem} onPress={handleReport}>
-                <Text style={{color:Colors.primary[500]}}>신고하기</Text>
+              <TouchableOpacity style={style.menuItem} onPress={handleDelete}>
+                <Text style={{color:Colors.primary[500]}}>삭제하기</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -277,16 +344,17 @@ function CommentContainer({comment}: {comment: Comment}) {
       </View>
 
       <View style={style.commentArea}>
+
         <Text style={style.comment}>
           {comment.content}
         </Text>
-        {comment.attachments.map((attachment: Attachment, index: number) => (
+        {/* {comment.attachments.map((attachment: Attachment, index: number) => (
           <Image
             key={index}
             source={{ uri: attachment.uri }}
             style={{ width: 82, height: 82, borderRadius: 9 }}
           />
-        ))}
+        ))} */}
 
         {isBlurVisible && (
           <View style={style.commentArea_Blur}>
@@ -338,13 +406,96 @@ interface PostScreenProps {
   route: any;
   navigation: any;
 }
+
+
 const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
-// function PostScreen({route,navigation}: {route: any,navigation: any}) {
   const post: Post = route.params.post;
   const lectureName: string = route.params.lectureName;
-
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [comments, setComments] = useState(post.comments);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+
+  useEffect(()=>{
+    fetchComments(post.postId)
+    setTags(post.tags)
+    // fetchTags(post.tags)
+  },[])
+
+  const fetchComments = async (postId:number) => {
+    const API_URL = "http://15.165.198.75:8000"
+    try{
+      const token = await AsyncStorage.getItem('userToken')
+      const response = await axios.get(`${API_URL}/comments/`,  
+        {
+          params: {
+            post_id: postId
+          },
+          headers: {
+            authorization: `token ${token}`,
+          },
+        },
+      );
+
+      const commentIds = response.data.map((comment: any) => comment.id);
+      // 모든 comment ID에 대해 content를 가져오기 위한 비동기 요청 배열 생성
+      const contentPromises = commentIds.map(async (commentId: number) => {
+        const commentResponse = await axios.get(`${API_URL}/comments/${commentId}/`, {
+          headers: {
+            authorization: `token ${token}`,
+          },
+        });
+        // console.log(commentResponse)
+        const fetchedComment : Comment = {
+          commentId: commentResponse.data.id,
+          author: commentResponse.data.author.nickname,
+          content: commentResponse.data.content,
+          date: commentResponse.data.created_at,
+          updatedDate: commentResponse.data.updated_at,
+          // isChosen: commentResponse.data.is_chosen,
+          isChosen: false,
+          postId: commentResponse.data.parent_post.id
+        }
+        return fetchedComment;
+      });
+
+      // 모든 요청이 완료되기를 기다림
+      const comments = await Promise.all(contentPromises);
+      setComments(comments)
+      // console.log('response:',response.data)
+      // console.log('commentIds:',commentIds)
+      // console.log('comments:',comments)
+
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  }
+
+  // const fetchTags = async (tagIds:any[]) => {
+  //   // console.log(tagIds)
+  //   const API_URL = "http://15.165.198.75:8000"
+  //   try{
+  //     const token = await AsyncStorage.getItem('userToken')
+
+  //     const contentPromises = tagIds.map(async(tagId:number)=> {
+  //       console.log(tagId)
+  //       const tagResponse = await axios.get(`${API_URL}/tags/${tagId}/`,  
+  //         {
+  //           headers: {
+  //             authorization: `token ${token}`,
+  //           },
+  //         },
+  //       );
+  //       return tagResponse.data
+  //     })
+      
+  //     const tags = await Promise.all(contentPromises);
+  //     setTags(tags)
+  //     console.log(tags)
+
+  //   } catch(error) {
+  //     console.error(error)
+  //   }
+  // }
 
   const addComment = (newComment: Comment) => {
     setComments([newComment, ...comments]);
@@ -363,6 +514,11 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     setIsModalVisible(false);
   };
 
+  const handleDeleteComment = () => {
+    console.log('delete comment')
+    fetchComments(post.postId)
+  }
+
   const createTwoButtonAlert = () =>
     Alert.alert('게시글을 삭제하시겠습니까?', '', [
       {
@@ -378,16 +534,12 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
       },
     ]);
 
-    useEffect(()=>{
-      console.log(comments)
-    },[comments])
-
     useEffect(() => {
       navigation.setOptions({title: lectureName});
     }, [lectureName,navigation]);
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <SafeAreaView style={{height: 850}}>
       <>
         <ScrollView
           style={{
@@ -397,13 +549,13 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
           }}>
           <View style={style.userArea}>
             <Image
-              // source={{uri:post.author.profile}}
               source={require('@assets/images/hamster.png')} // 여기 수정 필요 (지금 하드코딩..)
               style={{
                 width: 52,
                 height: 51,
                 flexShrink: 0,
                 borderRadius: 25,
+                alignSelf: 'flex-start'
               }}
             />
 
@@ -412,8 +564,8 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                 {post.author.name}
               </Text>
               <View style={style.userArea3}>
-                <View style={{...GlobalStyles.row,gap:10}}>
-                  {post.tags.map(tag => (
+                <View style={{...GlobalStyles.row,gap:5,flexWrap:'wrap'}}>
+                  {tags.map(tag => (
                       <View style={{backgroundColor:tagColors[tag.id],borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
                           <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
                       </View>
@@ -437,13 +589,14 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
             { post.images && (
               post.images.length>0 && (
                 <View style={style.postPhotoArea}>
-                  {post.images.map((attachment: Attachment, index: number) => (
+                  {/* {post.images.map((attachment: Attachment, index: number) => (
                     <Image
                       key={index}
                       source={{ uri: attachment.uri }}
                       style={{ width: 82, height: 82, borderRadius: 9 }}
                     />
-                  ))}
+                  ))} */}
+                  {/* <Text>{post.images}</Text> */}
                 </View>
             ))}
           </View>
@@ -482,7 +635,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                   fontWeight: '500',
                   marginLeft: 5,
                 }}>
-                19
+                {post.view} 
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={style.button}>
@@ -494,7 +647,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                   fontWeight: '500',
                   marginLeft: 5,
                 }}>
-                12
+                {/* {post.comments.length} */}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={style.button}>
@@ -513,12 +666,15 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
           {comments.map(comment => (
             <View key={comment.commentId} style={{marginTop: 10}}>
-              <CommentContainer comment={comment} />
+              <CommentContainer comment={comment} handleDeleteComment={handleDeleteComment}/>
             </View>
           ))}
-          <View style={{height:70}}></View>
+          <View style={{height:90}}></View>
         </ScrollView>
-        <CommentTextField addComment={addComment}/>
+        <CommentTextField 
+          addComment={addComment}
+          postId={post.postId}
+        />
       </>
     </SafeAreaView>
   );
@@ -550,7 +706,7 @@ const style = StyleSheet.create({
   },
   userArea: {
     display: 'flex',
-    width: 358,
+    // width: 358,
     alignItems: 'center',
     flexDirection: 'row',
     marginVertical: 16,
@@ -565,6 +721,7 @@ const style = StyleSheet.create({
   userArea3: {
     display: 'flex',
     flexDirection: 'row',
+    width: 300,
     gap: 3,
   },
   userArea2_comment: {
@@ -573,19 +730,23 @@ const style = StyleSheet.create({
     alignItems: 'flex-start',
     gap: 5,
   },
-  postArea: {
-    borderColor: Colors.ui.primary,
-    backgroundColor: '#EF478E',
+  userArea3_comment: {
     display: 'flex',
-    borderWidth: 2,
-    paddingTop: 12,
-    paddingBottom: 8,
-    paddingHorizontal: 8,
+    flexDirection: 'row',
+    gap: 3,
+  },
+  postArea: {
+    borderColor:"#FF1485",
+    borderWidth: 1,
+    // backgroundColor: '#EF478E',
+    display: 'flex',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     borderRadius: 10,
     gap: 10,
   },
   postTitle: {
-    color: '#FFF',
+    color: '#000',
     fontSize: 18,
     fontWeight: '700',
     fontStyle: 'normal',
@@ -593,11 +754,11 @@ const style = StyleSheet.create({
     alignSelf: 'stretch',
   },
   postContentArea: {
-    backgroundColor: '#FFF7F7',
+    backgroundColor: '#FFF3F9',
     borderRadius: 9,
     display: 'flex',
     flexDirection: 'column',
-    width: 342,
+    width: '100%',
     paddingTop: 16,
     paddingBottom: 16,
     paddingHorizontal: 12,
@@ -605,10 +766,10 @@ const style = StyleSheet.create({
     gap: 10,
   },
   postPhotoArea: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#FDE',
     borderRadius: 9,
     display: 'flex',
-    width: 342,
+    width: "100%",
     padding: 8,
     alignItems: 'flex-start',
     flexDirection: 'row',
@@ -645,7 +806,7 @@ const style = StyleSheet.create({
     borderRadius: 10,
     borderColor: "#FF1485",
     borderWidth: 0.5,
-    backgroundColor: "#FFF8FC",
+    backgroundColor: "#FFF",
   },
   commentArea_Blur: {
     position: 'absolute',
@@ -653,12 +814,12 @@ const style = StyleSheet.create({
     left: 16,
     bottom: 16,
     right: 16,
-    backgroundColor: "#FFF8FCF0",
+    backgroundColor: "#FFF",
+    gap: 10,
   },
   text_Blur:{ 
     textAlign: 'center',
     marginTop: 'auto',
-    // marginVertical: 'auto',
     fontWeight: '500',
     fontSize: 14
   },
