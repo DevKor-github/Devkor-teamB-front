@@ -144,8 +144,6 @@ const styles = StyleSheet.create({
   }
 });
 
-
-
 function PostCreationScreen({ route }: { route: any }) {
   const { lectureId } = route.params;
   const [title, setTitle] = useState('');
@@ -158,6 +156,7 @@ function PostCreationScreen({ route }: { route: any }) {
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
   useEffect(()=>{
+    console.log('course_fk:',lectureId)
     fetchTags();
   },[])
 
@@ -179,7 +178,8 @@ function PostCreationScreen({ route }: { route: any }) {
           name: asset.fileName ?? '',
           type: asset.type ?? '',
         }));
-        setImages([...attachments, ...photoAttachment]);
+        setImages([...images, ...photoAttachment]);
+        console.log(images)
       }
     } catch (error) {
       console.log('Error picking photo:', error);
@@ -223,23 +223,61 @@ function PostCreationScreen({ route }: { route: any }) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    const token = await AsyncStorage.getItem('userToken')
+    const userid = await AsyncStorage.getItem('userId')
+    const nickname = await AsyncStorage.getItem('userNickname')
+
+    if (!nickname) {
+      console.error('Error: nickname is null');
+      return;
+    }
+
+    try{
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('content', content);
+      formData.append('course_fk', lectureId); // course_fk 앞에서 받아와야됨 [완료]
+      formData.append('student', userid);
+      formData.append('tags', selectedTags);
+      if (images && images.length > 0) { // 여기 수정 필요
+        images.forEach((file) => {
+          formData.append('attached_file', {
+            uri: file.uri,
+            type: file.type, 
+            name: file.name,  
+          });
+        });
+      }
+      
+      const response = await axios.post(`${API_URL}/posts/`,formData,
+        {
+          headers: {
+            authorization: `token ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      console.log(response.data)
+    } catch(error) {
+      console.error(error)
+    }
+    
+
     const newPost: Post = {
-      title,
-      content,
       postId: Date.now(),
-      postDate: new Date().toISOString(),
       author: new UserInfo('user1111', '게시물 작성자', 'no-image'),
-      comments: [],
+      title: title,
+      postDate: new Date().toISOString(),
       view: 0,
-      images,
-      files,
-      // attachments, 
-      tags: [],
+      content: content,
+      images: images,
+      files: files,
+      tags: selectedTags,
     };
     const communities = mockPosts;
 
-    console.log(newPost)
+    // console.log(newPost)
     if (communities.has(lectureId)) {
       const posts = communities.get(lectureId) as Post[];
       posts.push(newPost);
@@ -250,7 +288,7 @@ function PostCreationScreen({ route }: { route: any }) {
   };
 
 
-  const fetchTags = async ()=>{
+  const fetchTags = async ()=> {
     const API_URL = "http://15.165.198.75:8000"
     try {
       const token = await AsyncStorage.getItem('userToken')
@@ -270,9 +308,8 @@ function PostCreationScreen({ route }: { route: any }) {
             name: data.name,
           }));
         setTags(fetchedTags); 
-        console.log(tags[2])
+        // console.log(tags[2])
       }
-      
     } catch (error) {
       console.error('Error fetching tags:', error);
     }
@@ -330,13 +367,17 @@ function PostCreationScreen({ route }: { route: any }) {
         {files.map((attachment, index) => (
           <View key={index}>
             {attachment.uri ? (
-              <View style={{...GlobalStyles.row,marginTop:7,backgroundColor: 'lightgray',justifyContent: 'space-between'}}>
-                <Text style={{justifyContent: 'center',alignSelf:'center'}}>{attachment.name}</Text>
+              <View style={{...GlobalStyles.row,marginTop:7,justifyContent: 'space-between',borderBottomColor: '#F2F2F2',borderBottomWidth: 1}}>
+                <Text 
+                  style={{justifyContent: 'center',alignSelf:'center',color: '#737373',marginVertical: 7}}
+                >
+                  {attachment.name}
+                </Text>
                 <TouchableOpacity 
                   onPress={()=>handleRemoveFile(attachment.uri)}
-                  style={{backgroundColor:'gray',width:20,height:20,borderRadius:10,alignItems:'center',marginRight:10,}}
+                  style={{width:25,height:20,borderRadius: 10,alignItems:'center',justifyContent: 'center'}}
                 >
-                  <Text style={{color:'white'}}>x</Text>
+                  <Text style={{color:'#737373',fontSize:15}}>x</Text>
                 </TouchableOpacity>
               </View>
             ): <Text>none</Text>}

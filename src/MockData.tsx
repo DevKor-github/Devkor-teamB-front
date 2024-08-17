@@ -142,7 +142,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         postDate: '2024-05-24 23:40:00',
         view: 10,
         content: '오늘은 날씨가 정말 좋네요! 밖에서 산책하기 딱 좋은 날이에요.',
-        attachments: [
+        images: [
           {
             uri: 'https://picsum.photos/500',
             name: 'weather.jpg',
@@ -161,7 +161,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
             userId: 'user123',
             content: '맞아요! 날씨가 너무 좋아서 기분이 좋아지네요.',
             date: '2024-01-01',
-            attachments: [
+            images: [
               {
                 uri: 'https://picsum.photos/504',
                 name: 'sunny.jpg',
@@ -352,7 +352,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         view: 200,
         content:
           'This post will cover lists, dictionaries, and other data structures in Python.',
-        attachments: [
+        images: [
           {
             uri: 'https://example.com/data_structures.jpg',
             name: 'data_structures.jpg',
@@ -433,7 +433,7 @@ export const mockPosts: Map<string, Post[]> = new Map([
         postDate: '2024-01-04 14:15:00',
         view: 220,
         content: "Let's learn about defining and calling functions in Python.",
-        attachments: [
+        images: [
           {
             uri: 'https://example.com/functions.jpg',
             name: 'functions.jpg',

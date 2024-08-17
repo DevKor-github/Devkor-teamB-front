@@ -30,12 +30,26 @@ function LoginScreen({ navigation }: LoginScreenProps) {
         }
 
         try{
+            console.log(userData)
             const response = await axios.post(`${API_URL}/student/login/`, userData);
             if(response.status==200){
                 const token = response.data.Token
                 await AsyncStorage.setItem('userToken', token);
                 const a = await AsyncStorage.getItem('userToken')
                 console.log(a)
+
+                const response2 = await axios.get(`${API_URL}/student/user-info/`,
+                    {
+                        headers: {
+                            authorization: `token ${token}`,
+                        }
+                    }
+                )
+                // console.log(response2.data)
+                const userId = response2.data.user_id
+                const userNickname = response2.data.nickname
+                await AsyncStorage.setItem('userId',userId.toString());
+                await AsyncStorage.setItem('userNickname',userNickname);
 
                 setIsVerified(true);
                 setError(false);

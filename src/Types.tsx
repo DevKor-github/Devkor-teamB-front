@@ -24,10 +24,13 @@ export type Lecture = {
 
 export type Comment = {
   commentId: number;
-  userId: string;
+  author: string;
   content: string;
   date: string;
-  attachments: Attachment[];
+  updatedDate: string;
+  isChosen: boolean;
+  postId: number;
+  // attachments: Attachment[];
 };
 
 export type Attachment = {
@@ -48,11 +51,11 @@ export type Post = {
   postDate: string;
   view: number;
   content: string;
-  comments: Comment[];
+  // comments: Comment[];
   // attachments: Attachment[];
   images: Attachment[];
   files: Attachment[];
-  tags: Tag[];
+  tags: any[];
 };
 
 // 새로 추가한 타입
