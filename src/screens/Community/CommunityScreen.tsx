@@ -22,8 +22,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface CommunityScreenProps {
   route: any;
@@ -205,7 +203,7 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectu
 
 // 여기 조금 수정했어!
 const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
-  const {course}: {course: CourseMinimal} = route.params;
+  const {course}: {course: CourseBlock} = route.params;
   const [posts, setPosts] = useState<Post[]>([]);
   const [lectureName, setLectureName] = useState(''); //임시
   const [lectureId, setLectureId] = useState(''); //임시

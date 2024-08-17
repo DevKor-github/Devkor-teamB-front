@@ -15,12 +15,10 @@ import Colors from '@src/Colors';
 import ProgressBar from '@src/components/ProgessBar';
 import RichText, {RichTextOption} from '@src/components/RichText';
 import {useNavigation} from '@react-navigation/native';
-import {PointInstance} from '@src/MockData';
 import Banner from '@src/components/Banner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const pointInstance = PointInstance;
 const API_URL = 'http://15.165.198.75:8000';
 
 /** 포인트 관련 컴포넌트 */
@@ -144,16 +142,25 @@ const PointInfoButton = () => {
 };
 
 const PointInfoSection = () => {
-  const [point, setPoints] = useState(pointInstance.getPoints());
+  const [point, setPoints] = useState(0);
   useEffect(() => {
-    const handlePointsChanged = setPoints;
-    pointInstance.addListener(handlePointsChanged);
-
-    return () => {
-      pointInstance.removeListener(handlePointsChanged);
+    const fetchPoints = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        const response = await axios.get(`${API_URL}/student/get-now-points/`, {
+          headers: {
+            authorization: `token ${token}`,
+          },
+        });
+        const value = response.data as number;
+        setPoints(value);
+      } catch (e) {
+        console.error(e);
+      }
     };
-  }, []);
 
+    fetchPoints();
+  }, [setPoints]);
   return (
     <View>
       <Text style={styles.label}>적립 및 사용 내역</Text>

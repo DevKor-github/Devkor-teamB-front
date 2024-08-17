@@ -1,11 +1,12 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
-import {PointInstance} from '@src/MockData';
+import axios from 'axios';
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {FlatList} from 'react-native-gesture-handler';
 
-const pointInstance = PointInstance;
+const API_URL = 'http://15.165.198.75:8000';
 
 interface PointUsage {
   point: number;
@@ -42,15 +43,27 @@ const PointItem: React.FC<PointUsage> = ({point, method, timestamp}) => {
 };
 
 const StoreHistoryScreen = ({navigation}: {navigation: any}) => {
-  const [history, setHistory] = useState(pointInstance.getHistory());
+  const [history, setHistory] = useState([]);
   useEffect(() => {
-    navigation.setOptions({title: '적립 및 사용내역'});
-    const handlePointsChanged = setHistory;
-    pointInstance.addListener(handlePointsChanged);
-    return () => {
-      pointInstance.removeListener(handlePointsChanged);
+    const fetchHistory = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        const response = await axios.get(
+          `${API_URL}/student/get-point-history/`,
+          {
+            headers: {
+              authorization: `token ${token}`,
+            },
+          },
+        );
+        console.log(response.data);
+      } catch (e) {
+        console.error(e);
+      }
     };
-  }, [navigation]);
+
+    fetchHistory();
+  }, [setHistory]);
 
   return (
     <FlatList

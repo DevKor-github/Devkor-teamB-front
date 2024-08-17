@@ -38,7 +38,7 @@ const style = StyleSheet.create({
     backgroundColor: 'white',
   },
   button: {
-    backgroundColor: Colors.primary[500],
+    backgroundColor: Colors.ui.primary,
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
     borderRadius: BUTTON_SIZE,
@@ -48,4 +48,4 @@ const style = StyleSheet.create({
   },
 });
 
-export default FloatingButton
+export default FloatingButton;

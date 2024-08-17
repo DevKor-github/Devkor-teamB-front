@@ -34,7 +34,7 @@ const RegistrationInfoScreen = ({navigation}: {navigation: any}) => {
 const styles = StyleSheet.create({
   safeArea: {
     overflow: 'hidden',
-    backgroundColor: Colors.primary[500],
+    backgroundColor: Colors.ui.primary,
     ...GlobalStyles.expand,
   },
   topContainer: {flex: 3},
