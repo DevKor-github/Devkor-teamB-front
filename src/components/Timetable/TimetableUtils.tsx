@@ -142,7 +142,7 @@ export const overlap = (from: TimeSlot, to: TimeSlot) => {
   }
 };
 
-export const getCourseSlot = (e: Course): TimeSlot[] => {
+export const getCourseSlot = (course: Course): TimeSlot[] => {
   const timetable: {[key: number]: [string, string]} = {
     1: ['09:00', '10:15'],
     2: ['10:30', '11:45'],
@@ -153,20 +153,56 @@ export const getCourseSlot = (e: Course): TimeSlot[] => {
     7: ['18:00', '18:50'],
   };
 
-  return getCourseTime(e).flatMap(([day, period]) =>
-    period
-      .filter(p => p <= 7)
-      .map(p => {
-        const [start, end] = timetable[p];
-        return {day, start, end};
-      }),
-  );
+  return getCourseTime(course).flatMap(([day, period]) => {
+    const arr = period.filter(p => p < 10);
+    if (arr.length === 0) {
+      return [];
+    }
+
+    const result = [];
+    let start = arr[0];
+    let end = start;
+
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i] === end + 1) {
+        end = arr[i];
+      } else {
+        result.push({
+          day: day,
+          start: timetable[start][0],
+          end: timetable[end][1],
+        });
+        start = arr[i];
+        end = start;
+      }
+    }
+
+    result.push({day: day, start: timetable[start][0], end: timetable[end][1]});
+    return result;
+  });
+};
+
+const convertRange = (arr: number[]) => {
+  const result = [];
+  let start = arr[0];
+  let end = start;
+
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] === end + 1) {
+      end = arr[i];
+    } else {
+      result.push(start === end ? `${start}` : `${start}-${end}`);
+      start = end = arr[i];
+    }
+  }
+  result.push(start === end ? `${start}` : `${start}-${end}`);
+  return result;
 };
 
 export const getTimeInfo = (e: Course) => {
   const timeInfo = getCourseTime(e).map(([day, period]) => {
     if (period.length > 1) {
-      return `${day}(${period.join(',')})`;
+      return `${day}(${convertRange(period).join(',')})`;
     } else if (period.length === 1) {
       return `${day}(${period[0]})`;
     } else {

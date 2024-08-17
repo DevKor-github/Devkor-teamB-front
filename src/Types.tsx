@@ -159,3 +159,34 @@ export interface TimeSlot {
   start: string;
   end: string;
 }
+
+export interface TimetableData {
+  id: number;
+  student: number;
+  year: number;
+  semester: string;
+  courses: Course[];
+  course_ids: number[];
+}
+
+export class TimetableClass implements TimetableData {
+  id: number;
+  student: number;
+  year: number;
+  semester: string;
+  courses: Course[];
+  course_ids: number[];
+
+  constructor(value: TimetableData) {
+    this.id = value.id;
+    this.student = value.student;
+    this.year = value.year;
+    this.semester = value.semester;
+    this.courses = value.courses.map(json => Course.fromJson(json));
+    this.course_ids = value.course_ids;
+  }
+
+  static fromJson = (json: TimetableData): TimetableClass => {
+    return new TimetableClass(json);
+  };
+}

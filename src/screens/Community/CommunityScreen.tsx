@@ -201,7 +201,7 @@ const PostView = ({ items, id, lectureName, course}: { items: Post[]; id: number
 
 
 const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
-  const {course} = route.params;
+  const {course}: {course: CourseBlock} = route.params;
   const [posts, setPosts] = useState<Post[]>([]);
   const isFocused = useIsFocused();
 

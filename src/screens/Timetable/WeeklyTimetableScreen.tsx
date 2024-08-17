@@ -4,28 +4,25 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useEffect, useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import Timetable from '@components/Timetable/Timetable';
-import {Course, CourseData, CourseBlock} from '@src/Types';
+import {Course, CourseBlock, TimetableClass} from '@src/Types';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = "http://3.37.163.236:8000/"
 
-const fetchLectureInfo = async (id: number[]) => {
+const fetchUserId = async (token: string | null) => {
   try {
-    const items: Course[] = await Promise.all(
-      id.map(async (x: number) => {
-        const token = await AsyncStorage.getItem('userToken');
-        const response = await axios.get(`${API_URL}/courses/${x}/`, {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        });
-        return Course.fromJson(response.data);
-      }),
-    );
-    return items;
+    if (token === null) {
+      throw Error('Missing Token');
+    }
+    const response = await axios.get(`${API_URL}/student/user-info/`, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+    return response.data.user_id as number;
   } catch (e) {
-    console.error(e);
+    throw e;
   }
 };
 
@@ -36,19 +33,18 @@ function WeeklyTimetableScreen() {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [courses, setCourses] = useState<Course[]>([]);
 
-  // 임시 코드 (전체 강의 불러와서 시간표에 적용)
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem('userToken');
-        const response = await axios.get(`${API_URL}/courses/`, {
+        const userId = await fetchUserId(token);
+        const response = await axios.get(`${API_URL}/timetables/${userId}/`, {
           headers: {
             authorization: `token ${token}`,
           },
         });
-        const lectureInfo = (response.data as CourseData[]).map(e => e.id);
-        const value = await fetchLectureInfo(lectureInfo);
-        setCourses(value!);
+        const timetableData = TimetableClass.fromJson(response.data);
+        setCourses(timetableData.courses);
       } catch (e) {
         console.error(e);
       }

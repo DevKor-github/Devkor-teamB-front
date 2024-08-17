@@ -393,7 +393,7 @@ const buttonStyles = StyleSheet.create({
     borderRadius: 10,
   },
   activated: {
-    backgroundColor: Colors.primary[500],
+    backgroundColor: Colors.ui.primary,
   },
   deactivated: {
     backgroundColor: Colors.ui.disabled,
@@ -407,7 +407,7 @@ const buttonStyles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   addButton: {
-    backgroundColor: Colors.primary[500],
+    backgroundColor: Colors.ui.primary,
     borderRadius: 100,
     alignItems: 'center',
     paddingHorizontal: 18,
@@ -425,11 +425,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.ui.background,
     ...GlobalStyles.expand,
   },
-  safeArea: {backgroundColor: Colors.primary[500]},
+  safeArea: {backgroundColor: Colors.ui.primary},
   bottom: {flex: 7},
   top: {
     flex: 3,
-    backgroundColor: Colors.primary[500],
+    backgroundColor: Colors.ui.primary,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
