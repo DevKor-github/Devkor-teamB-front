@@ -23,7 +23,10 @@ const fetchLectureInfo = async (id: number[]) => {
         return Course.fromJson(response.data);
       }),
     );
+    console.log(items);
+    
     return items;
+    
   } catch (e) {
     console.error(e);
   }
@@ -47,13 +50,15 @@ function WeeklyTimetableScreen() {
           },
         });
         const lectureInfo = (response.data as CourseData[]).map(e => e.id);
+        // console.log("lectureInfo: " ,lectureInfo); //lecture Info 가 course_dk 
         const value = await fetchLectureInfo(lectureInfo);
+
         setCourses(value!);
       } catch (e) {
         console.error(e);
       }
     };
-
+    
     fetchData();
   }, [setCourses]);
 
@@ -90,3 +95,4 @@ const styles = StyleSheet.create({
 });
 
 export default WeeklyTimetableScreen;
+export {fetchLectureInfo};

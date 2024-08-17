@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Colors from '@src/Colors';
+import Colors from '@src/Colors.tsx';
+
 import BottomSheet, {BottomSheetState} from '@components/BottomSheet';
 import FloatingButton from '@components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';

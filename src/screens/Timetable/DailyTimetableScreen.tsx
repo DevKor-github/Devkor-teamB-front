@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { mockLectures } from '../../MockData.tsx';
 import Accordion from 'react-native-collapsible/Accordion';
-import BouncyCheckbox from "react-native-bouncy-checkbox";
 import {
   SafeAreaView,
   ScrollView,
@@ -9,14 +8,19 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Modal,
-  TouchableHighlight,
   Image,
 } from 'react-native';
-import * as Animatable from 'react-native-animatable';
 import Icon from 'react-native-vector-icons/AntDesign.js';
-import {HeaderStyleInterpolators, StackNavigationProp} from '@react-navigation/stack';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import PollsModal from './PollsModal.tsx';
+import * as Animatable from 'react-native-animatable';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { filter } from 'fontawesome-free-6.5.2-web/js/v4-shims.js';
+import { ColorSpace } from 'react-native-reanimated';
+
+
+const API_URL = 'http://15.165.198.75:8000';
 
 const getCurrentDay = () => {
   const days = ['일', '월', '화', '수', '목', '금', '토'];
@@ -24,70 +28,257 @@ const getCurrentDay = () => {
   return days[today.getDay()];
 };
 
+//user의 id 정보 불러오기
+const fetchUserData = async () => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+        const response = await axios.get(`${API_URL}/student/user-info/`, {
+          headers: {
+            Authorization: `token ${token}`,
+          }
+        });
+        console.log('user_id: ', response.data.user_id);
+        const user_id =  response.data.user_id;
+         return user_id;
+  }catch(e){
+    console.error('Error:', e);
+    return null;
+  } 
+
+}
+//user의 id가지고 user가 등록한 시간표 불러오는 함수
+const fetchUserTimetable = async (user_id : string) => {
+  try {
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.get(`${API_URL}/timetables/${user_id}/`, {
+        headers: {
+          Authorization: `token ${token}`,
+        }
+      });
+      return response.data;
+    } catch (e) {
+      console.error('Error fetching timetable:', e);
+      return null;
+    }
+  }
+  
+//user가 가진 시간표 호출하는 함수
+const fetchAndLogLectureDetails = async () => {
+  const user_id = await fetchUserData(); // Assuming fetchUserData() is defined and working
+  if (user_id) {
+    const timetable = await fetchUserTimetable(user_id); // Assuming fetchUserTimetable() is defined and working
+    // const courseWeeks = timetable.courses.map(timetable => timetable.course_week);
+    console.log('user가 가진 ', timetable);
+    const lectureTime = timetable.courses.map(timetable => timetable.course_period);
+    console.log('수업 시간 출력해볼라고: ', lectureTime);
+    return timetable;
+    // console.log('user가 가 courseweeks ', courseWeeks);
+  }
+};
+
+// const table = fetchAndLogLectureDetails();
+const filterLecture = async () => {
+  const timetable = await fetchAndLogLectureDetails();
+  // console.log("timetable 저장 완료: ", timetable);
+  // const courseWeeks = timetable.courses.map(course => course.course_week);
+  // console.log(courseWeeks);
+  if (!timetable || !timetable.courses) {
+    console.log("시간표를 불러오지 못했습니다.");
+    return;
+  }
+
+  const day = getCurrentDay();
+  console.log("오늘 요일: ", day);
+
+  // 요일에 해당하는 수업 필터링
+  const todayLectures = timetable.courses.filter(course => 
+    // course.course_week.some((timeSlot) => timeSlot.day === day)
+    course.course_week.some((timeSlot) => timeSlot.includes(day))
+
+  );
+  
+  console.log("오늘의 수업: ", todayLectures);
+  return todayLectures;
+}
+
+filterLecture();
+
+//일단 그냥 모든 시간표로 요일 정리해보기 
+// const fetchData = async () => {
+//   try {
+//     const token = await AsyncStorage.getItem('userToken');
+//     const response = await axios.get(`${API_URL}/courses/`, {
+//       headers: {
+//         authorization: `token ${token}`,
+//       },
+//     });
+//     const lectureInfo = response.data;
+//     console.log(lectureInfo);
+//     return lectureInfo;
+
+//   } catch (e) {
+//     console.error(e);
+//   }
+// };
+
+// fetchData();
+
 const filterLecturesByDay = (lectures: any[], day: string) => {
   return lectures.filter(lecture =>
     lecture.time.some((timeSlot: any) => timeSlot.day === day)
   ).map(lecture => {
     const TimeSlot = lecture.time.find((timeSlot: any) => timeSlot.day === day);
-    return{
-    id: lecture.id,
-    name: lecture.name,
-    start: TimeSlot?.start,
-    end: TimeSlot?.end,
-    room: lecture.room,
-    professor: lecture.professor,
-    content: [
-      '출석을 자주 부르는 과목이에요.',
-      '지난 시간에 과제 공지가 있었어요.',
-      '지난 시간에 휴강 공지가 있었어요.',
-    ],
-    briefing: '게시글 확인하기',
-    survey: [],
-  }});
+    return {
+      id: lecture.id,
+      name: lecture.name,
+      start: TimeSlot?.start,
+      end: TimeSlot?.end,
+      room: lecture.room,
+      professor: lecture.professor,
+      content: [
+        '출석을 자주 부르는 과목이에요.',
+        '지난 시간에 과제 공지가 있었어요.',
+        '지난 시간에 휴강 공지가 있었어요.',
+      ],
+      briefing: '게시글 확인하기',
+      survey: [],
+    };
+  });
 };
 
+
+
+
 const currentDay = getCurrentDay();
+console.log(currentDay);
+//filterlecture가 app 실행 전에 다 끝마쳐져야 함! 그래서 여기선 안 먹음
+// const todayLectures_2 = filterLecture();
+// console.log('수정한 오늘의 강의들: ', todayLectures_2);
 const todayLectures = filterLecturesByDay(mockLectures, currentDay);
+// console.log('원본의 오늘의 강의들: ', todayLectures);
+// const todayLectures = filterLecture();
 
 const App = () => {
   const [activeSection, setActiveSection] = useState<number | null>(null);
   const [lectureClicks, setLectureClicks] = useState<{ [key: string]: number }>({});
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedLecture, setSelectedLecture] = useState<any>(null);
-  const [modalOptions, setModalOptions] = useState<{ [key: string]: any }>({});
-  const[checkboxState, setCheckboxState] = useState<boolean>(false);
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const [todayLectures, setTodayLectures] = useState<any[]>([]); // 상태 추가
+  const [isPollAnswered, setIsPollAnswered] = useState<boolean |false>(false);
+  const navigation = useNavigation();
 
-  const handleSetSections = (section: any[]) => {
+  useEffect(() => {
+    const fetchLectures = async () => {
+      const lectures = await filterLecture();
+      console.log('Fetched lectures:', lectures); // filterLecture로 반환된 값을 콘솔에 출력
+
+      setTodayLectures(lectures || []); // 받아온 데이터를 상태로 저장
+    };
+    fetchLectures();
+    console.log('오늘의 강의들(상태로 저장된거)', todayLectures);
+  }, []);
+
+  const lectureBriefing = async () => {
+    
+  }
+  const fetchBriefings = async (courseId: Number) => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.get(`${API_URL}/briefings/${courseId}`, {
+        headers: {
+          Authorization: `token ${token}`,
+        },
+        // params: {
+        //   course_fk: courseId,
+        // },
+      });
+      console.log('courseId as input: ', courseId);
+      console.log('Fetched briefings:', response.data); // 브리핑 데이터를 콘솔에 출력
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching briefings:', error);
+      return null;
+    }
+  };
+  // const handleSetSections = async (section: any[]) => {
+  //   if (section.length === 0 || section[0] === undefined) {
+  //     setActiveSection(null);
+  //     return;
+  //   }
+  //   const selectedLectureId = todayLectures[section[0]]?.id;
+
+  //   if (!selectedLectureId) {
+  //     setActiveSection(null);
+  //     return;
+  //   }
+
+  //   if (!lectureClicks[selectedLectureId]) {
+  //     setShowModal(true);
+  //     setSelectedLecture(todayLectures[section[0]]);
+  //     setLectureClicks({
+  //       ...lectureClicks,
+  //       [selectedLectureId]: 1,
+  //     });
+  //     setActiveSection(section.includes(undefined) ? null : section[0]);
+
+  //     const briefings = await fetchBriefings(selectedLectureId);
+  //     // console.log('Briefings for selected lecture:', briefings);
+  //     setSelectedLecture({ ...todayLectures[section[0]], content: briefings });
+
+  //   } else {
+  //     setLectureClicks({
+  //       ...lectureClicks,
+  //       [selectedLectureId]: lectureClicks[selectedLectureId] + 1,
+  //     });
+  //     setActiveSection(section.includes(undefined) ? null : section[0]);
+  //     setSelectedLecture(todayLectures[section[0]]);
+  //   }
+  // };
+  const handleSetSections = async (section: any[]) => {
     if (section.length === 0 || section[0] === undefined) {
       setActiveSection(null);
       return;
     }
-
     const selectedLectureId = todayLectures[section[0]]?.id;
-
+  
     if (!selectedLectureId) {
       setActiveSection(null);
       return;
     }
-
+  
     if (!lectureClicks[selectedLectureId]) {
       setShowModal(true);
       setSelectedLecture(todayLectures[section[0]]);
       setLectureClicks({
         ...lectureClicks,
-        [selectedLectureId]: 1, // 클릭 횟수를 1로 설정
+        [selectedLectureId]: 1,
       });
       setActiveSection(section.includes(undefined) ? null : section[0]);
-      setModalOptions({
-        ...modalOptions,
-        [selectedLectureId]: modalOptions[selectedLectureId] || {
-          attendance: false,
-          assignment: false,
-          announcement: false,
-          none: false,
-        }
-      });
+  
+      const briefings = await fetchBriefings(selectedLectureId);
+  
+      // Briefing 결과에 따라 새로운 briefingResult 변수 생성
+      const briefingResult = {
+        attendance: briefings.content.summary.attendance_percentage >= 50,
+        notification: briefings.content.summary.notification_percentage >= 50,
+        assignment: briefings.content.summary.assignment_percentage >= 50,
+      };
+  
+      console.log('Briefing Result:', briefingResult);
+  
+      // 선택된 강의에 브리핑 내용 및 결과 추가
+      // setSelectedLecture({ ...todayLectures[section[0]], content: briefings, briefingResult });
+      // 선택된 섹션에 briefingResult를 포함시켜 상태 업데이트
+    const updatedSection = { ...todayLectures[section[0]], briefingResult };
+    setSelectedLecture(updatedSection);
+
+    // 오늘의 강의들 상태에 업데이트된 섹션 반영
+    const updatedLectures = todayLectures.map((lecture, idx) => 
+      idx === section[0] ? updatedSection : lecture
+    );
+    setTodayLectures(updatedLectures);
+
+  
     } else {
       setLectureClicks({
         ...lectureClicks,
@@ -97,107 +288,119 @@ const App = () => {
       setSelectedLecture(todayLectures[section[0]]);
     }
   };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
-  const handleOptionChange = (option: string) => {
-    if (selectedLecture) {
-      const lectureId = selectedLecture.id;
-      setModalOptions(prevModalOptions => ({
-        ...prevModalOptions,
-        [lectureId]: {
-          ...prevModalOptions[lectureId],
-          [option]: !prevModalOptions[lectureId][option],
-        }
-      }));
-    }
-  };
-
-  const convertTimeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
-  }
   
-  const isNowInLectureTime = (section: any) => {
-    const beforeConvert = new Date(2024,8,6,13,45,0).toTimeString().slice(0, 5)
-    const currentTime = convertTimeToMinutes(beforeConvert); // 현재 시간 "HH:mm" 형식으로 변환
-    const startTime = convertTimeToMinutes(section.start);
-    const endTime = convertTimeToMinutes(section.end);
-    return currentTime >= startTime && currentTime <= endTime;
-  }
 
-  const isTouched = (section: any) => {
-    if (!lectureClicks[section.id]) return true;
-    else  return false; 
-  }
+ 
+
+  //현재시간 저장 
+  const beforeConvert = new Date(2024, 8, 6, 12, 0, 0).toTimeString().slice(0, 5);
+  console.log(beforeConvert);
+
   const renderHeader = (section: any, _: any, isActive: boolean) => {
-    const value = isNowInLectureTime(section);
-    console.log({value});
 
-    return(
+    const convertTimeToMinutes = (time: string): number => {
+      const [hours, minutes] = time.split(':').map(Number);
+      return hours * 60 + minutes;
+    }
+    const currentTime = convertTimeToMinutes(beforeConvert); 
+    //section을 아직 몰라 ..
+    // const startTime = convertTimeToMinutes(section.start);
+    // const endTime = convertTimeToMinutes(section.end);
+
+    // const startTime = convertTimeToMinutes(section.course_period[0]?.[0]); // 예: "09:00" 형식의 시간값이 course_period 배열의 첫번째에 있다고 가정
+    // const endTime = convertTimeToMinutes(section.course_period[0]?.[1]); // 종료 시간도 동일한 방식으로 가정
+    // console.log('starttime2: ', startTime_2);
+
+    const isNowInLectureTime = () => {
+      return currentTime >= startTime && currentTime <= endTime;
+    }
+
+    const isLectureEnded = ()=>{
+        return startTime <= currentTime;
+    }
+
+    const isTouched = () => !lectureClicks[section.id];
+    // console.log(selectedLecture,"강의 설문 클릭했니??? 횟수: ", lectureClicks[selectedLecture.id])
+    return (
       <Animatable.View duration={400} transition="backgroundColor">
-
-<Animatable.View  style={[
-          styles.lectureHeader,
-          isNowInLectureTime(section) && styles.nowLectureHeader, // 현재 시간이 수업 시간이라면 적용
-          isActive && styles.lectureHeaderActive, // 활성 상태라면 적용
-         ]}>
+        <Animatable.View
+          style={[
+            styles.lectureHeader,
+            isActive && styles.nowLectureHeaderActive
+            // (isNowInLectureTime() && !isActive) && styles.nowLectureHeader,
+            // (isNowInLectureTime() && isActive) && styles.nowLectureHeaderActive,
+            // (!isNowInLectureTime() && isActive) && styles.lectureHeaderActive,
+          ]}
+        >
           <View style={styles.headerRow}>
-        <Image source={ isTouched(section)? 
-                        require('@assets/images/statusBlue.png') : require('@assets/images/statusGreen.png')} // Replace with your avatar image URL
-                        style={styles.statusImage}
-                    />
-{/* <Image source={lectureClicks(section.id) > 0  ? require('@assets/images/statusBlue.png'): require('@assets/images/statusGreen.png'} style={styles.statusImage}/> */}
-          <Text style={styles.lectureHeaderText}>{section.name} </Text>
-          <Icon name={isActive ? 'down' : 'right'} size={15} color="#333" style={styles.iconStyle} />
-        </View>
-        <Text style={styles.lectureHeaderSubText}>{section.start} / {section.room} / {section.professor}</Text>
-        
-        
-        {isActive && <View style={styles.lectureContent}>
-          <View>
-            {section.content.map((item: any, index: any) => (
-              <View key={index} style={styles.checkboxContainer}>
-                <Image source={ require('@assets/icons/icon_smile.png')} style={styles.faceIcon}/>
-                <Text style={styles.contentText}>{item}</Text>
-              </View>
-            ))}
+            <Image
+              // source={isLectureEnded() ? {{isTouched() ? require('@assets/images/statusBlue.png') : require('@assets/icons/warn_circle_!.png')}}: {}}
+              // style={styles.statusImage}
+              source={
+                // require('@assets/icons/warn_circle_!.png') 
+                // isLectureEnded()
+                //   ? 
+                isTouched()
+                    ? require('@assets/icons/warn_circle_!.png') 
+                    : require('@assets/images/statusBlue.png')
+                //   : {}
+              }
+              style={styles.statusImage}
+            />
+            <Text style={styles.lectureHeaderText}>{section.course_name} </Text>
+            <Icon name={isActive ? 'down' : 'right'} size={15} color="#333" style={styles.iconStyle} />
           </View>
+          <Text style={styles.lectureHeaderSubText}>{section.course_period} / {section.course_room} / {section.instructor}</Text>
+
+          {isActive && 
+          <View style={styles.lectureContent}>
+            {/* <View> */}
+              {/* {section.content.map((item: any, index: any) => (
+                <View key={index} style={styles.checkboxContainer}>
+                  <Image source={require('@assets/icons/icon_smile.png')} style={styles.faceIcon} />
+                  <Text style={styles.contentText}>{item}</Text>
+                </View>
+              ))} */}
+            {/* </View> */}
+            {/* 새로운 briefingResult를 화면에 표시 */}
+            <View style={styles.checkboxContainer}>
+            <Image source={require('@assets/icons/icon_smile.png')} style={styles.faceIcon} />
+              <Text style={styles.contentText}>
+                {section.briefingResult?.attendance ? '출석 체크를 진행했어요!' : '출석 체크는 없었어요!' }
+              </Text>
+            </View>
+            <View style={styles.checkboxContainer}>
+            <Image source={require('@assets/icons/icon_smile.png')} style={styles.faceIcon} />
+              <Text style={styles.contentText}>
+               {section.briefingResult?.notification ? '지난 시간에 공지가 있었어요!' : '공지는 없었어요!'}
+              </Text>
+            </View>
+            <View style={styles.checkboxContainer}>
+            <Image source={require('@assets/icons/icon_smile.png')} style={styles.faceIcon} />
+              <Text style={styles.contentText}>
+                {section.briefingResult?.assignment ? '지난 시간에 과제가 있었어요!' : '과제는 없었어요!'}
+              </Text>
+            </View>
+
           </View>
           }
 
-        {isActive&&
-          <View>
-            <TouchableOpacity style={styles.briefingButton}
-            onPress={() => {navigation.navigate('Community', { id: section.id })}}
+          {isActive &&
+            <View>
+              <TouchableOpacity style={styles.briefingButton}
+                onPress={() => { navigation.navigate('Community', {id: section.id}) }}
               >
                 <View style={styles.navigateButtonInOneRow}>
-              <Text style={styles.briefingText}>{section.briefing}</Text>
-              <Image source={ require('@assets/icons/icon_arrow_circle.png')} style={styles.arrowIcon}/>
+                  <Text style={styles.briefingText}>게시판 확인하기</Text>
+                  <Image source={require('@assets/icons/icon_arrow_circle.png')} style={styles.arrowIcon} />
                 </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           }
-        
- </Animatable.View>
-  
+
+        </Animatable.View>
       </Animatable.View>
     );
-  };
-
-  const renderContent = (section: any, _: any, isActive: boolean) => {
-    return null; // isActive가 false일 때는 아무것도 렌더링하지 않음
-  };
-  
-
-  const lectureId = selectedLecture?.id;
-  const currentOptions = modalOptions[lectureId] || {
-    attendance: false,
-    assignment: false,
-    announcement: false,
-    none: false,
   };
 
   return (
@@ -206,84 +409,33 @@ const App = () => {
         <Accordion
           activeSections={[activeSection]}
           sections={todayLectures}
+          // sections={filterLecture}
           touchableComponent={TouchableOpacity}
           expandMultiple={false}
           renderHeader={renderHeader}
-          renderContent={renderContent}
+          renderContent={() => null}
           duration={400}
           onChange={handleSetSections}
         />
       </ScrollView>
 
-      <Modal
+      <PollsModal
         visible={showModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleCloseModal}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.headerRow}>
-            <Image
-                        source={require('@assets/images/bellImage.png')} 
-                        style={styles.bellImage}
-                    />
-              <Text style={styles.modalTitle}>오늘 <Text style={styles.modalTitlePink}>{selectedLecture?.name}</Text>의 {'\n'}어떤 공지가 있었나요?</Text>
-            </View>
-
-            <View style={styles.questionContainer}>
-              <BouncyCheckbox style={styles.bouncyCheckbox} 
-               textStyle={styles.checkboxTextStyle} fillColor={'#ff1385'} iconStyle={styles.checkboxStyle} innerIconStyle={styles.checkboxStyle}
-              text="출석체크를 진행했어요!" onPress={() => {setCheckboxState(!checkboxState)}}/>
-            {/* <View style={styles.checkboxContainer}> */}
-              {/* <Text style={styles.checkboxLabel}>출석체크를 진행했어요!</Text> */}
-            {/* </View> */}
-
-              <BouncyCheckbox style={styles.bouncyCheckbox} 
-              textStyle={styles.checkboxTextStyle} fillColor={'#ff1385'} iconStyle={styles.checkboxStyle} innerIconStyle={styles.checkboxStyle} 
-              text="과제가 있었어요!"onPress={() => {setCheckboxState(!checkboxState)}}/>
-
-              <BouncyCheckbox style={styles.bouncyCheckbox} 
-              textStyle={styles.checkboxTextStyle} fillColor={'#ff1385'} iconStyle={styles.checkboxStyle} innerIconStyle={styles.checkboxStyle}
-              text="공지가 있었어요!" onPress={() => {setCheckboxState(!checkboxState)}}/>
-              
-              <BouncyCheckbox style={styles.bouncyCheckbox} 
-              textStyle={styles.checkboxTextStyle} fillColor={'#ff1385'} iconStyle={styles.checkboxStyle} innerIconStyle={styles.checkboxStyle}
-              text="해당사항 없음!" onPress={() => {setCheckboxState(!checkboxState)}}/> 
-           </View>
-
-            <TouchableHighlight style={styles.submitButton} onPress={handleCloseModal}>
-              <Text style={styles.submitButtonText}>제출하기</Text>
-            </TouchableHighlight>
-          </View>
-        </View>
-      </Modal>
-
+        onClose={() => setShowModal(false)}
+        selectedLecture={selectedLecture}
+        lectureId={selectedLecture?.id}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-
-  },
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
     width: '100%',
     height: '100%',
     padding: 10,
-
-  },
-  lectureContainer: {
-    backgroundColor: '#FFF',
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-    borderColor: '#FFF',
-    borderWidth: 1,
   },
   lectureHeader: {
     backgroundColor: '#FFF',
@@ -307,9 +459,14 @@ const styles = StyleSheet.create({
     height: 85,
     elevation: 8,
     overflow: 'hidden',
-    
   },
   lectureHeaderActive: {
+    backgroundColor: '#FFF',
+    borderColor: '#FFF',
+    height: 290,
+    overflow: 'hidden',
+  },
+  nowLectureHeaderActive: {
     backgroundColor: '#FFE7F3',
     borderColor: '#FF1485',
     height: 290,
@@ -361,26 +518,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
-  activeLectureContent: {
-    backgroundColor: '#EF478E',
-    height: 25,
-  },
-  inactiveLectureContent: {
-    backgroundColor: '#FFE6E6',
-  },
-  questionContainer:{
-    borderColor: "white",
-    borderWidth: 1,
-    borderRadius: 10,
-    backgroundColor: "white",
-    padding: 9,
-    shadowColor: '#000', // 그림자 색상
-    shadowOffset: { width: 0, height: 0 }, // 그림자 오프셋
-    shadowOpacity: 0.25, // 그림자 투명도
-    shadowRadius: 3, // 그림자 반경
-
-    // Android 그림자 설정
-    elevation: 3, // 그림자 강도 (Android에서는 elevation으로 설정)
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -388,9 +528,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     paddingLeft: 12,
     paddingVertical: 7,
-  },
-  checkbox: {
-    marginRight: 10,
   },
   contentText: {
     flex: 1,
@@ -402,112 +539,31 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-  modalContainer: { //modal 뒷 배경
-    flex: 1,
-    borderRadius: 0, 
-    justifyContent: 'center',
+  statusImage: {
+    marginLeft: 9,
+    marginTop: 5,
+  },
+  faceIcon: {
+    width: 18,
+    height: 18,
+    marginRight: 9,
+    marginTop: 3,
+  },
+  navigateButtonInOneRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(121,111,116,0.95)',
+    justifyContent: 'flex-end',
   },
-  modalContent: {
-    padding: 20,
-    width: '80%',
-    borderRadius: 10,
-    backgroundColor: '#FFF',
-    shadowColor: 'rgba(169, 130, 152, 0.25)',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 15,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: 'black',
-    marginBottom: 10,
-    textAlign: 'left',
-    alignSelf: 'flex-start',
-    paddingLeft: 8,
-  },
-  modalTitlePink:{
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#E8036E',
-    marginBottom: 20,
-    textAlign: 'left',
-    alignSelf: 'flex-start',
-  },
-  checkboxLabel: {
-    fontSize: 11,
-    color: '#333',
-    textAlign: 'left',
-  },
-  submitButton: {
-    backgroundColor: '#E8036E',
-    borderRadius: 10,
-    marginTop: 20,
-    width: '40%',
-    alignSelf: 'flex-end',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  submitButtonText: {
-    color: '#FFF',
-    fontWeight: '600',
-    fontSize: 16,
-    textAlign: 'center',
-    paddingBottom: 2,
+  arrowIcon: {
+    width: 18,
+    height: 18,
+    marginRight: 9,
+    marginTop: 3,
+    marginLeft: 9,
   },
   iconStyle: {
     marginTop: 3,
   },
-  statusImage:{
-    marginLeft: 9,
-    marginTop: 5,
-  },
-  bellImage: {
-    marginBottom: 10, 
-  },
-  bouncyCheckbox:{
-    padding: 8,
-  },
-  checkboxTextStyle:{
-    color: '#010101',
-    fontWeight: '500',
-    fontSize: 15,
-    textDecorationLine: "none",
-    fontFamily: 'Pretendard',
-    padding: 1,
-    marginBottom: 1,
-  },
-  checkboxStyle:{
-    borderRadius: 0,
-    borderBlockColor: '#ff1385',
-    width: 18,
-    height: 18,
-  },
-  faceIcon:{
-    width: 18, 
-    height: 18,
-    marginRight: 9,
-    marginTop: 3,
-    
-  },
-  navigateButtonInOneRow:{
-    flexDirection: 'row', 
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-
-  },
-  arrowIcon:{
-    width: 18, 
-    height: 18,
-    marginRight: 9,
-    marginTop: 3,
-    marginLeft: 9,
-
-
-  }
 });
 
 export default App;
