@@ -388,7 +388,7 @@ const App = () => {
           {isActive &&
             <View>
               <TouchableOpacity style={styles.briefingButton}
-                onPress={() => { navigation.navigate('Community', {id: section.id}) }}
+                onPress={() => { navigation.navigate('Community', {course: section}) }}
               >
                 <View style={styles.navigateButtonInOneRow}>
                   <Text style={styles.briefingText}>게시판 확인하기</Text>

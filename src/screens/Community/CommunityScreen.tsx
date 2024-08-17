@@ -14,6 +14,7 @@ import {Post, UserInfo, CourseBlock, PostMinimal, PostMinimalData, Lecture} from
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
+  
 import Icon from 'react-native-vector-icons/Octicons';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import FloatingButton from '@src/components/FloatingButton';
@@ -22,6 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
+import { slice } from 'fontawesome-free-6.5.2-web/js/v4-shims';
 
 interface CommunityScreenProps {
   route: any;
@@ -125,8 +127,10 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectu
 
   const handleNavigate = (screen: string) => {
     setFabOpen(false);
+
     console.log(id, lectureName)
     navigation.navigate(screen, { lectureId: id, lectureName: lectureName});
+
   };
 
   return (
@@ -199,10 +203,20 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectu
   );
 };
 
+// <<<<<<< HEAD
+// const CommunityScreen: React.FC<CommunityScreenProps> = ({
+//   route,
+//   navigation,
+// }) => {
+//   const {id, lectureClicks} = route.params;
+//   const communities = mockPosts;
+//   const lecture = mockLectures.find((e: Lecture) => e.id === id) as Lecture;
+// =======
+// >>>>>>> origin/yj
 
 
 // 여기 조금 수정했어!
-const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
+const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation}) => {
   const {course}: {course: CourseMinimal} = route.params;
   const [posts, setPosts] = useState<Post[]>([]);
   const [lectureName, setLectureName] = useState(''); //임시
@@ -219,6 +233,20 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) 
     [course, navigation],
   );
 
+
+// <<<<<<< HEAD
+// let isPollAnswered = false;
+// if (lectureClicks >= 1) {
+//   isPollAnswered = true;
+// }
+
+// console.log("isPollAnswered : ", isPollAnswered);
+// const lectureClicks = route.params.
+  // return (
+  //   <SafeAreaView edges={['bottom']} style={styles.container}>
+  //     <DailyBriefingWidget lecture={lecture} isPollAnswered={isPollAnswered}/> 
+      {/* DailyBriefingWidget에 touch 횟수 넘겨주기 */}
+// =======
 
   const fetchPost = async ()=>{
     const API_URL = "http://15.165.198.75:8000"
@@ -256,7 +284,8 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) 
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
-      <DailyBriefingWidget course={course} />
+      <DailyBriefingWidget course={course}/>
+{/* >>>>>>> origin/yj */}
       <PostView
         items={posts}
         id={course.id}
