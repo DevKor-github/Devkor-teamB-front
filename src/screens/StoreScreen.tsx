@@ -18,6 +18,7 @@ import {useNavigation} from '@react-navigation/native';
 import Banner from '@src/components/Banner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import pointEventEmiiter from '@src/Events';
 
 const API_URL = 'http://15.165.198.75:8000';
 
@@ -161,6 +162,22 @@ const PointInfoSection = () => {
 
     fetchPoints();
   }, [setPoints]);
+
+  useEffect(() => {
+    const handlePointsUpdate = (newPoints: number) => {
+      setPoints(point + newPoints);
+    };
+
+    const subscription = pointEventEmiiter.addListener(
+      'POINTS_UPDATED',
+      handlePointsUpdate,
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [point, setPoints]);
+
   return (
     <View>
       <Text style={styles.label}>적립 및 사용 내역</Text>
@@ -203,7 +220,13 @@ const StoreItemCard = ({
           },
         },
       );
-      return response.status === 200;
+
+      if (response.status === 201) {
+        pointEventEmiiter.emit('POINTS_UPDATED', -point);
+        return true;
+      } else {
+        return false;
+      }
     } catch (e) {
       console.error(e);
       return false;
@@ -260,8 +283,39 @@ const StoreItemSection = () => {
         <View style={storeStyles.divider} />
         <StoreItemCard title="30일 열람권" point={300} type="30" />
       </View>
+      <TouchableOpacity
+        style={{
+          margin: 12,
+          padding: 12,
+          borderRadius: 12,
+          backgroundColor: Colors.ui.secondary,
+          alignItems: 'center',
+        }}
+        onPress={() => {
+          fetchAddPoints();
+        }}>
+        <Text>100 포인트 추가</Text>
+      </TouchableOpacity>
     </View>
   );
+};
+
+const fetchAddPoints = async () => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    await axios.post(
+      `${API_URL}/student/get-points/`,
+      {point_type: 'chosen'},
+      {
+        headers: {
+          authorization: `token ${token}`,
+        },
+      },
+    );
+    pointEventEmiiter.emit('POINTS_UPDATED', 20);
+  } catch (e) {
+    console.error(e);
+  }
 };
 
 const StoreScreen = () => {

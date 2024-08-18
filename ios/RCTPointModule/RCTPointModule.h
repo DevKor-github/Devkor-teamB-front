@@ -10,8 +10,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface PointModule : NSObject <RCTBridgeModule>
-
+@interface RCTPointModule : NSObject <RCTBridgeModule>
 @end
 
 NS_ASSUME_NONNULL_END

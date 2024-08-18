@@ -74,8 +74,7 @@ function LoginScreen({navigation}: LoginScreenProps) {
         setError(false);
         const isRegisterd = await fetchTimetable(token, userId);
         if (isRegisterd) {
-          navigation.navigate('RegisterInfo');
-          // navigation.navigate('Home');
+          navigation.navigate('Home');
         } else {
           navigation.navigate('RegisterInfo');
         }

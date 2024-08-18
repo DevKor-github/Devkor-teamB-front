@@ -15,6 +15,7 @@
 		1E0FC0A7090C2C3B9CFA6960 /* libPods-KUnA-KUnATests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 293740D3F6CDADED52EB055F /* libPods-KUnA-KUnATests.a */; };
 		4B1DD722CFDA4B2786A1EB3F /* Pretendard-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0BB0AC21291D45F0ADA043FB /* Pretendard-Bold.ttf */; };
 		4C90589CEFBC8304A584592D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 8B9C1BCB7D3644361F548709 /* PrivacyInfo.xcprivacy */; };
+		744C531F2C726AB300A58363 /* RCTPointModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 744C531E2C726AB300A58363 /* RCTPointModule.m */; };
 		74954BCF2C611A2A002354B6 /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 74954BCE2C611A2A002354B6 /* logo.png */; };
 		7C8E48F0724BC955FFA49798 /* libPods-KUnA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F51E48136E8685E80D5C359 /* libPods-KUnA.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
@@ -47,6 +48,8 @@
 		293740D3F6CDADED52EB055F /* libPods-KUnA-KUnATests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KUnA-KUnATests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0C0F087D21466F9EB6CD61 /* Pretendard-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Pretendard-Regular.ttf"; path = "../src/assets/fonts/Pretendard-Regular.ttf"; sourceTree = "<group>"; };
 		6BDBFCAFE076AA2C2FF10638 /* Pods-KUnA-KUnATests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA-KUnATests.release.xcconfig"; path = "Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests.release.xcconfig"; sourceTree = "<group>"; };
+		744C531D2C726AB300A58363 /* RCTPointModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTPointModule.h; sourceTree = "<group>"; };
+		744C531E2C726AB300A58363 /* RCTPointModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTPointModule.m; sourceTree = "<group>"; };
 		74954BCE2C611A2A002354B6 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		74C1BDD62C3A5B0100D4A96F /* Entypo.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
 		74C1BDD72C3A5B0100D4A96F /* MaterialIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
@@ -116,6 +119,7 @@
 		13B07FAE1A68108700A75B9A /* KUnA */ = {
 			isa = PBXGroup;
 			children = (
+				744C531C2C726A7F00A58363 /* RCTPointModule */,
 				74954BCE2C611A2A002354B6 /* logo.png */,
 				74C1BDD52C3A5AE900D4A96F /* Fonts */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
@@ -138,6 +142,15 @@
 				293740D3F6CDADED52EB055F /* libPods-KUnA-KUnATests.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		744C531C2C726A7F00A58363 /* RCTPointModule */ = {
+			isa = PBXGroup;
+			children = (
+				744C531D2C726AB300A58363 /* RCTPointModule.h */,
+				744C531E2C726AB300A58363 /* RCTPointModule.m */,
+			);
+			path = RCTPointModule;
 			sourceTree = "<group>";
 		};
 		74C1BDD52C3A5AE900D4A96F /* Fonts */ = {
@@ -471,6 +484,7 @@
 			files = (
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
+				744C531F2C726AB300A58363 /* RCTPointModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -681,10 +695,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -768,10 +779,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
