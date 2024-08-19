@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     height: 92,
     backgroundColor: Colors.ui.disabled,
     borderRadius: 10,
-    marginVertical: 18,
+    marginVertical: 28,
   },
   banner: {
     height: 92,

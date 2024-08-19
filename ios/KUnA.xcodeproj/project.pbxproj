@@ -12,11 +12,11 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		1E0FC0A7090C2C3B9CFA6960 /* libPods-KUnA-KUnATests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 293740D3F6CDADED52EB055F /* libPods-KUnA-KUnATests.a */; };
+		3401F1CB2B2A5493AC5DB34C /* libPods-KUnA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 821712C44DB2421E9C58312E /* libPods-KUnA.a */; };
+		3F85818E8D84674878270F9F /* libPods-KUnA-KUnATests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FDAE2FCB22C113D6E4277E0 /* libPods-KUnA-KUnATests.a */; };
 		4B1DD722CFDA4B2786A1EB3F /* Pretendard-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0BB0AC21291D45F0ADA043FB /* Pretendard-Bold.ttf */; };
 		4C90589CEFBC8304A584592D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 8B9C1BCB7D3644361F548709 /* PrivacyInfo.xcprivacy */; };
 		74954BCF2C611A2A002354B6 /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 74954BCE2C611A2A002354B6 /* logo.png */; };
-		7C8E48F0724BC955FFA49798 /* libPods-KUnA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F51E48136E8685E80D5C359 /* libPods-KUnA.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		B13FB558C79F4F92B1CD929C /* Omnes Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B98FDA563B474C4291308C43 /* Omnes Black.ttf */; };
 /* End PBXBuildFile section */
@@ -36,7 +36,6 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* KUnATests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KUnATests.m; sourceTree = "<group>"; };
 		0BB0AC21291D45F0ADA043FB /* Pretendard-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Pretendard-Bold.ttf"; path = "../src/assets/fonts/Pretendard-Bold.ttf"; sourceTree = "<group>"; };
-		0F51E48136E8685E80D5C359 /* libPods-KUnA.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KUnA.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* KUnA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KUnA.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = KUnA/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = KUnA/AppDelegate.mm; sourceTree = "<group>"; };
@@ -44,7 +43,10 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = KUnA/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = KUnA/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = KUnA/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		293740D3F6CDADED52EB055F /* libPods-KUnA-KUnATests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KUnA-KUnATests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		13FC2BE9B08F612AAC02B202 /* Pods-KUnA-KUnATests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA-KUnATests.release.xcconfig"; path = "Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests.release.xcconfig"; sourceTree = "<group>"; };
+		213583B11BFD5FE9052F1FBA /* Pods-KUnA.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA.debug.xcconfig"; path = "Target Support Files/Pods-KUnA/Pods-KUnA.debug.xcconfig"; sourceTree = "<group>"; };
+		308C7B221E762D2310509B32 /* Pods-KUnA-KUnATests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA-KUnATests.debug.xcconfig"; path = "Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests.debug.xcconfig"; sourceTree = "<group>"; };
+		3FDAE2FCB22C113D6E4277E0 /* libPods-KUnA-KUnATests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KUnA-KUnATests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E0C0F087D21466F9EB6CD61 /* Pretendard-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Pretendard-Regular.ttf"; path = "../src/assets/fonts/Pretendard-Regular.ttf"; sourceTree = "<group>"; };
 		6BDBFCAFE076AA2C2FF10638 /* Pods-KUnA-KUnATests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA-KUnATests.release.xcconfig"; path = "Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests.release.xcconfig"; sourceTree = "<group>"; };
 		74954BCE2C611A2A002354B6 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
@@ -68,12 +70,11 @@
 		74C1BDE72C3A5B0100D4A96F /* Feather.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
 		74C1BDE82C3A5B0100D4A96F /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = FontAwesome5_Brands.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = KUnA/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		821D15AAF83281E3EC881ABE /* Pods-KUnA.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA.release.xcconfig"; path = "Target Support Files/Pods-KUnA/Pods-KUnA.release.xcconfig"; sourceTree = "<group>"; };
+		821712C44DB2421E9C58312E /* libPods-KUnA.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KUnA.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B9C1BCB7D3644361F548709 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = KUnA/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		938D599826858A5D48D33C66 /* Pods-KUnA.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA.debug.xcconfig"; path = "Target Support Files/Pods-KUnA/Pods-KUnA.debug.xcconfig"; sourceTree = "<group>"; };
 		B98FDA563B474C4291308C43 /* Omnes Black.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Omnes Black.ttf"; path = "../src/assets/fonts/Omnes Black.ttf"; sourceTree = "<group>"; };
+		C4DD5E24909F3B4D5A7BE53B /* Pods-KUnA.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA.release.xcconfig"; path = "Target Support Files/Pods-KUnA/Pods-KUnA.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F4DF56C9BCEECE8F6CD73E14 /* Pods-KUnA-KUnATests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KUnA-KUnATests.debug.xcconfig"; path = "Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,7 +82,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1E0FC0A7090C2C3B9CFA6960 /* libPods-KUnA-KUnATests.a in Frameworks */,
+				3F85818E8D84674878270F9F /* libPods-KUnA-KUnATests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,7 +90,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C8E48F0724BC955FFA49798 /* libPods-KUnA.a in Frameworks */,
+				3401F1CB2B2A5493AC5DB34C /* libPods-KUnA.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,8 +135,8 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				0F51E48136E8685E80D5C359 /* libPods-KUnA.a */,
-				293740D3F6CDADED52EB055F /* libPods-KUnA-KUnATests.a */,
+				821712C44DB2421E9C58312E /* libPods-KUnA.a */,
+				3FDAE2FCB22C113D6E4277E0 /* libPods-KUnA-KUnATests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -201,10 +202,10 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				938D599826858A5D48D33C66 /* Pods-KUnA.debug.xcconfig */,
-				821D15AAF83281E3EC881ABE /* Pods-KUnA.release.xcconfig */,
-				F4DF56C9BCEECE8F6CD73E14 /* Pods-KUnA-KUnATests.debug.xcconfig */,
-				6BDBFCAFE076AA2C2FF10638 /* Pods-KUnA-KUnATests.release.xcconfig */,
+				213583B11BFD5FE9052F1FBA /* Pods-KUnA.debug.xcconfig */,
+				C4DD5E24909F3B4D5A7BE53B /* Pods-KUnA.release.xcconfig */,
+				308C7B221E762D2310509B32 /* Pods-KUnA-KUnATests.debug.xcconfig */,
+				13FC2BE9B08F612AAC02B202 /* Pods-KUnA-KUnATests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -226,12 +227,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "KUnATests" */;
 			buildPhases = (
-				B0CE35C8CC05DFE0D60F802B /* [CP] Check Pods Manifest.lock */,
+				E40400A2D9A45FCEC99B724C /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				3F1A6B023A7B90918BCC7689 /* [CP] Embed Pods Frameworks */,
-				C5EFF70432E44C502BADCA00 /* [CP] Copy Pods Resources */,
+				517392C47C8F151308558DEA /* [CP] Embed Pods Frameworks */,
+				08EA7EA33232BA0EFF82EDF6 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -247,13 +248,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "KUnA" */;
 			buildPhases = (
-				29C8FFAD710B8DD9243CC19A /* [CP] Check Pods Manifest.lock */,
+				5344F9B5C6C4E8B027249747 /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				7DB69838EBC15985EBF79AE7 /* [CP] Embed Pods Frameworks */,
-				5F2AE247C45CD9BCA21E0CFD /* [CP] Copy Pods Resources */,
+				B2D13F62D009FF0D4FCBB18A /* [CP] Embed Pods Frameworks */,
+				3144434B52C5D95E41004933 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -342,7 +343,58 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 		};
-		29C8FFAD710B8DD9243CC19A /* [CP] Check Pods Manifest.lock */ = {
+		08EA7EA33232BA0EFF82EDF6 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		3144434B52C5D95E41004933 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-KUnA/Pods-KUnA-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-KUnA/Pods-KUnA-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KUnA/Pods-KUnA-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		517392C47C8F151308558DEA /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		5344F9B5C6C4E8B027249747 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -364,41 +416,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		3F1A6B023A7B90918BCC7689 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		5F2AE247C45CD9BCA21E0CFD /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-KUnA/Pods-KUnA-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-KUnA/Pods-KUnA-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KUnA/Pods-KUnA-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		7DB69838EBC15985EBF79AE7 /* [CP] Embed Pods Frameworks */ = {
+		B2D13F62D009FF0D4FCBB18A /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -415,7 +433,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KUnA/Pods-KUnA-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B0CE35C8CC05DFE0D60F802B /* [CP] Check Pods Manifest.lock */ = {
+		E40400A2D9A45FCEC99B724C /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -435,23 +453,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		C5EFF70432E44C502BADCA00 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KUnA-KUnATests/Pods-KUnA-KUnATests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -487,7 +488,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F4DF56C9BCEECE8F6CD73E14 /* Pods-KUnA-KUnATests.debug.xcconfig */;
+			baseConfigurationReference = 308C7B221E762D2310509B32 /* Pods-KUnA-KUnATests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				DEVELOPMENT_TEAM = H7FHB8JB86;
@@ -516,7 +517,7 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6BDBFCAFE076AA2C2FF10638 /* Pods-KUnA-KUnATests.release.xcconfig */;
+			baseConfigurationReference = 13FC2BE9B08F612AAC02B202 /* Pods-KUnA-KUnATests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
@@ -542,7 +543,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 938D599826858A5D48D33C66 /* Pods-KUnA.debug.xcconfig */;
+			baseConfigurationReference = 213583B11BFD5FE9052F1FBA /* Pods-KUnA.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -571,7 +572,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 821D15AAF83281E3EC881ABE /* Pods-KUnA.release.xcconfig */;
+			baseConfigurationReference = C4DD5E24909F3B4D5A7BE53B /* Pods-KUnA.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

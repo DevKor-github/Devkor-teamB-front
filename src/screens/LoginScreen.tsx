@@ -11,20 +11,13 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../App';
 import Icon from 'react-native-vector-icons/AntDesign';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {TimetableClass} from '@src/Types';
-import {useNavigation} from '@react-navigation/native';
-
-type LoginScreenProps = NativeStackScreenProps<RootStackParamList, 'Login'>;
+import {TimetableModel} from '@src/Types';
 
 // sample
-const sampleID = '123';
-const samplePW = '123!';
 const API_URL = 'http://15.165.198.75:8000';
 
 const fetchTimetable = async (token: string, userId: string) => {
@@ -35,17 +28,17 @@ const fetchTimetable = async (token: string, userId: string) => {
       },
     });
 
-    const timetableData = TimetableClass.fromJson(response.data);
+    const timetableData = TimetableModel.fromJson(response.data);
     return timetableData.courses.length;
   } catch (e) {
     throw e;
   }
 };
 
-function LoginScreen({navigation}: LoginScreenProps) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isVerified, setIsVerified] = useState(false);
+function LoginScreen({navigation}: {navigation: any}) {
+  const [username, setUsername] = useState('test1');
+  const [password, setPassword] = useState('test1');
+  // const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState(false);
   const isFormFilled = username !== '' && password !== '';
 
@@ -70,14 +63,14 @@ function LoginScreen({navigation}: LoginScreenProps) {
         await AsyncStorage.setItem('userId', userId.toString());
         await AsyncStorage.setItem('userNickname', userNickname);
 
-        setIsVerified(true);
+        // setIsVerified(true);
         setError(false);
         const isRegisterd = await fetchTimetable(token, userId);
         if (isRegisterd) {
-          navigation.navigate('RegisterInfo');
+          navigation.navigate('RegisterInfo', {userId: userId});
           // navigation.navigate('Home');
         } else {
-          navigation.navigate('RegisterInfo');
+          navigation.navigate('RegisterInfo', {userId: userId});
         }
       }
     } catch (e) {

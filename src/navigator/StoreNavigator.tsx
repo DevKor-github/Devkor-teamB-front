@@ -1,7 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import StoreHistoryScreen from '@src/screens/Store/StoreHistoryScreen';
-import StoreScreen from '@src/screens/StoreScreen';
+import StoreScreen from '@src/screens/Store/StoreScreen';
 import Colors from '@src/Colors';
 
 const Stack = createStackNavigator();
@@ -12,15 +12,16 @@ const StoreNavigator = () => {
       <Stack.Screen
         name="StoreScreen"
         component={StoreScreen}
-        options={{headerShown: false}}
+        options={{
+          headerTintColor: Colors.text.accent,
+          headerShadowVisible: false,
+          title: '스토어',
+        }}
       />
       <Stack.Screen
         name="StoreHistoryScreen"
         component={StoreHistoryScreen}
-        options={{
-          headerBackTitleVisible: false,
-          headerTintColor: Colors.text.accent,
-        }}
+        options={{headerShown: false}}
       />
     </Stack.Navigator>
   );

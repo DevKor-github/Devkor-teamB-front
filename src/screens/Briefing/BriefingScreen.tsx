@@ -2,7 +2,6 @@ import {View, Text, StyleSheet, Image, TouchableOpacity, Alert} from 'react-nati
 import { useEffect } from 'react';
 import React from 'react';
 import ProgressBar from '@components/ProgessBar';
-import {Lecture} from '@src/Types';
 import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 

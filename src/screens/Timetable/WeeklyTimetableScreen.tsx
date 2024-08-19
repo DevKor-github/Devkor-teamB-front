@@ -4,7 +4,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {useEffect, useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import Timetable from '@components/Timetable/Timetable';
-import {Course, CourseBlock, TimetableClass} from '@src/Types';
+import {Course, CourseBlock, TimetableModel} from '@src/Types';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -43,7 +43,7 @@ function WeeklyTimetableScreen() {
             authorization: `token ${token}`,
           },
         });
-        const timetableData = TimetableClass.fromJson(response.data);
+        const timetableData = TimetableModel.fromJson(response.data);
         setCourses(timetableData.courses);
       } catch (e) {
         console.error(e);
