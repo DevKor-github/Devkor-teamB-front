@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import {Post, UserInfo, CourseBlock, PostMinimal, PostMinimalData, Lecture} from '@src/Types';
+import {Post, UserInfo, CourseBlock, PostMinimal, PostMinimalData} from '@src/Types';
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
@@ -201,7 +201,6 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectu
 
 
 
-// 여기 조금 수정했어!
 const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
   const {course}: {course: CourseBlock} = route.params;
   const [posts, setPosts] = useState<Post[]>([]);

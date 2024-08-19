@@ -144,6 +144,7 @@ export class Course implements CourseData {
   static fromJson = (json: CourseData): Course => new Course(json);
 }
 
+// 주간시간표 구현 편의를 위한 인터페이스
 export interface CourseBlock extends TimeSlot {
   id: number;
   course_id: string;
@@ -159,32 +160,40 @@ export interface TimeSlot {
 }
 
 export interface TimetableData {
-  id: number;
   student: number;
-  year: number;
+  year: string;
   semester: string;
   courses: Course[];
-  course_ids: number[];
 }
 
-export class TimetableClass implements TimetableData {
-  id: number;
+export class TimetableModel implements TimetableData {
   student: number;
-  year: number;
+  year: string;
   semester: string;
   courses: Course[];
-  course_ids: number[];
 
   constructor(value: TimetableData) {
-    this.id = value.id;
     this.student = value.student;
     this.year = value.year;
     this.semester = value.semester;
     this.courses = value.courses.map(json => Course.fromJson(json));
-    this.course_ids = value.course_ids;
   }
 
-  static fromJson = (json: TimetableData): TimetableClass => {
-    return new TimetableClass(json);
+  static fromJson = (json: TimetableData): TimetableModel => {
+    return new TimetableModel(json);
   };
+}
+
+// 시간표 업데이트를 위한 인터페이스
+export interface TimetableUpdateData {
+  student: number;
+  year: string;
+  semester: string;
+  course_ids: number[];
+}
+
+export interface TimetablePartialUpdateData {
+  student: number;
+  year: string;
+  semester: string;
 }

@@ -45,7 +45,13 @@ const App: React.FC = () => {
             gestureEnabled: false,
           }}
         />
-        <RootStack.Screen name="Home" component={HomeScreen} />
+        <RootStack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
       </RootStack.Navigator>
     </NavigationContainer>
   );

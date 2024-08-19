@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {
-  ActivityIndicator,
   Alert,
   FlatList,
   Image,
@@ -15,7 +14,12 @@ import FloatingButton from '@components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
 import {RadioButton, RadioGroup} from '@components/RadioButton';
 import SearchBar from '@components/SearchBar';
-import {Course, CourseMinimal, CourseMinimalData, Lecture} from '@src/Types';
+import {
+  Course,
+  CourseBlock,
+  TimetableModel,
+  TimetableUpdateData,
+} from '@src/Types';
 import Timetable from '@components/Timetable/Timetable';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {useNavigation} from '@react-navigation/native';
@@ -29,7 +33,37 @@ type NavigationProps = StackNavigationProp<any>;
 
 const API_URL = 'http://15.165.198.75:8000';
 
-const LectureAddButton = ({onPress}: {onPress: Function}) => {
+const fetchUserId = async () => {
+  const token = await AsyncStorage.getItem('userToken');
+  const response = await axios.get(`${API_URL}/student/user-info/`, {
+    headers: {
+      authorization: `token ${token}`,
+    },
+  });
+  return response.data.user_id as number;
+};
+
+const fetchUpdateTimetable = async (timetable: TimetableModel) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const userId = await fetchUserId();
+    const updateData: TimetableUpdateData = {
+      student: timetable.student,
+      course_ids: timetable.courses.map(e => e.id),
+      semester: timetable.semester,
+      year: timetable.year,
+    };
+    await axios.put(`${API_URL}/timetables/${userId}/`, updateData, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const CourseAddButton = ({onPress}: {onPress: Function}) => {
   return (
     <TouchableOpacity
       style={buttonStyles.addButtonContainer}
@@ -41,7 +75,7 @@ const LectureAddButton = ({onPress}: {onPress: Function}) => {
   );
 };
 
-const LectureItem = ({
+const CourseItem = ({
   item,
   onItemAdd,
   selected,
@@ -57,11 +91,11 @@ const LectureItem = ({
       <View>
         <View style={GlobalStyles.row}>
           <Text style={itemStyles.courseName}>{item.course_name}</Text>
-          <Text style={itemStyles.courseMate}>
+          <Text style={itemStyles.enrollment}>
             함께 듣는 사람 {item.enrollment}
           </Text>
         </View>
-        <Text style={itemStyles.lecturer}>{item.instructor}</Text>
+        <Text style={itemStyles.instructor}>{item.instructor}</Text>
       </View>
       <View style={GlobalStyles.row}>
         <View style={GlobalStyles.expand}>
@@ -75,13 +109,13 @@ const LectureItem = ({
             <Text style={itemStyles.courseInfo}>{item.course_id}</Text>
           </View>
         </View>
-        {selected && <LectureAddButton onPress={() => onItemAdd(item)} />}
+        {selected && <CourseAddButton onPress={() => onItemAdd(item)} />}
       </View>
     </View>
   );
 };
 
-const LectureList = ({
+const CourseList = ({
   items,
   onItemAdd,
   onTap,
@@ -102,10 +136,10 @@ const LectureList = ({
       showsVerticalScrollIndicator={false}
       renderItem={e => (
         <TouchableOpacity onPress={() => onPress(e)}>
-          <LectureItem
+          <CourseItem
             item={e.item}
             selected={e.index === index}
-            onItemAdd={(item: Lecture) => {
+            onItemAdd={(item: Course) => {
               setIndex(-1);
               onTap(undefined);
               onItemAdd(item);
@@ -119,12 +153,17 @@ const LectureList = ({
   );
 };
 
-const CompleteButton = ({disabled}: {disabled: boolean}) => {
-  const navigation = useNavigation<NavigationProps>();
+const CompleteButton = ({
+  disabled,
+  onPress,
+}: {
+  disabled: boolean;
+  onPress: Function;
+}) => {
   return (
     <TouchableOpacity
       disabled={disabled}
-      onPress={() => navigation.reset({routes: [{name: 'Home'}]})}
+      onPress={() => onPress()}
       style={buttonStyles.completeButtonContainer}>
       <View
         style={[
@@ -174,34 +213,50 @@ const RegistrationBottomSheet = ({
         <RadioButton label="교수명" />
         <RadioButton label="과목코드" />
       </RadioGroup>
-      <LectureList items={items} onTap={onItemSelect} onItemAdd={onItemAdd} />
+      <CourseList items={items} onTap={onItemSelect} onItemAdd={onItemAdd} />
     </BottomSheet>
   );
 };
 
-const RegistrationBody = ({courses}: {courses: Course[]}) => {
+const RegistrationBody = ({
+  courses,
+  data,
+}: {
+  courses: Course[];
+  data: TimetableModel;
+}) => {
   const [state, setState] = useState(BottomSheetState.HIDDEN);
-  const [addedCourses, setAddedCourses] = useState<Course[]>([]);
+  const [contentHeight, setContentHeight] = useState(0);
+  const [timetable, setTimetable] = useState(data);
   const [selectedCourse, setSelectedCourse] = useState<Course | undefined>(
     undefined,
   );
-  const [contentHeight, setContentHeight] = useState(0);
+  const navigation = useNavigation<NavigationProps>();
+  const onPress = async () => {
+    await fetchUpdateTimetable(timetable);
+    navigation.reset({routes: [{name: 'Home'}]});
+  };
 
   return (
     <View style={GlobalStyles.expand}>
       <View onLayout={e => setContentHeight(e.nativeEvent.layout.height)}>
         <Timetable
-          courses={addedCourses}
+          courses={timetable.courses}
           scrollable
           candidate={selectedCourse}
-          onPress={(id: number) =>
+          onPress={(course: CourseBlock) =>
             Alert.alert('수업을 삭제하겠습니까?', '', [
               {text: '취소'},
               {
                 text: '삭제',
                 style: 'destructive',
-                onPress: () =>
-                  setAddedCourses(addedCourses.filter(e => e.id !== id)),
+                onPress: () => {
+                  timetable.courses = timetable.courses.filter(
+                    e => e.id !== course.id,
+                  );
+                  setTimetable(timetable);
+                  Alert.alert('삭제되었습니다');
+                },
               },
             ])
           }
@@ -210,7 +265,10 @@ const RegistrationBody = ({courses}: {courses: Course[]}) => {
           <Icon name="plus" size={24} color={Colors.ui.background} />
         </FloatingButton>
       </View>
-      <CompleteButton disabled={addedCourses.length === 0} />
+      <CompleteButton
+        disabled={timetable.courses.length === 0}
+        onPress={onPress}
+      />
       <RegistrationBottomSheet
         state={state}
         onStateChange={setState}
@@ -219,12 +277,13 @@ const RegistrationBody = ({courses}: {courses: Course[]}) => {
         onItemSelect={(e: Course) => setSelectedCourse(e)}
         onItemAdd={(newCourse: Course) => {
           setState(BottomSheetState.HALF);
-          if (addedCourses.find(e => e.id === newCourse.id)) {
+          if (timetable.courses.find(e => e.id === newCourse.id)) {
             Alert.alert('이미 등록된 수업입니다');
-          } else if (doesOverlap(newCourse, addedCourses)) {
+          } else if (doesOverlap(newCourse, timetable.courses)) {
             Alert.alert('다른 수업과 시간이 겹칩니다');
           } else {
-            setAddedCourses([...addedCourses, newCourse]);
+            timetable.courses.push(newCourse);
+            setTimetable(timetable);
           }
         }}
       />
@@ -241,54 +300,8 @@ const RegistrationHeader = ({subTitle}: {subTitle: string}) => {
   );
 };
 
-const fetchLectureInfo = async (courseMinimal: CourseMinimal[]) => {
-  try {
-    const items: Course[] = await Promise.all(
-      courseMinimal.map(async (data: CourseMinimalData) => {
-        const token = await AsyncStorage.getItem('userToken');
-        const response = await axios.get(`${API_URL}/courses/${data.id}/`, {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        });
-        return Course.fromJson(response.data);
-      }),
-    );
-    return items;
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-const RegisterScreen = () => {
-  const [loading, setLoading] = useState(false);
-  const [courses, setCourses] = useState<Course[]>([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const token = await AsyncStorage.getItem('userToken');
-        const response = await axios.get(`${API_URL}/courses/`, {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        });
-        const courseMinimal = response.data.map((e: CourseMinimalData) =>
-          CourseMinimal.fromJson(e),
-        );
-        const value = await fetchLectureInfo(courseMinimal);
-        setCourses(value!);
-        setLoading(false);
-      } catch (e) {
-        console.error(e);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [setCourses]);
-
+const RegisterScreen = ({route}: {route: any}) => {
+  const {courses, timetable} = route.params;
   return (
     <View style={styles.background}>
       <SafeAreaView edges={['top']} style={styles.safeArea} />
@@ -297,16 +310,9 @@ const RegisterScreen = () => {
         <View style={styles.bottom} />
         <View style={styles.content}>
           <RegistrationHeader subTitle={'2024학년도 1학기'} />
-          <RegistrationBody courses={courses} />
+          <RegistrationBody courses={courses} data={timetable} />
         </View>
       </View>
-      {loading && (
-        <ActivityIndicator
-          size={'large'}
-          color={Colors.ui.primary}
-          style={GlobalStyles.indicator}
-        />
-      )}
     </View>
   );
 };
@@ -336,7 +342,7 @@ const itemStyles = StyleSheet.create({
     fontSize: 16,
     ...GlobalStyles.boldText,
   },
-  lecturer: {
+  instructor: {
     fontSize: 12,
     color: Colors.text.gray,
     ...GlobalStyles.text,
@@ -349,7 +355,7 @@ const itemStyles = StyleSheet.create({
     textAlignVertical: 'center',
     ...GlobalStyles.text,
   },
-  courseMate: {
+  enrollment: {
     fontSize: 12,
     color: Colors.text.gray,
     ...GlobalStyles.text,

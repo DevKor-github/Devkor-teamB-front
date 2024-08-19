@@ -17,15 +17,13 @@ import {
   getCourseSlot,
 } from '@components/Timetable/TimetableUtils';
 
-import {GlobalStyles} from '@src/GlobalStyles';
+import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {Course, CourseBlock} from '@src/Types';
 import Colors from '@src/Colors';
 
 const slotHeight = 48;
 const labelSize = 20;
 const innerBorderSize = 1;
-const largeFontSize = 12;
-const smallFontSize = 11;
 const singleSlotHeight = 4;
 
 interface TimetableProps {
@@ -206,12 +204,12 @@ const clickableLectureStyle = StyleSheet.create({
   },
   roomText: {
     color: Colors.text.white,
-    fontSize: smallFontSize,
+    fontSize: FontSizes.small,
     ...GlobalStyles.text,
   },
   nameText: {
     color: Colors.text.white,
-    fontSize: largeFontSize,
+    fontSize: FontSizes.regular,
     ...GlobalStyles.boldText,
   },
   candidate: {
@@ -247,7 +245,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: Colors.text.black,
-    fontSize: largeFontSize,
+    fontSize: FontSizes.regular,
     ...GlobalStyles.text,
   },
   list: {
@@ -271,7 +269,7 @@ const styles = StyleSheet.create({
   daySlotLabel: {
     textAlign: 'center',
     color: Colors.text.black,
-    fontSize: largeFontSize,
+    fontSize: FontSizes.regular,
     ...GlobalStyles.text,
   },
   hourColumn: {
@@ -286,7 +284,7 @@ const styles = StyleSheet.create({
   },
   hourSlotLabel: {
     textAlign: 'right',
-    fontSize: smallFontSize,
+    fontSize: FontSizes.small,
     ...GlobalStyles.text,
   },
 });

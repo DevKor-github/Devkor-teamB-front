@@ -1,13 +1,128 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Image, StyleSheet, Text, View} from 'react-native';
 import Colors from '@src/Colors';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
+import {
+  Course,
+  CourseMinimal,
+  CourseMinimalData,
+  TimetableModel,
+} from '@src/Types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import {useNavigation} from '@react-navigation/native';
 
-const RegistrationInfoScreen = ({navigation}: {navigation: any}) => {
+const API_URL = 'http://15.165.198.75:8000';
+
+const fetchCourses = async (callback: Function) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const response = await axios.get(`${API_URL}/courses/`, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+    const courseMinimal = response.data.map((e: CourseMinimalData) =>
+      CourseMinimal.fromJson(e),
+    );
+    const value = await fetchCourseInfo(courseMinimal);
+    callback(value);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const fetchCourseInfo = async (courseMinimal: CourseMinimal[]) => {
+  try {
+    const items: Course[] = await Promise.all(
+      courseMinimal.map(async (data: CourseMinimalData) => {
+        const token = await AsyncStorage.getItem('userToken');
+        const response = await axios.get(`${API_URL}/courses/${data.id}/`, {
+          headers: {
+            authorization: `token ${token}`,
+          },
+        });
+        return Course.fromJson(response.data);
+      }),
+    );
+    return items;
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const fetchCreateTimetable = async (userId: number) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const timetable = new TimetableModel({
+      student: userId,
+      courses: [],
+      semester: '2',
+      year: '2024',
+    });
+    await axios.post(`${API_URL}/timetables/`, timetable, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const fetchTimetable = async (uid: number, callback: Function) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const response = await axios.get(`${API_URL}/timetables/${uid}/`, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+    if (response.status === 200) {
+      const value = TimetableModel.fromJson(response.data);
+      callback(value);
+    } else if (response.status === 404) {
+      await fetchCreateTimetable(uid);
+    } else {
+      throw Error(`Error code ${response.status}`);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const RegistrationInfoScreen = ({route}: {route: any}) => {
+  const {userId}: {userId: number} = route.params;
+  const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [timetable, setTimetable] = useState<TimetableModel | undefined>(
+    undefined,
+  );
+  const navigation = useNavigation<any>();
+
   useEffect(() => {
-    setTimeout(() => navigation.navigate('Register'), 2000);
-  });
+    const interval = setInterval(() => {
+      if (!loading) {
+        navigation.navigate('Register', {
+          courses: courses,
+          timetable: timetable,
+        });
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [loading, courses, navigation, timetable]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchCourses(setCourses);
+      await fetchTimetable(userId, setTimetable);
+      setLoading(false);
+    };
+    fetchData();
+  }, [setLoading, userId, setTimetable, setCourses]);
+
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
       <View style={styles.topContainer}>

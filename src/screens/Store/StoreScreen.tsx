@@ -7,13 +7,10 @@ import {
   Alert,
   TouchableOpacity,
   ScrollView,
-  ImageSourcePropType,
 } from 'react-native';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import Colors from '@src/Colors';
 import ProgressBar from '@src/components/ProgessBar';
-import RichText, {RichTextOption} from '@src/components/RichText';
 import {useNavigation} from '@react-navigation/native';
 import Banner from '@src/components/Banner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,7 +19,46 @@ import {PointEventHandler} from '@src/Events';
 
 const API_URL = 'http://15.165.198.75:8000';
 
-/** 포인트 관련 컴포넌트 */
+const fetchPoints = async (callback: Function) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const response = await axios.get(`${API_URL}/student/get-now-points/`, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+    const value = response.data as number;
+    callback(value);
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const fetchUsePoints = async (type: string, point: number) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const response = await axios.post(
+      `${API_URL}/student/use-points/`,
+      {point_costs: type},
+      {
+        headers: {
+          authorization: `token ${token}`,
+        },
+      },
+    );
+
+    if (response.status === 201) {
+      PointEventHandler.emit('POINTS_UPDATED', -point);
+      return true;
+    } else {
+      return false;
+    }
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+};
+
 const PointHistory = () => {
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   const points = [10, 20, 50, 0, 100, 0, 0];
@@ -49,73 +85,34 @@ const PointHistory = () => {
   );
 };
 
-const tips: {
-  icon: ImageSourcePropType;
-  texts: [string, RichTextOption][];
-}[][] = [
-  [
-    {
-      icon: require('@assets/icons/tip_new.png'),
-      texts: [
-        ['신입 회원 ', RichTextOption.default],
-        ['100 ', RichTextOption.bold],
-        ['포인트 적립', RichTextOption.default],
-      ],
-    },
-    {
-      icon: require('@assets/icons/tip_response.png'),
-      texts: [
-        ['게시글 답변 작성 시 ', RichTextOption.default],
-        ['5 ', RichTextOption.bold],
-        ['포인트 적립', RichTextOption.default],
-      ],
-    },
-  ],
-  [
-    {
-      icon: require('@assets/icons/tip_question.png'),
-      texts: [
-        ['오늘의 질문 답변 시 ', RichTextOption.default],
-        ['10 ', RichTextOption.bold],
-        ['포인트 적립', RichTextOption.default],
-      ],
-    },
-    {
-      icon: require('@assets/icons/tip_accept.png'),
-      texts: [
-        ['게시글 답변 채택 시 ', RichTextOption.default],
-        ['20 ', RichTextOption.bold],
-        ['포인트 적립', RichTextOption.default],
-      ],
-    },
-  ],
-];
-
 const PointTips = () => {
-  const renderItem = (
-    key: any,
-    icon: ImageSourcePropType,
-    texts: [string, RichTextOption][],
-  ) => {
-    return (
-      <View key={key} style={tipStyles.item}>
-        <Image style={tipStyles.icon} source={icon} />
-        <RichText
-          textStyle={{fontSize: FontSizes.small}}
-          boldTextStyle={{fontSize: FontSizes.small}}
-          text={texts}
-        />
-      </View>
-    );
-  };
+  const items = [
+    [
+      [require('@assets/icons/tip_new.png'), '신입 회원', 100],
+      [require('@assets/icons/tip_response.png'), '게시글 답변 시', 5],
+    ],
+    [
+      [require('@assets/icons/tip_question.png'), '오늘의 질문 답변 시', 10],
+      [require('@assets/icons/tip_accept.png'), '게시글 답변 채택 시', 20],
+    ],
+  ];
 
   return (
     <View style={styles.card}>
       <Text style={tipStyles.label}>포인트 Tip</Text>
-      {tips.map((row, rowIdx) => {
+      {items.map((row, rowIdx) => {
         return (
           <View key={rowIdx} style={tipStyles.textRow}>
-            {row.map((tip, colIdx) => renderItem(colIdx, tip.icon, tip.texts))}
+            {row.map(([icon, info, tip], colIdx) => (
+              <View key={colIdx} style={tipStyles.item}>
+                <Image style={tipStyles.icon} source={icon} />
+                <Text style={{fontSize: FontSizes.small}}>
+                  {info}
+                  <Text style={tipStyles.accent}> {tip} </Text>
+                  포인트
+                </Text>
+              </View>
+            ))}
           </View>
         );
       })}
@@ -145,32 +142,12 @@ const PointInfoButton = () => {
 const PointInfoSection = () => {
   const [point, setPoints] = useState(0);
   useEffect(() => {
-    const fetchPoints = async () => {
-      try {
-        const token = await AsyncStorage.getItem('userToken');
-        const response = await axios.get(`${API_URL}/student/get-now-points/`, {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        });
-        const value = response.data as number;
-        setPoints(value);
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    fetchPoints();
-  }, [setPoints]);
-
-  useEffect(() => {
-    PointEventHandler.addListener('POINTS_UPDATED', (updatedValue: number) => {
-      setPoints(point + updatedValue);
+    fetchPoints((value: number) => setPoints(value));
+    PointEventHandler.addListener('POINTS_UPDATED', (value: number) => {
+      setPoints(point + value);
     });
 
-    return () => {
-      PointEventHandler.removeListener('POINTS_UPDATED');
-    };
+    return () => PointEventHandler.removeListener('POINTS_UPDATED');
   }, [point, setPoints]);
 
   return (
@@ -193,7 +170,6 @@ const PointInfoSection = () => {
   );
 };
 
-/** 상점 관련 컴포넌트 */
 const StoreItemCard = ({
   title,
   point,
@@ -203,40 +179,15 @@ const StoreItemCard = ({
   point: number;
   type: string;
 }) => {
-  const fetchPoints = async () => {
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      const response = await axios.post(
-        `${API_URL}/student/use-points/`,
-        {point_costs: type},
-        {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        },
-      );
-
-      if (response.status === 201) {
-        PointEventHandler.emit('POINTS_UPDATED', -point);
-        return true;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
   const onStoreItemPress = () => {
     Alert.alert(`${title}을 구매합니다`, '', [
       {text: '취소', style: 'destructive'},
       {
         text: '확인',
         onPress: async () => {
-          const request = await fetchPoints();
+          const request = await fetchUsePoints(type, point);
           if (request) {
-            Alert.alert('구매 완료!');
+            Alert.alert('구매 완료');
           } else {
             Alert.alert('포인트가 부족합니다');
           }
@@ -251,7 +202,7 @@ const StoreItemCard = ({
       onPress={onStoreItemPress}>
       <View style={storeStyles.iconContainer}>
         <Image
-          source={require('@assets/icons/box_open.png')}
+          source={require('@assets/icons/giftbox.png')}
           style={storeStyles.icon}
         />
       </View>
@@ -278,57 +229,22 @@ const StoreItemSection = () => {
         <View style={storeStyles.divider} />
         <StoreItemCard title="30일 열람권" point={300} type="30" />
       </View>
-      <TouchableOpacity
-        style={{
-          margin: 12,
-          padding: 12,
-          borderRadius: 12,
-          backgroundColor: Colors.ui.secondary,
-          alignItems: 'center',
-        }}
-        onPress={() => {
-          fetchAddPoints();
-        }}>
-        <Text>20 포인트 추가</Text>
-      </TouchableOpacity>
     </View>
   );
 };
 
-const fetchAddPoints = async () => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    await axios.post(
-      `${API_URL}/student/get-points/`,
-      {point_type: 'chosen'},
-      {
-        headers: {
-          authorization: `token ${token}`,
-        },
-      },
-    );
-    PointEventHandler.emit('POINTS_UPDATED', 20);
-  } catch (e) {
-    console.error(e);
-  }
-};
-
 const StoreScreen = () => {
-  const promotions = [
-    require('@assets/images/promotion_banner.png'),
-    {uri: 'https://picsum.photos/1000/500'},
-    {uri: 'https://picsum.photos/900/400'},
-  ];
+  const promotions = [require('@assets/images/promotion_banner.png')];
   return (
-    <SafeAreaView edges={['top']} style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <ScrollView>
         <View style={styles.container}>
           <PointInfoSection />
-          <Banner items={promotions} />
           <StoreItemSection />
+          <Banner items={promotions} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -342,8 +258,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.ui.background,
   },
   label: {
+    paddingTop: 24,
+    paddingBottom: 12,
     fontSize: FontSizes.xxLarge,
-    marginBottom: 12,
     ...GlobalStyles.boldText,
   },
   card: {
@@ -474,7 +391,7 @@ const tipStyles = StyleSheet.create({
     ...GlobalStyles.row,
   },
   accent: {
-    fontSize: FontSizes.regular,
+    fontSize: FontSizes.small,
     color: Colors.text.accent,
     ...GlobalStyles.boldText,
   },
