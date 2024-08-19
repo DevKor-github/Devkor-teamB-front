@@ -1,8 +1,25 @@
-import {NativeEventEmitter, NativeModules} from 'react-native';
-import {LogBox} from 'react-native';
-LogBox.ignoreLogs(['new NativeEventEmitter()']);
-LogBox.ignoreAllLogs();
+class EventListener {
+  listeners: {desc: string; callback: Function}[];
 
-const pointModule = NativeModules.PointModule;
-const pointEventEmiiter = new NativeEventEmitter(pointModule);
-export default pointEventEmiiter;
+  constructor() {
+    this.listeners = [];
+  }
+
+  emit(target: string, value: any) {
+    this.listeners.forEach(
+      ({desc, callback}) => desc === target && callback(value),
+    );
+  }
+
+  addListener(desc: string, callback: Function) {
+    this.listeners.push({desc: desc, callback: callback});
+    return this;
+  }
+
+  removeListener(desc: string) {
+    this.listeners = this.listeners.filter(listener => listener.desc !== desc);
+  }
+}
+
+const PointEventHandler = new EventListener();
+export {PointEventHandler};

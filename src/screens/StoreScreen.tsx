@@ -18,7 +18,7 @@ import {useNavigation} from '@react-navigation/native';
 import Banner from '@src/components/Banner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import pointEventEmiiter from '@src/Events';
+import {PointEventHandler} from '@src/Events';
 
 const API_URL = 'http://15.165.198.75:8000';
 
@@ -164,17 +164,12 @@ const PointInfoSection = () => {
   }, [setPoints]);
 
   useEffect(() => {
-    const handlePointsUpdate = (newPoints: number) => {
-      setPoints(point + newPoints);
-    };
-
-    const subscription = pointEventEmiiter.addListener(
-      'POINTS_UPDATED',
-      handlePointsUpdate,
-    );
+    PointEventHandler.addListener('POINTS_UPDATED', (updatedValue: number) => {
+      setPoints(point + updatedValue);
+    });
 
     return () => {
-      subscription.remove();
+      PointEventHandler.removeListener('POINTS_UPDATED');
     };
   }, [point, setPoints]);
 
@@ -222,7 +217,7 @@ const StoreItemCard = ({
       );
 
       if (response.status === 201) {
-        pointEventEmiiter.emit('POINTS_UPDATED', -point);
+        PointEventHandler.emit('POINTS_UPDATED', -point);
         return true;
       } else {
         return false;
@@ -294,7 +289,7 @@ const StoreItemSection = () => {
         onPress={() => {
           fetchAddPoints();
         }}>
-        <Text>100 포인트 추가</Text>
+        <Text>20 포인트 추가</Text>
       </TouchableOpacity>
     </View>
   );
@@ -312,7 +307,7 @@ const fetchAddPoints = async () => {
         },
       },
     );
-    pointEventEmiiter.emit('POINTS_UPDATED', 20);
+    PointEventHandler.emit('POINTS_UPDATED', 20);
   } catch (e) {
     console.error(e);
   }
