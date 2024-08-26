@@ -4,15 +4,19 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 // Screens
 import MyPageScreen from '@screens/MyPageScreen';
-import TimetableScreen from '@screens/TimetableScreen';
 import Colors from '@src/Colors';
 import StoreNavigator from '@src/navigator/StoreNavigator';
 import {Image} from 'react-native-animatable';
 import {StyleSheet} from 'react-native';
+import {
+  getFocusedRouteNameFromRoute,
+  RouteProp,
+} from '@react-navigation/native';
+import TimetableNavigator from '@src/navigator/TimetableNavigator';
 
 export type BottomTabNavigatorParamList = {
   StoreNavigator: undefined;
-  Timetable: undefined;
+  TimetableNavigator: undefined;
   Mypage: undefined;
 };
 
@@ -35,7 +39,7 @@ const getTabBarIcon = (route: any, focused: boolean) => {
           style={style.icon}
         />
       );
-    case 'Timetable':
+    case 'TimetableNavigator':
       return (
         <Image
           source={
@@ -65,13 +69,13 @@ const getTabBarIcon = (route: any, focused: boolean) => {
 function BottomNavigator() {
   return (
     <BottomTab.Navigator
-      initialRouteName="Timetable"
+      initialRouteName="TimetableNavigator"
       screenOptions={({route}) => ({
         headerShown: false,
         tabBarIcon: ({focused}) => getTabBarIcon(route, focused),
         tabBarActiveTintColor: Colors.ui.primary,
         tabBarInactiveTintColor: Colors.ui.disabled,
-        tabBarStyle: {backgroundColor: Colors.ui.background},
+        tabBarStyle: getTabBarStyle(route),
         tabBarLabelStyle: {fontSize: 12},
       })}>
       <BottomTab.Screen
@@ -80,9 +84,12 @@ function BottomNavigator() {
         options={{title: '스토어'}}
       />
       <BottomTab.Screen
-        name="Timetable"
-        component={TimetableScreen}
-        options={{title: '시간표'}}
+        name="TimetableNavigator"
+        component={TimetableNavigator}
+        options={({route}) => ({
+          title: '시간표',
+          tabBarStyle: getTabBarStyle(route),
+        })}
       />
       <BottomTab.Screen
         name="Mypage"
@@ -92,5 +99,26 @@ function BottomNavigator() {
     </BottomTab.Navigator>
   );
 }
+
+const getTabBarStyle: any = (
+  route: RouteProp<
+    BottomTabNavigatorParamList,
+    keyof BottomTabNavigatorParamList
+  >,
+) => {
+  const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+  const targetScreens = [
+    'StoreHistoryScreen',
+    'Community',
+    'PostScreen',
+    'PostCreationScreen',
+    'BriefingScreen',
+    'PostListScreen',
+  ];
+  if (targetScreens.find(name => routeName === name)) {
+    return {display: 'none'};
+  }
+  return {backgroundColor: Colors.ui.background};
+};
 
 export default BottomNavigator;

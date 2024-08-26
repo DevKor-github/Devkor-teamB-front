@@ -97,6 +97,16 @@ export class CourseMinimal implements CourseMinimalData {
 }
 
 // Course
+export type Schedule = {
+  period: number;
+  time: string;
+};
+
+export type CourseSchedule = {
+  day: string;
+  schedule: Array<Schedule>;
+};
+
 export interface CourseData {
   id: number;
   course_id: string;
@@ -107,9 +117,9 @@ export interface CourseData {
   classification: string;
   credits: number;
   course_week: string[];
-  course_period: Array<number>[];
   course_room: string;
-  enrollment: number;
+  course_schedule: CourseSchedule[];
+  // enrollment: number;
 }
 
 export class Course implements CourseData {
@@ -122,9 +132,9 @@ export class Course implements CourseData {
   classification;
   credits;
   course_week;
-  course_period;
   course_room;
-  enrollment;
+  course_schedule;
+  // enrollment;
 
   constructor(value: CourseData) {
     this.id = value.id;
@@ -136,9 +146,9 @@ export class Course implements CourseData {
     this.classification = value.classification;
     this.credits = value.credits;
     this.course_week = value.course_week;
-    this.course_period = value.course_period;
     this.course_room = value.course_room;
-    this.enrollment = 0; //value.enrollment;
+    this.course_schedule = value.course_schedule;
+    // this.enrollment = 0;
   }
 
   static fromJson = (json: CourseData): Course => new Course(json);

@@ -33,8 +33,6 @@ interface TimetableProps {
   scrollable?: boolean;
 }
 
-type TimetableType = React.FC<TimetableProps>;
-
 const TimetableHeader = ({labels}: {labels: string[]}) => {
   return (
     <View style={GlobalStyles.row}>
@@ -74,7 +72,11 @@ const ClickableLecture = ({
   );
 };
 
-const TimetableBody: TimetableType = ({courses, candidate, onPress}) => {
+const TimetableBody: React.FC<TimetableProps> = ({
+  courses,
+  candidate,
+  onPress,
+}) => {
   const candidates = candidate === undefined ? [] : [candidate];
   const slotCount = calculateTotalSlots([...courses, ...candidates]);
   const labels = getLabels(courses);
@@ -123,7 +125,7 @@ const TimetableBody: TimetableType = ({courses, candidate, onPress}) => {
   );
 };
 
-const TimetableFooter: TimetableType = ({courses, onPress}) => {
+const TimetableFooter: React.FC<TimetableProps> = ({courses, onPress}) => {
   if (courses.length === 0) {
     return null;
   }
@@ -144,7 +146,7 @@ const TimetableFooter: TimetableType = ({courses, onPress}) => {
   );
 };
 
-const Timetable: TimetableType = ({
+const Timetable: React.FC<TimetableProps> = ({
   courses,
   onPress,
   candidate,

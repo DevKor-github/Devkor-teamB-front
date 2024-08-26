@@ -12,10 +12,12 @@ import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import ProgressBar from '@src/components/ProgessBar';
 import {useNavigation} from '@react-navigation/native';
-import Banner from '@src/components/Banner';
+// import Banner from '@src/components/Banner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {PointEventHandler} from '@src/Events';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import Banner from '@src/components/Banner';
 
 const API_URL = 'http://15.165.198.75:8000';
 
@@ -106,7 +108,7 @@ const PointTips = () => {
             {row.map(([icon, info, tip], colIdx) => (
               <View key={colIdx} style={tipStyles.item}>
                 <Image style={tipStyles.icon} source={icon} />
-                <Text style={{fontSize: FontSizes.small}}>
+                <Text style={{fontSize: FontSizes.regular}}>
                   {info}
                   <Text style={tipStyles.accent}> {tip} </Text>
                   포인트
@@ -233,10 +235,41 @@ const StoreItemSection = () => {
   );
 };
 
+const StoreHeader = () => {
+  return (
+    <SafeAreaView edges={['top']} style={headerStyles.safeArea}>
+      <View style={headerStyles.container}>
+        <View style={headerStyles.logoContainer}>
+          <Image
+            source={require('@assets/icons/app_logo.png')}
+            style={headerStyles.logo}
+          />
+          <Text style={headerStyles.logoText}>KU&A</Text>
+        </View>
+        <View style={headerStyles.buttonContainer}>
+          <TouchableOpacity>
+            <Image
+              style={headerStyles.icon}
+              source={require('@assets/icons/bell.png')}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Image
+              style={headerStyles.icon}
+              source={require('@assets/icons/setting.png')}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+};
+
 const StoreScreen = () => {
   const promotions = [require('@assets/images/promotion_banner.png')];
   return (
     <View style={styles.safeArea}>
+      <StoreHeader />
       <ScrollView>
         <View style={styles.container}>
           <PointInfoSection />
@@ -247,6 +280,44 @@ const StoreScreen = () => {
     </View>
   );
 };
+
+const headerStyles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: Colors.ui.primary,
+    borderBottomRightRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  container: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+    ...GlobalStyles.row,
+  },
+  logoContainer: {
+    alignItems: 'baseline',
+    ...GlobalStyles.expand,
+    ...GlobalStyles.row,
+  },
+  buttonContainer: {
+    ...GlobalStyles.row,
+  },
+  logo: {
+    width: 32,
+    height: 32,
+    marginRight: 8,
+  },
+  logoText: {
+    fontSize: FontSizes.xxxLarge,
+    color: Colors.text.white,
+    ...GlobalStyles.logo,
+  },
+  icon: {
+    tintColor: Colors.ui.background,
+    width: 28,
+    height: 28,
+    marginHorizontal: 7,
+  },
+});
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -289,12 +360,12 @@ const storeStyles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   titleText: {
-    fontSize: FontSizes.medium,
+    fontSize: FontSizes.regular,
     color: Colors.text.black,
     ...GlobalStyles.text,
   },
   pointText: {
-    fontSize: FontSizes.regular,
+    fontSize: FontSizes.large,
     color: Colors.text.accent,
     ...GlobalStyles.boldText,
   },
@@ -371,9 +442,9 @@ const pointHistoryStyles = StyleSheet.create({
 
 const tipStyles = StyleSheet.create({
   label: {
-    fontSize: FontSizes.medium,
-    color: Colors.text.black,
     marginBottom: 4,
+    fontSize: FontSizes.large,
+    color: Colors.text.black,
     ...GlobalStyles.boldText,
   },
   item: {
@@ -391,14 +462,9 @@ const tipStyles = StyleSheet.create({
     ...GlobalStyles.row,
   },
   accent: {
-    fontSize: FontSizes.small,
+    fontSize: FontSizes.regular,
     color: Colors.text.accent,
     ...GlobalStyles.boldText,
-  },
-  base: {
-    fontSize: FontSizes.regular,
-    color: Colors.text.black,
-    ...GlobalStyles.text,
   },
 });
 

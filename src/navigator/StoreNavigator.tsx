@@ -13,15 +13,17 @@ const StoreNavigator = () => {
         name="StoreScreen"
         component={StoreScreen}
         options={{
-          headerTintColor: Colors.text.accent,
-          headerShadowVisible: false,
-          title: '스토어',
+          headerShown: false,
         }}
       />
       <Stack.Screen
         name="StoreHistoryScreen"
         component={StoreHistoryScreen}
-        options={{headerShown: false}}
+        options={{
+          title: '적립 및 사용내역',
+          headerBackTitleVisible: false,
+          headerTintColor: Colors.text.accent,
+        }}
       />
     </Stack.Navigator>
   );
