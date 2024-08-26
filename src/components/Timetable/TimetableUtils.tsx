@@ -1,4 +1,10 @@
-import {Course, CourseBlock, TimeSlot} from '@src/Types';
+import {
+  Course,
+  CourseBlock,
+  CourseSchedule,
+  Schedule,
+  TimeSlot,
+} from '@src/Types';
 import Colors from '@src/Colors.tsx';
 import {ColorValue} from 'react-native';
 
@@ -13,7 +19,10 @@ const strToInt = (timeStr: string) => {
 };
 
 const getCourseTime = (course: Course): [string, Array<number>][] =>
-  course.course_week.map((key, index) => [key, course.course_period[index]]);
+  course.course_schedule.map((value: CourseSchedule) => [
+    value.day,
+    value.schedule.map((e: Schedule) => e.period),
+  ]);
 
 // 인덱스를 12시간 형식으로 변환하는 함수
 export const convertTo12HourFormat = (index: number) => {
@@ -104,7 +113,7 @@ export const getLabels = (courses: Course[]) => {
 };
 
 export const filterOnlineLecture = (courses: Course[]) =>
-  courses.filter(course => course.course_period.length === 0);
+  courses.filter(course => course.course_week.length === 0);
 
 export function doesOverlap(target: Course, desc: Course[]): boolean {
   for (const timeSlot of getCourseSlot(target)) {

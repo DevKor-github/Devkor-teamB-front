@@ -91,9 +91,9 @@ const CourseItem = ({
       <View>
         <View style={GlobalStyles.row}>
           <Text style={itemStyles.courseName}>{item.course_name}</Text>
-          <Text style={itemStyles.enrollment}>
+          {/* <Text style={itemStyles.enrollment}>
             함께 듣는 사람 {item.enrollment}
-          </Text>
+          </Text> */}
         </View>
         <Text style={itemStyles.instructor}>{item.instructor}</Text>
       </View>
@@ -355,14 +355,14 @@ const itemStyles = StyleSheet.create({
     textAlignVertical: 'center',
     ...GlobalStyles.text,
   },
-  enrollment: {
-    fontSize: 12,
-    color: Colors.text.gray,
-    ...GlobalStyles.text,
-  },
   listFooter: {
     height: 16,
   },
+  // enrollment: {
+  //   fontSize: 12,
+  //   color: Colors.text.gray,
+  //   ...GlobalStyles.text,
+  // },
 });
 
 const headerStyles = StyleSheet.create({

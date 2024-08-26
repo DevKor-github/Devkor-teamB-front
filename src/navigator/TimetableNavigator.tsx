@@ -1,7 +1,6 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Colors from '@src/Colors';
-import BottomNavigator from '@navigator/BottomTabNavigator';
 import CommunityScreen from '@screens/Community/CommunityScreen';
 import PostScreen from '@screens/Post/PostScreen';
 import PostCreationScreen from '@src/screens/Post/CreatePostScreen';
@@ -11,6 +10,7 @@ import PostListScreen from '@src/screens/Post/PostListScreen';
 import {View} from 'react-native-animatable';
 import {StyleSheet, Text} from 'react-native';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
+import TimetableScreen from '@src/screens/TimetableScreen';
 
 const Stack = createStackNavigator();
 
@@ -39,10 +39,10 @@ const CustomHeaderTitle = ({
 
 const TimetableNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName="BottomNavigator">
+    <Stack.Navigator initialRouteName="Timetable">
       <Stack.Screen
-        name="BottomNavigator"
-        component={BottomNavigator}
+        name="Timetable"
+        component={TimetableScreen}
         options={{headerShown: false}}
       />
       <Stack.Screen
@@ -89,7 +89,7 @@ const TimetableNavigator = () => {
           headerTintColor: Colors.ui.primary,
         })}
       />
-      <Stack.Screen 
+      <Stack.Screen
         name="PostListScreen"
         component={PostListScreen}
         options={({route}: {route: any}) => ({
