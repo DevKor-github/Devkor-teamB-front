@@ -9,7 +9,7 @@ export const GlobalStyles = StyleSheet.create({
         shadowOffset: {width: 1, height: 1},
       },
       android: {
-        elevation: 3,
+        elevation: 1.5,
       },
     }),
   },
@@ -21,14 +21,12 @@ export const GlobalStyles = StyleSheet.create({
   },
   logo: {
     fontFamily: 'Omnes',
-    fontWeight: '900',
   },
   text: {
-    fontFamily: 'Pretendard',
+    fontFamily: 'Pretendard-Regular',
   },
   boldText: {
-    fontWeight: 'bold',
-    fontFamily: 'Pretendard',
+    fontFamily: 'Pretendard-Bold',
   },
   indicator: {
     position: 'absolute',
