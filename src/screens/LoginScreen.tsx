@@ -16,9 +16,7 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {TimetableModel} from '@src/Types';
-
-// sample
-const API_URL = 'http://15.165.198.75:8000';
+import {API_URL} from '@env';
 
 const fetchTimetable = async (token: string, userId: string) => {
   try {

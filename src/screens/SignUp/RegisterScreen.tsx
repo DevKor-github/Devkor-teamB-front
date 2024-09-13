@@ -28,10 +28,9 @@ import {doesOverlap, getTimeInfo} from '@components/Timetable/TimetableUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_URL} from '@env';
 
 type NavigationProps = StackNavigationProp<any>;
-
-const API_URL = 'http://15.165.198.75:8000';
 
 const fetchUserId = async () => {
   const token = await AsyncStorage.getItem('userToken');

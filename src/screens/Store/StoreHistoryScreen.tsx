@@ -7,8 +7,7 @@ import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {FlatList} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
-
-const API_URL = 'http://15.165.198.75:8000';
+import {API_URL} from '@env';
 
 enum PointViewMode {
   usage,

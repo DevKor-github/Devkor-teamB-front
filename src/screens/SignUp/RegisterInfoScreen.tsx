@@ -12,8 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {useNavigation} from '@react-navigation/native';
-
-const API_URL = 'http://15.165.198.75:8000';
+import {API_URL} from '@env';
 
 const fetchCourses = async (callback: Function) => {
   try {

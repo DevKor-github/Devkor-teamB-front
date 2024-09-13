@@ -10,6 +10,9 @@
       "@components/*": ["./src/components/*"],
       "@screens/*": ["./src/screens/*"],
       "@navigator/*": ["./src/navigator/*"],
+      "typeRoots": [
+        "./src/types"
+      ],
     },
   },
 }
