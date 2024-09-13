@@ -18,8 +18,7 @@ import axios from 'axios';
 import {PointEventHandler} from '@src/Events';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Banner from '@src/components/Banner';
-
-const API_URL = "http://3.37.163.236:8000/";
+import {API_URL} from '@env';
 
 const fetchPoints = async (callback: Function) => {
   try {

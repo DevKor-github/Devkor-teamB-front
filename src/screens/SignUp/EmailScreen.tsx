@@ -12,10 +12,9 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../App';
 import axios from 'axios';
+import {API_URL} from '@env';
 
 type EmailScreenProps = NativeStackScreenProps<RootStackParamList, 'Email'>;
-
-const API_URL = 'http://15.165.198.75:8000';
 
 function EmailScreen({navigation}:EmailScreenProps){
     const [email, setEmail] = useState("");

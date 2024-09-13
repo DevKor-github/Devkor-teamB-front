@@ -7,8 +7,7 @@ import Timetable from '@components/Timetable/Timetable';
 import {Course, CourseBlock, TimetableModel} from '@src/Types';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = "http://3.37.163.236:8000/"
+import {API_URL} from '@env';
 
 const fetchUserId = async (token: string | null) => {
   try {
