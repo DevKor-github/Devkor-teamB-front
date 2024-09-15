@@ -20,7 +20,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {PointEventHandler} from '@src/Events';
 
-const pointInstance = PointInstance;
 const API_URL = "http://3.37.163.236:8000/";
 
 /** 포인트 관련 컴포넌트 */
