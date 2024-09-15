@@ -20,20 +20,18 @@ interface CommunityScreenProps {
   navigation: any;
 }
 
-
-
 const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [fetchedPost, setFetchedPost] = useState<Post>();
 
   useEffect(()=>{
-    // console.log('post:',post)
+    // console.log('post:',post.postId)
     // console.log('lectureName2:',lectureName)
     fetchPostInfo(post.postId)
   },[])
 
   const fetchPostInfo = async (postId:number) => {
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
     try{
       const token = await AsyncStorage.getItem('userToken')
       const response = await axios.get(`${API_URL}/posts/${postId}/`,  
@@ -54,10 +52,13 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
           'https://example.com/image3.jpg', // 이거 어카지
         ),
         postDate: data.created_at,
-        view: 10, // 예시
+        views: data.views, // 예시
+        likes: data.likes,
+        reports: data.reports,
         content: data.content,
-        images : data.attached_file,
-        files: data.attached_file,
+        attachments: data.attachment,
+        // images : data.attached_file,
+        // files: data.attached_file,
         tags: data.tags,
       }
       // console.log('newpost:',newPost)
@@ -68,9 +69,9 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   }
 
   const handleNavigate = () => {
-    console.log(fetchedPost)
-    console.log(lectureName)
-    navigation.navigate('PostScreen', {post: fetchedPost, lectureName: lectureName});
+    console.log('navigate:',fetchedPost)
+    console.log('navigate:',lectureName)
+    navigation.navigate('PostScreen', {post: fetchedPost, lecture: lectureName});
   }
 
   return (
@@ -83,18 +84,22 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
           <Text style={postStyles.postText}>{post.title}</Text>
           <View style={{...GlobalStyles.row,gap:5,flexWrap : 'wrap',}}>
             {fetchedPost && fetchedPost.tags.map(tag => (
-                <View style={{backgroundColor:tagColors[tag.id],borderRadius:12,paddingHorizontal:8,paddingVertical:3,}}>
-                    <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
+                <View style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3,}}>
+                    <Text style={{...GlobalStyles.text,fontSize:12,}}>{tag.name}</Text>
                 </View>
             ))}
           </View>
-          <Text style={{color:Colors.text.lightgray,marginTop: 7}}>{fetchedPost && fetchedPost.postDate.substring(0,10)} | 조회 {post.view} | 댓글 {10} | 좋아요 0</Text>
+          <Text style={{color:Colors.text.lightgray,marginTop: 7}}>{fetchedPost && fetchedPost.postDate.substring(0,10)} | 조회 {fetchedPost && fetchedPost.views} | 댓글 {10} | 좋아요 0</Text>
         </View>
-        {fetchedPost && fetchedPost.images && fetchedPost.images.length > 0 && (
-          <Image source={{uri: fetchedPost.images[0].uri}} style={{width:65,height:65,borderRadius:5,alignSelf: 'center'}}/>
+        {/* 이미지 preview */}
+        {fetchedPost && fetchedPost.attachments && fetchedPost.attachments.length > 0 && (
+          <Image 
+            // source={{uri: fetchedPost.images[0].uri}} 
+            source={{uri: `http://15.165.198.75:8000${fetchedPost.attachments[0].uri}`}}
+            style={{width:65,height:65,borderRadius:5,alignSelf: 'center'}}
+          />
         )}
       </View>
-
     </TouchableOpacity>
   );
 };
@@ -128,8 +133,8 @@ const PostView = ({items, id, lectureName}: {items: Post[]; id: number, lectureN
         ) : (
           <FlatList
             data={items}
-            renderItem={({item}: {item: Post}) => (
-              <PostItem post={item} lectureName={lectureName} />
+            renderItem={({item}: {item: Post,}) => (
+              <PostItem key={item.postId} post={item} lectureName={lectureName} />
             )}
           />
         )}
@@ -148,22 +153,22 @@ const PostView = ({items, id, lectureName}: {items: Post[]; id: number, lectureN
 };
 
 const PostListScreen: React.FC<CommunityScreenProps> = ({route,navigation,}) => {
-  const {id} = route.params;
-  const communities = mockPosts;
-  const lecture = mockLectures.find((e: Lecture) => e.id === id) as Lecture;
-  const items = route.params.items;
+  const postId = route.params.id;
+  const posts = route.params.items;
+  const lectureName = route.params.lectureName
 
   useEffect(() => {
     navigation.setOptions({title: `${route.params.lectureName}`});
-  }, [lecture, communities, navigation]);
+  }, [lectureName, navigation]);
   
   useEffect(()=>{
-    console.log('postlistscreen:',id)
+    console.log('PostListScreen')
+    console.log(route.params)
   },[])
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
-      <PostView items={items} id={id} lectureName={route.params.lectureName}></PostView>
+      <PostView items={posts} id={postId} lectureName={lectureName}></PostView>
     </SafeAreaView>
   );
 };
@@ -222,7 +227,7 @@ const postStyles = StyleSheet.create({
     // backgroundColor: Colors.ui.background,
     // ...GlobalStyles.expand,
     minHeight: 680,
-    ...GlobalStyles.shadow,
+    // ...GlobalStyles.shadow,
   },
   title: {
     margin: 12,

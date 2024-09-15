@@ -49,12 +49,14 @@ export type Post = {
   author: UserInfo;
   title: string;
   postDate: string;
-  view: number;
+  views: number;
+  likes: number;
+  reports: number;
   content: string;
   // comments: Comment[];
-  // attachments: Attachment[];
-  images: Attachment[];
-  files: Attachment[];
+  attachments: Attachment[];
+  // images: Attachment[];
+  // files: Attachment[];
   tags: any[];
 };
 

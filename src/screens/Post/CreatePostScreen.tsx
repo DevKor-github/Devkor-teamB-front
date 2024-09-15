@@ -19,7 +19,7 @@ import Icon2 from 'react-native-vector-icons/Feather';
 import Icon3 from 'react-native-vector-icons/FontAwesome5'
 import FloatingButton2 from '@src/components/FloatingButton2';
 
-const API_URL = "http://15.165.198.75:8000"
+const API_URL = "http://3.37.163.236:8000/"
 
 const styles = StyleSheet.create({
   container: {
@@ -109,24 +109,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   tag: {
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
     // ...GlobalStyles.shadow,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 23,
     borderWidth: 1,
     borderColor: 'lightgray',
     // backgroundColor: 'white',
-    margin: 2
+    marginVertical:2,
+    marginHorizontal:2
   },
   tagPressed: {
-    // paddingVertical: 3,
-    // paddingHorizontal: 8,
-    // ...GlobalStyles.shadow,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    // borderRadius: 12,
     backgroundColor: 'pink',
     margin: 2
   },
@@ -186,21 +181,6 @@ function PostCreationScreen({ route }: { route: any }) {
     }
   };
 
-  const handleRemoveImage = (uri: string) => {
-    console.log('pressed')
-    setImages(images.filter(image => image.uri !== uri));
-  };
-
-  const handleRemoveFile = (uri: string) => {
-    console.log('pressed')
-    setFiles(files.filter(file => file.uri !== uri));
-  };
-
-  // const handleRemoveAttachment = (uri: string) => {
-  //   console.log('pressed')
-  //   setAttachments(attachments.filter(attachment => attachment.uri !== uri));
-  // };
-
   const handleAttachFile = async () => {
     try {
       const result = await DocumentPicker.pick({
@@ -223,6 +203,16 @@ function PostCreationScreen({ route }: { route: any }) {
     }
   };
 
+  const handleRemoveImage = (uri: string) => {
+    console.log('pressed')
+    setImages(images.filter(image => image.uri !== uri));
+  };
+
+  const handleRemoveFile = (uri: string) => {
+    console.log('pressed')
+    setFiles(files.filter(file => file.uri !== uri));
+  };
+
   const handleSubmit = async () => {
     const token = await AsyncStorage.getItem('userToken')
     const userid = await AsyncStorage.getItem('userId')
@@ -234,21 +224,29 @@ function PostCreationScreen({ route }: { route: any }) {
     }
 
     try{
+      // console.log("pressed !!")
+      // console.log(selectedTags)
+      // console.log('images:',images)
+      // console.log('files:',files)
+      const attachments = [...images,...files]
+      console.log('attachments:',attachments)
+
       const formData = new FormData();
       formData.append('title', title);
       formData.append('content', content);
       formData.append('course_fk', lectureId); // course_fk 앞에서 받아와야됨 [완료]
       formData.append('student', userid);
       formData.append('tags', selectedTags);
-      if (images && images.length > 0) { // 여기 수정 필요
-        images.forEach((file) => {
-          formData.append('attached_file', {
-            uri: file.uri,
-            type: file.type, 
-            name: file.name,  
+      if (attachments.length > 0) { // 여기 수정 필요
+        attachments.forEach((attachment) => {
+          formData.append('image_uploads', {
+            uri: attachment.uri,
+            type: attachment.type, 
+            name: attachment.name,  
           });
         });
       }
+      // console.log('formdata:',formData._parts)
       
       const response = await axios.post(`${API_URL}/posts/`,formData,
         {
@@ -258,38 +256,20 @@ function PostCreationScreen({ route }: { route: any }) {
           },
         }
       );
-      console.log(response.data)
+      console.log('after post:',response.data)
+      if(response.status===201){
+        navigation.goBack();
+      }
+
     } catch(error) {
       console.error(error)
     }
     
-
-    const newPost: Post = {
-      postId: Date.now(),
-      author: new UserInfo('user1111', '게시물 작성자', 'no-image'),
-      title: title,
-      postDate: new Date().toISOString(),
-      view: 0,
-      content: content,
-      images: images,
-      files: files,
-      tags: selectedTags,
-    };
-    const communities = mockPosts;
-
-    // console.log(newPost)
-    if (communities.has(lectureId)) {
-      const posts = communities.get(lectureId) as Post[];
-      posts.push(newPost);
-    } else {
-      communities.set(lectureId, [newPost]);
-    }
-    navigation.goBack();
   };
 
 
   const fetchTags = async ()=> {
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
     try {
       const token = await AsyncStorage.getItem('userToken')
       const response = await axios.get(`${API_URL}/tags/`, 
@@ -299,7 +279,6 @@ function PostCreationScreen({ route }: { route: any }) {
           },
         },
       );
-      // console.log(response.status)
       if(response.status===200){
         const fetchedTags: Tag[] = response.data
           .filter((data: any) => data.id > 2) 
@@ -308,7 +287,6 @@ function PostCreationScreen({ route }: { route: any }) {
             name: data.name,
           }));
         setTags(fetchedTags); 
-        // console.log(tags[2])
       }
     } catch (error) {
       console.error('Error fetching tags:', error);
@@ -325,8 +303,14 @@ function PostCreationScreen({ route }: { route: any }) {
 
   return (
     <ScrollView style={styles.container}>
+      <TextInput
+        style={styles.inputTitle}
+        placeholder="제목"
+        value={title}
+        onChangeText={setTitle}
+      />
 
-      <Text style={{color: Colors.text.black,...GlobalStyles.text,fontSize: 18,fontWeight: 600,marginBottom:10,}}>키워드 선택하기</Text>
+      <Text style={{color: Colors.text.black,...GlobalStyles.text,fontSize: 18,fontWeight: 400,marginLeft: 2,marginBottom:10,}}>키워드 선택하기</Text>
       <View style={styles.tagContainer}>
         {tags.map((data)=>(
           <TouchableOpacity
@@ -340,13 +324,6 @@ function PostCreationScreen({ route }: { route: any }) {
       </View>
 
 
-      <Text style={{color: Colors.text.black,...GlobalStyles.text,fontSize: 18,fontWeight: 600,marginBottom:10,}}>게시글 작성하기</Text>
-      <TextInput
-        style={styles.inputTitle}
-        placeholder="제목"
-        value={title}
-        onChangeText={setTitle}
-      />
       <TextInput
         style={styles.inputText}
         placeholder="내용을 입력하세요."
@@ -355,14 +332,7 @@ function PostCreationScreen({ route }: { route: any }) {
         multiline
       />
 
-      <TouchableOpacity 
-        onPress={handleAttachFile}
-        style={{backgroundColor: '#F2F2F2',marginTop:10,paddingHorizontal: 130,paddingVertical:12,borderRadius:5,display:'flex',flexDirection:'row'}}  
-      >
-        <Icon name="plus" size={15} color={Colors.primary[500]}></Icon>
-        <Text style={{color: Colors.primary[500]}}> 문서 첨부하기</Text>    
-      </TouchableOpacity>
-
+      {/* 문서 첨부 */}
       <View>
         {files.map((attachment, index) => (
           <View key={index}>
@@ -384,7 +354,15 @@ function PostCreationScreen({ route }: { route: any }) {
           </View>
         ))}
       </View>
-
+      <TouchableOpacity 
+        onPress={handleAttachFile}
+        style={{backgroundColor: '#F2F2F2',marginTop:10,paddingHorizontal: 130,paddingVertical:12,borderRadius:5,display:'flex',flexDirection:'row'}}  
+      >
+        <Icon name="plus" size={15} color={Colors.primary[500]}></Icon>
+        <Text style={{color: Colors.primary[500]}}> 문서 첨부하기</Text>    
+      </TouchableOpacity>
+      
+      {/* 이미지 첨부 */}
       <View style={styles.photoContainer}>
         <TouchableOpacity onPress={handleAttachPhoto} style={[styles.attachmentItem,{backgroundColor: '#F2F2F2',borderRadius: 5,alignItems: 'center',justifyContent:'center'}]}>
           <Icon3 name="camera" size={25} color={Colors.primary[500]}></Icon3>
@@ -418,7 +396,7 @@ function PostCreationScreen({ route }: { route: any }) {
 
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={[styles.buttonText, { ...GlobalStyles.boldText }]}>
-          게시물 생성
+          게시물 등록
         </Text>
       </TouchableOpacity>
     </ScrollView>

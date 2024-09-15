@@ -8,7 +8,7 @@ import {Course, CourseData, CourseBlock} from '@src/Types';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://15.165.198.75:8000';
+const API_URL = "http://3.37.163.236:8000/"
 
 const fetchLectureInfo = async (id: number[]) => {
   try {

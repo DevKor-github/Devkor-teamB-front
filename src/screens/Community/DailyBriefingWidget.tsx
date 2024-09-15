@@ -96,8 +96,12 @@ const DailyBriefingWidget = ({course}: {course: CourseBlock}) => {
     fetchBriefing(course);
   },[])
 
+  useEffect(()=>{
+    console.log('summary:',attendance, assignment, notification)
+  },[notification])
+
   const fetchBriefing = async (course: CourseBlock) => {
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
     try{
       const token = await AsyncStorage.getItem('userToken')
       console.log(course.id)
@@ -110,19 +114,22 @@ const DailyBriefingWidget = ({course}: {course: CourseBlock}) => {
             course_fk: course.id,
           }
         },);
-      const briefing_id = response.data[0].id
-      console.log('briefing_id:',briefing_id)
 
-      const response2 = await axios.get(`${API_URL}/briefings/${briefing_id}/`,  
-        {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        },); 
-      setAttendance(response2.data.content.summary.attendance_percentage)
-      setAssignment(response2.data.content.summary.assignment_percentage)
-      setNotification(response2.data.content.summary.notification_percentage)
-      console.log(attendance,assignment,notification)
+      if(response.data.length > 0){
+        const briefing_id = response.data[0].id
+        console.log('briefing_id:',briefing_id)
+  
+        const response2 = await axios.get(`${API_URL}/briefings/${briefing_id}/`,  
+          {
+            headers: {
+              authorization: `token ${token}`,
+            },
+          },); 
+        setAttendance(response2.data.content.summary.attendance_percentage)
+        setAssignment(response2.data.content.summary.assignment_percentage)
+        setNotification(response2.data.content.summary.notification_percentage)
+      }
+
     } catch(error){
       console.error("Error fetching briefing info",error)
     }

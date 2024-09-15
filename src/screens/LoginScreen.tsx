@@ -21,7 +21,7 @@ function LoginScreen({ navigation }: LoginScreenProps) {
     const [isVerified, setIsVerified] = useState(false);
     const [error, setError] = useState(false);
     const isFormFilled = username!=="" && password!=="";
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
 
     const handleLogin = async (username: string, password: string) => {
         const userData = {

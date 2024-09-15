@@ -12,7 +12,7 @@ function SignUpScreen({navigation}:SignUpScreenProps){
     const [password, setPassword] = useState("");
     const isFormFilled = username!=="" && password!=="";
 
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
 
 
     const handleNext = async (username: string, password: string) => {

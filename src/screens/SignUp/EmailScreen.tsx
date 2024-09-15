@@ -13,7 +13,7 @@ function EmailScreen({navigation}:EmailScreenProps){
     const [showVerification, setShowVerification]=useState(false);
     const [verified, setVerified] = useState(false);
 
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
     
     const handleNext = () => {
         if(verified){

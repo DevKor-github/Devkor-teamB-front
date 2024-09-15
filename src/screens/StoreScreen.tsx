@@ -21,7 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 const pointInstance = PointInstance;
-const API_URL = 'http://15.165.198.75:8000';
+const API_URL = "http://3.37.163.236:8000/";
 
 /** 포인트 관련 컴포넌트 */
 const PointHistory = () => {
