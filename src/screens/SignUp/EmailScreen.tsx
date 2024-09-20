@@ -16,24 +16,24 @@ import {API_URL} from '@env';
 
 type EmailScreenProps = NativeStackScreenProps<RootStackParamList, 'Email'>;
 
-function EmailScreen({navigation}:EmailScreenProps){
-    const [email, setEmail] = useState("");
-    const [verificationNum,setVerficationNum] = useState("");
-    const [showVerification, setShowVerification]=useState(false);
-    const [verified, setVerified] = useState(false);
+function EmailScreen({navigation}: EmailScreenProps) {
+  const [email, setEmail] = useState('');
+  const [verificationNum, setVerficationNum] = useState('');
+  const [showVerification, setShowVerification] = useState(false);
+  const [verified, setVerified] = useState(false);
 
-    const API_URL = "http://3.37.163.236:8000/"
-    
-    const handleNext = () => {
-        if(verified){
-            navigation.navigate('SignUp');
-        }
-    }
+  const handleNext = () => {
+    navigation.navigate('SignUp');
 
-    const handleEmailSend = async (email:string) => {
-        const emailData = {
-            email: email,
-        };
+    // if (verified) {
+    //   navigation.navigate('SignUp');
+    // }
+  };
+
+  const handleEmailSend = async (email: string) => {
+    const emailData = {
+      email: email,
+    };
 
     try {
       const response = await axios.post(
