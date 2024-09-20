@@ -33,6 +33,7 @@ function WeeklyTimetableScreen() {
   const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
+    
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem('userToken');
