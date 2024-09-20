@@ -47,6 +47,7 @@ function LoginScreen({navigation}: {navigation: any}) {
     };
 
     try {
+      // console.log(API_URL)
       const response = await axios.post(`${API_URL}/student/login/`, userData);
       if (response.status === 200) {
         const token = response.data.Token;
@@ -65,8 +66,8 @@ function LoginScreen({navigation}: {navigation: any}) {
         setError(false);
         const isRegisterd = await fetchTimetable(token, userId);
         if (isRegisterd) {
-          navigation.navigate('RegisterInfo', {userId: userId});
-          // navigation.navigate('Home');
+          // navigation.navigate('RegisterInfo', {userId: userId});
+          navigation.navigate('Home');
         } else {
           navigation.navigate('RegisterInfo', {userId: userId});
         }

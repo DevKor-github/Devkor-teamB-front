@@ -1,4 +1,5 @@
 import React, {useState, useLayoutEffect, useEffect} from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -33,22 +34,21 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   const [fetchedPost, setFetchedPost] = useState<Post>();
 
   useEffect(()=>{
-    // console.log(post.postId)
     fetchPostInfo(post.postId)
-    // console.log(fetchedPost)
   },[])
 
   const fetchPostInfo = async (postId:number) => {
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
     try{
       const token = await AsyncStorage.getItem('userToken')
-      const response = await axios.get(`${API_URL}/posts/${postId}/`,  // 5, 8, 9가 테스트게시글
+      const response = await axios.get(`${API_URL}/posts/${postId}/`,
         {
           headers: {
             authorization: `token ${token}`,
           },
         },
       );
+      // console.log('포스트!!!')
       // console.log('response:',response.data)
       const data = response.data
       const newPost : Post = {
@@ -60,23 +60,20 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
           'https://example.com/image3.jpg', //하드코딩
         ),
         postDate: data.created_at,
-        view: 10, // 하드코딩
+        views: data.views,
+        likes: data.likes,
+        reports: data.reports,
         content: data.content,
-        images : data.attached_file,
-        files: data.attached_file,
+        attachments: data.attachment,
         tags: data.tags,
       }
-      // console.log('newpost:',newPost)
       setFetchedPost(newPost)
-      // console.log(newPost.title)
     } catch (error) {
       console.error('Error fetching tags:', error);
     }
   }
 
   const handleNavigate = () => {
-    // console.log(fetchedPost)
-    // console.log(lectureName)
     navigation.navigate('PostScreen',{
       post: fetchedPost,
       lecture: lectureName,
@@ -100,12 +97,12 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   );
 };
 
-const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectureName: string;}) => {
+const PostView = ({ items, id, lectureName, course}: { items: Post[]; id: number; lectureName: string; course: CourseBlock}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [isFabOpen, setFabOpen] = useState(false);
  
   useEffect(()=>{
-    console.log(items)
+    console.log('postview:',items)
     console.log(lectureName)
   },[])
 
@@ -118,7 +115,6 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectu
   };
 
   const handlePressPlus = () => {
-    // navigation.navigate('PostCreationScreen', {lectureId: id});
     console.log(isFabOpen);
     setFabOpen(!isFabOpen);
   };
@@ -126,6 +122,9 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectu
   const handleNavigate = (screen: string) => {
     setFabOpen(false);
     console.log(id, lectureName)
+    if(screen=='BriefingScreen'){
+      navigation.navigate(screen, {course:course})
+    }
     navigation.navigate(screen, { lectureId: id, lectureName: lectureName});
   };
 
@@ -204,30 +203,27 @@ const PostView = ({ items, id, lectureName,}: { items: Post[]; id: number; lectu
 const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
   const {course}: {course: CourseBlock} = route.params;
   const [posts, setPosts] = useState<Post[]>([]);
-  const [lectureName, setLectureName] = useState(''); //임시
-  const [lectureId, setLectureId] = useState(''); //임시
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    // fetchData();
-    console.log('course:',course.id) // course_fk
+    // console.log('course_fk:',course.id) // course_fk
+    // console.log('course_name: ',course.course_name)
     fetchPost();
-  },[]);
+  },[isFocused]);
 
   useLayoutEffect(() =>
     setNavigationHeader(navigation, [course.course_name, course.instructor]),
     [course, navigation],
   );
 
-
   const fetchPost = async ()=>{
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
     try {
       const token = await AsyncStorage.getItem('userToken')
-
       const response = await axios.get(`${API_URL}/posts/`, 
         {
           params: {
-            course_id: course.course_name
+            course_id: course.course_id
           },
           headers: {
             authorization: `token ${token}`,
@@ -235,23 +231,17 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) 
         },
       );
       // console.log(response.data)
-      const postMinmal = response.data.map((json: PostMinimalData) =>
-        PostMinimal.fromJson(json),
-      );
-      console.log(postMinmal);
-
       const fetchedPosts: Post[] = response.data
         .map((data:any)=>({
           postId: data.id,
           title: data.title,
         }))
-      // console.log('fetchedPost:',fetchedPosts)
       setPosts(fetchedPosts)
+      console.log('포스트:',fetchedPosts)
     } catch (error) {
       console.error('Error fetching posts:', error);
     }
   }
-
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
@@ -260,6 +250,7 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) 
         items={posts}
         id={course.id}
         lectureName={course.course_name}
+        course={course}
       />
     </SafeAreaView>
   );

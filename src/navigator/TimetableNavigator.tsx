@@ -4,6 +4,7 @@ import Colors from '@src/Colors';
 import CommunityScreen from '@screens/Community/CommunityScreen';
 import PostScreen from '@screens/Post/PostScreen';
 import PostCreationScreen from '@src/screens/Post/CreatePostScreen';
+import PostEditScreen from '@src/screens/Post/EditPostScreen';
 import BriefingScreen from '@src/screens/Briefing/BriefingScreen';
 import PostListScreen from '@src/screens/Post/PostListScreen';
 import {View} from 'react-native-animatable';
@@ -66,6 +67,15 @@ const TimetableNavigator = () => {
         component={PostCreationScreen}
         options={{
           headerTitle: '게시물 작성',
+          headerBackTitleVisible: false,
+          headerTintColor: Colors.ui.primary,
+        }}
+      />
+      <Stack.Screen
+        name="PostEditScreen"
+        component={PostEditScreen}
+        options={{
+          headerTitle: '게시물 수정',
           headerBackTitleVisible: false,
           headerTintColor: Colors.ui.primary,
         }}

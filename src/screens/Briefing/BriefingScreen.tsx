@@ -13,7 +13,6 @@ const BriefingHeader = ({text,lectureName}:{text: any,lectureName:any}) => {
   );
 };
 
-
 const BriefingProgressBar = ({imgsource, progress, lectureName, text}: {imgsource: any, progress: number, lectureName:any, text:any}) => {
   return (
     <View style={[styles.item,{...GlobalStyles.row}]}>
@@ -62,19 +61,19 @@ const BriefingScreen: React.FC<BriefingScreenProps> = ({route,navigation,}) => {
         <BriefingHeader text='오늘의 브리핑' lectureName={lectureName}/>
         <BriefingProgressBar 
           imgsource={require('@assets/icons/briefing_calendar.png')} 
-          progress={87} 
+          progress={Math.floor(route.params.attendance)} 
           lectureName={lectureName}
           text='출석체크를 진행했다고 답변했어요'
         />
         <BriefingProgressBar 
           imgsource={require('@assets/icons/briefing_book.png')} 
-          progress={68} 
+          progress={Math.floor(route.params.assignment)} 
           lectureName={lectureName}
           text='과제가 있었다고 답변했어요'
         />
         <BriefingProgressBar 
           imgsource={require('@assets/icons/briefing_bell.png')} 
-          progress={12} 
+          progress={Math.floor(route.params.notification)} 
           lectureName={lectureName}
           text='공지가 있었다고 답변했어요'
         />

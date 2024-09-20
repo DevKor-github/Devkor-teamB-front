@@ -1,4 +1,4 @@
-import React, {useState,useEffect, useRef} from 'react';
+import React, {useState, useEffect, useLayoutEffect, useRef} from 'react';
 import {
   ScrollView,
   View,
@@ -19,11 +19,11 @@ import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
 import Icon3 from 'react-native-vector-icons/AntDesign.js';
 import { GlobalStyles } from '@src/GlobalStyles';
-import { tagColors } from '@src/MockData';
 import { launchImageLibrary } from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
 
 
 function CommentTextField({ addComment, postId }: { addComment: (comment: Comment) => void, postId: number}) {
@@ -41,7 +41,7 @@ function CommentTextField({ addComment, postId }: { addComment: (comment: Commen
     }
     
     if(text.trim().length>0){
-      const API_URL = "http://15.165.198.75:8000"
+      const API_URL = "http://3.37.163.236:8000/"
       try{
         const token = await AsyncStorage.getItem('userToken')
         const nickname = await AsyncStorage.getItem('userNickname')
@@ -63,8 +63,8 @@ function CommentTextField({ addComment, postId }: { addComment: (comment: Commen
           commentId: response.data.id,
           author: nickname,
           content: response.data.content,
-          date: response.data.created_at.substring(0,10),
-          updatedDate: response.data.updated_at.substring(0,10),
+          date: response.data.created_at,
+          updatedDate: response.data.updated_at,
           isChosen: response.data.is_chosen,
           postId: response.data.post,
         }
@@ -217,13 +217,13 @@ function CommentContainer({comment, handleDeleteComment}: {comment: Comment, han
   const [point, setPoint] = useState(40); // 샘플
   const date = new Date(comment.date)
 
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1; 
-  const day = date.getDate();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const seconds = date.getSeconds();
 
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); 
+  const day = String(date.getDate()).padStart(2, '0'); 
+  const hours = String(date.getHours()).padStart(2, '0'); 
+  const minutes = String(date.getMinutes()).padStart(2, '0'); 
+  
 
   const onPressModalClose = () => {
     setIsModalVisible(false);
@@ -255,7 +255,7 @@ function CommentContainer({comment, handleDeleteComment}: {comment: Comment, han
         style: 'destructive',
         onPress: async () => {
           // 삭제 로직
-          const API_URL = "http://15.165.198.75:8000"
+          const API_URL = "http://3.37.163.236:8000/"
           const token = await AsyncStorage.getItem('userToken')
           try{
             const response = await axios.delete(`${API_URL}/comments/${comment.commentId}/`,
@@ -314,7 +314,7 @@ function CommentContainer({comment, handleDeleteComment}: {comment: Comment, han
           <Text style={{color: '#3D3D3D', fontSize: 14, fontWeight: '500'}}>{comment.author}</Text>
           <View style={style.userArea3_comment}>
             {/* <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{comment.date.substring(0,10)}</Text> */}
-            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{month}월 {day}일</Text>
+            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{month}/{day}</Text>
             <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{hours}:{minutes}</Text>
           </View>
         </View>
@@ -410,19 +410,44 @@ interface PostScreenProps {
 
 const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   const post: Post = route.params.post;
-  const lectureName: string = route.params.lectureName;
+  const lectureName: string = route.params.lecture;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [images, setImages] = useState<Attachment[]>([]);
+  const [files, setFiles] = useState<Attachment[]>([]);
 
   useEffect(()=>{
+    console.log("\n\nPostScreen입니다")
+    console.log("넘어온 post : ",post)
+    console.log("넘어온 lectureName : ",lectureName)
     fetchComments(post.postId)
     setTags(post.tags)
-    // fetchTags(post.tags)
+    sortAttachments(post.attachments)
+    console.log(images)
   },[])
 
+
+  const sortAttachments = (attachments: Attachment[]) => {
+    console.log(attachments)
+    const images: Attachment[] = [];
+    const files: Attachment[] = [];
+    attachments.forEach(attachment => {
+      console.log(attachment.type)
+      if(attachment.type.startsWith('image')){
+        images.push(attachment)
+      }
+      else{
+        files.push(attachment)
+      }
+    });
+    setImages(images);
+    setFiles(files); 
+  }
+
+
   const fetchComments = async (postId:number) => {
-    const API_URL = "http://15.165.198.75:8000"
+    const API_URL = "http://3.37.163.236:8000/"
     try{
       const token = await AsyncStorage.getItem('userToken')
       const response = await axios.get(`${API_URL}/comments/`,  
@@ -461,41 +486,10 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
       // 모든 요청이 완료되기를 기다림
       const comments = await Promise.all(contentPromises);
       setComments(comments)
-      // console.log('response:',response.data)
-      // console.log('commentIds:',commentIds)
-      // console.log('comments:',comments)
-
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
   }
-
-  // const fetchTags = async (tagIds:any[]) => {
-  //   // console.log(tagIds)
-  //   const API_URL = "http://15.165.198.75:8000"
-  //   try{
-  //     const token = await AsyncStorage.getItem('userToken')
-
-  //     const contentPromises = tagIds.map(async(tagId:number)=> {
-  //       console.log(tagId)
-  //       const tagResponse = await axios.get(`${API_URL}/tags/${tagId}/`,  
-  //         {
-  //           headers: {
-  //             authorization: `token ${token}`,
-  //           },
-  //         },
-  //       );
-  //       return tagResponse.data
-  //     })
-      
-  //     const tags = await Promise.all(contentPromises);
-  //     setTags(tags)
-  //     console.log(tags)
-
-  //   } catch(error) {
-  //     console.error(error)
-  //   }
-  // }
 
   const addComment = (newComment: Comment) => {
     setComments([newComment, ...comments]);
@@ -509,8 +503,8 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     setIsModalVisible(false);
   };
 
-  const handleDelete = () => {
-    createTwoButtonAlert();
+  const handleDeletePost = () => {
+    deletePost();
     setIsModalVisible(false);
   };
 
@@ -519,7 +513,12 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     fetchComments(post.postId)
   }
 
-  const createTwoButtonAlert = () =>
+  const handlePostEdit = () => {
+    console.log(post)
+    navigation.navigate('PostEditScreen', {post: post, lectureName: lectureName});
+  }
+
+  const deletePost = () =>
     Alert.alert('게시글을 삭제하시겠습니까?', '', [
       {
         text: '취소',
@@ -528,11 +527,32 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
       {
         text: '삭제하기',
         style: 'default',
-        onPress: () => {
+        onPress: async () => {
           // 삭제 로직
-        },
+          const API_URL = "http://3.37.163.236:8000/"
+          const token = await AsyncStorage.getItem('userToken')
+          try{
+            const response = await axios.delete(`${API_URL}/posts/${post.postId}/`,
+              {
+                headers: {
+                  authorization: `token ${token}`,
+                },
+              },
+            );
+            console.log("게시글 삭제: ",response.data)
+            navigation.goBack()
+
+          } catch(error) {
+            console.error(error)
+          }
+
+        }
       },
     ]);
+
+    const handlePressLike = () => {
+      // 좋아요 룆ㄱ
+    }
 
     useEffect(() => {
       navigation.setOptions({title: lectureName});
@@ -544,12 +564,13 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
         <ScrollView
           style={{
             paddingHorizontal: 16,
-            // marginHorizontal: 8,
+            marginBottom: 50,
             backgroundColor: 'white',
           }}>
           <View style={style.userArea}>
             <Image
               source={require('@assets/images/hamster.png')} // 여기 수정 필요 (지금 하드코딩..)
+              // source={{uri: `http://15.165.198.75:8000${post.author.profile}`}}
               style={{
                 width: 52,
                 height: 51,
@@ -566,7 +587,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
               <View style={style.userArea3}>
                 <View style={{...GlobalStyles.row,gap:5,flexWrap:'wrap'}}>
                   {tags.map(tag => (
-                      <View style={{backgroundColor:tagColors[tag.id],borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
+                      <View style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
                           <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
                       </View>
                   ))}
@@ -586,19 +607,26 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
               <Text style={style.postContent}>{post.content}</Text>
             </View>
 
-            { post.images && (
-              post.images.length>0 && (
-                <View style={style.postPhotoArea}>
-                  {/* {post.images.map((attachment: Attachment, index: number) => (
-                    <Image
-                      key={index}
-                      source={{ uri: attachment.uri }}
-                      style={{ width: 82, height: 82, borderRadius: 9 }}
-                    />
-                  ))} */}
-                  {/* <Text>{post.images}</Text> */}
-                </View>
-            ))}
+            {images.length>0 && (
+              <View style={style.postPhotoArea}>
+                {images.map((image: Attachment, index: number)=>(
+                  <Image
+                    key={index}
+                    source={{uri: `http://15.165.198.75:8000${image.uri}`}}
+                    style={{ width: 82, height: 82, borderRadius: 9}}
+                  />
+                ))}
+            </View>
+            )}
+
+            {files.length>0 && (
+              <View style={style.postPhotoArea}>
+                {files.map((file:Attachment, index: number)=>(
+                  <Text style={{fontStyle:'italic'}}>{index+1}: {file.name.substring(12,)}</Text>
+                ))}
+              </View>
+            )}
+
           </View>
 
           <View style={{marginTop: 10}}>
@@ -613,11 +641,11 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
               >
                 <View style={style.menu}>
                   <TouchableOpacity
-                    onPress={onPressModalClose}
+                    onPress={handlePostEdit}
                     style={[style.menuItem,{borderBottomColor:Colors.text.lightgray,borderBottomWidth:1,paddingBottom: 10}]}>
                     <Text>수정하기</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={handleDelete} style={style.menuItem}>
+                  <TouchableOpacity onPress={handleDeletePost} style={style.menuItem}>
                     <Text style={{color:Colors.primary[500]}}>삭제하기</Text>
                   </TouchableOpacity>
                 </View>
@@ -626,7 +654,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
           </View>
 
           <View style={style.buttonArea}>
-            <TouchableOpacity style={style.button}>
+            <TouchableOpacity style={style.button} onPress={handlePressLike}>
               <Icon2 name="thumb-up" size={14} color="#ff1485" />
               <Text
                 style={{
@@ -635,7 +663,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                   fontWeight: '500',
                   marginLeft: 5,
                 }}>
-                {post.view} 
+                {post.likes} 
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={style.button}>
@@ -647,7 +675,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                   fontWeight: '500',
                   marginLeft: 5,
                 }}>
-                {/* {post.comments.length} */}
+                {comments.length}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={style.button}>
@@ -662,11 +690,12 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                 스크랩
               </Text>
             </TouchableOpacity>
+            <Text>view: {post.views}</Text>
           </View>
 
           {comments.map(comment => (
-            <View key={comment.commentId} style={{marginTop: 10}}>
-              <CommentContainer comment={comment} handleDeleteComment={handleDeleteComment}/>
+            <View style={{marginTop: 10}}>
+              <CommentContainer key={comment.commentId} comment={comment} handleDeleteComment={handleDeleteComment}/>
             </View>
           ))}
           <View style={{height:90}}></View>
