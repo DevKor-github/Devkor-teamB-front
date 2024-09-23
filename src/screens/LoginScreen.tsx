@@ -1,154 +1,156 @@
-// LoginScreen.tsx
 import React, {useState} from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Alert,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/AntDesign';
-import FeatherIcon from 'react-native-vector-icons/Feather';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Colors from '@src/Colors';
+
 import {TimetableModel} from '@src/Types';
 import {API_URL} from '@env';
+import {GlobalStyles} from '@src/GlobalStyles';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {InputField} from '@src/screens/SignUp/InputField';
+import {CustomButton} from '@src/screens/SignUp/CustomButton';
 
-const fetchTimetable = async (token: string, userId: string) => {
-  try {
-    const response = await axios.get(`${API_URL}/timetables/${userId}/`, {
-      headers: {
-        authorization: `token ${token}`,
-      },
-    });
+enum LoginStatus {
+  SUCCESS,
+  LOGIN_FAILURE,
+  TIMETABLE_FAILURE,
+  USER_INFO_FAILURE,
+  UNKNOWN_FAILURE,
+}
 
-    const timetableData = TimetableModel.fromJson(response.data);
-    return timetableData.courses.length;
-  } catch (e) {
-    throw e;
+const hasTimetableEntries = async (token: string, userId: string) => {
+  const {data, status} = await axios.get(`${API_URL}/timetables/${userId}/`, {
+    headers: {authorization: `token ${token}`},
+    validateStatus: x => x === 200 || x === 404,
+  });
+  if (status === 404) {
+    throw LoginStatus.TIMETABLE_FAILURE;
   }
+  const timetable = TimetableModel.fromJson(data);
+  return timetable.courses.length > 0;
+};
+
+const getUserInfo = async (token: string) => {
+  const {data, status} = await axios.get(`${API_URL}/student/user-info/`, {
+    headers: {authorization: `token ${token}`},
+    validateStatus: x => x === 200 || x === 404,
+  });
+  if (status === 404) {
+    throw LoginStatus.USER_INFO_FAILURE;
+  }
+  return {userId: data.user_id.toString(), userNickname: data.nickname};
 };
 
 function LoginScreen({navigation}: {navigation: any}) {
-  const [username, setUsername] = useState('test1');
-  const [password, setPassword] = useState('test1');
-  // const [isVerified, setIsVerified] = useState(false);
-  const [error, setError] = useState(false);
-  const isFormFilled = username !== '' && password !== '';
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState(false);
+  const isFormValid = username.length > 0 && password.length > 0;
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: false,
+    });
+  }, [navigation]);
 
-  const handleLogin = async (username: string, password: string) => {
-    const userData = {
-      username: username,
-      password: password,
-    };
-
+  const handleLogin = async () => {
     try {
-      // console.log(API_URL)
-      const response = await axios.post(`${API_URL}/student/login/`, userData);
-      if (response.status === 200) {
-        const token = response.data.Token;
-        await AsyncStorage.setItem('userToken', token);
-        const response2 = await axios.get(`${API_URL}/student/user-info/`, {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        });
-        const userId = response2.data.user_id;
-        const userNickname = response2.data.nickname;
-        await AsyncStorage.setItem('userId', userId.toString());
-        await AsyncStorage.setItem('userNickname', userNickname);
-
-        // setIsVerified(true);
-        setError(false);
-        const isRegisterd = await fetchTimetable(token, userId);
-        if (isRegisterd) {
-          // navigation.navigate('RegisterInfo', {userId: userId});
-          navigation.navigate('Home');
-        } else {
-          navigation.navigate('RegisterInfo', {userId: userId});
-        }
+      Keyboard.dismiss();
+      const {status, data} = await axios.post(
+        `${API_URL}/student/login/`,
+        {username: username, password: password},
+        {validateStatus: x => x === 200 || x === 400},
+      );
+      if (status === 400) {
+        throw LoginStatus.LOGIN_FAILURE;
       }
+      setLoginError(false);
+      const token = data.Token;
+      const {userId, userNickname} = await getUserInfo(token);
+      await Promise.all([
+        AsyncStorage.setItem('userToken', token),
+        AsyncStorage.setItem('userId', userId),
+        AsyncStorage.setItem('userNickname', userNickname),
+      ]);
+      const hasTimetable = await hasTimetableEntries(token, userId);
+      navigation.navigate(
+        hasTimetable ? 'Home' : 'RegisterInfo',
+        hasTimetable ? {} : {userId},
+      );
+      // navigation.navigate('RegisterInfo', {userId});
     } catch (e) {
-      console.error(e);
+      console.log(e);
+      if (e === LoginStatus.LOGIN_FAILURE) {
+        setLoginError(true);
+      } else if (e === LoginStatus.TIMETABLE_FAILURE) {
+        Alert.alert(
+          '로그인 실패',
+          '시간표 정보를 불러오는 데 실패했습니다.\n인터넷 연결을 확인하고 다시 시도해 주세요.',
+        );
+      } else if (e === LoginStatus.USER_INFO_FAILURE) {
+        Alert.alert(
+          '로그인 실패',
+          '유저 정보를 불러오는 데 실패했습니다.\n인터넷 연결을 확인하고 다시 시도해 주세요.',
+        );
+      } else {
+        Alert.alert(
+          '알 수 없는 오류',
+          '네트워크 상태를 확인하고 다시 시도해 주세요.',
+        );
+      }
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-      // keyboardVerticalOffset={90}
-    >
-      <View style={{alignSelf: 'flex-start', marginLeft: 40, marginBottom: 30}}>
-        <Text style={styles.largeText}>로그인</Text>
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Icon
-          name="smileo"
-          size={18}
-          color={username === '' ? '#B8B8B8' : '#2C2C2C'}
-        />
-        <TextInput
-          style={styles.textInput}
-          onChangeText={setUsername}
-          value={username}
-          placeholder="아이디를 입력해주세요"
-          autoCapitalize="none"
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Icon
-          name="lock"
-          size={20}
-          color={password === '' ? '#B8B8B8' : '#2C2C2C'}
-        />
-        <TextInput
-          style={styles.textInput}
-          onChangeText={setPassword}
-          value={password}
-          placeholder="패스워드를 입력해주세요"
-          // secureTextEntry
-          autoCapitalize="none"
-        />
-      </View>
-
-      {error && (
-        <View style={{flexDirection: 'row', width: 315}}>
-          <View style={{padding: 6, paddingLeft: 10}}>
-            <FeatherIcon name="alert-circle" size={15} color={'#F06868'} />
-          </View>
-          <Text style={styles.smallText}>아이디 / 패스워드를 확인해주세요</Text>
-        </View>
-      )}
-
+    <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.inner}>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[
-                styles.loginButton,
-                isFormFilled
-                  ? styles.loginButtonActive
-                  : styles.loginButtonInactive,
-              ]}
-              onPress={() => handleLogin(username, password)}>
-              <Text style={styles.loginButtonText}>로그인</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.signupButton}
-              onPress={() => navigation.navigate('Email')}>
-              <Text style={styles.signupButtonText}>회원가입</Text>
+        <KeyboardAvoidingView
+          style={GlobalStyles.expand}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={styles.contentWrapper}>
+            <Text style={styles.title}>로그인</Text>
+            <InputField
+              icon={require('@src/assets/icons/smile_circle.png')}
+              value={username}
+              maxLength={10}
+              onChangeText={setUsername}
+              placeholder="아이디를 입력해주세요"
+            />
+            <InputField
+              icon={require('@src/assets/icons/lock_circle.png')}
+              value={password}
+              onChangeText={setPassword}
+              maxLength={12}
+              placeholder="패스워드를 입력해주세요"
+              secureTextEntry={true}
+              error={loginError}
+              errorText="아이디 / 패스워드를 확인해주세요"
+            />
+          </View>
+          <View style={styles.buttonWrapper}>
+            <CustomButton
+              text="로그인"
+              onPress={handleLogin}
+              disabled={!isFormValid}
+            />
+            <TouchableOpacity onPress={() => navigation.navigate('Email')}>
+              <Text style={styles.signupBtn}>회원가입</Text>
             </TouchableOpacity>
           </View>
-        </View>
+          {/* <View style={{height: Platform.OS == 'android' ? 20 : 0}} /> */}
+        </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -157,75 +159,28 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: 130,
-    backgroundColor: 'white',
+    backgroundColor: Colors.ui.background,
   },
-  inner: {
+  contentWrapper: {
     flex: 1,
+    marginTop: 64,
+    paddingHorizontal: 32,
+  },
+  title: {
+    ...GlobalStyles.boldText,
+    fontSize: 32,
+    marginVertical: 12,
+  },
+  buttonWrapper: {
+    width: '100%',
+    padding: 32,
+    alignSelf: 'flex-start',
     justifyContent: 'flex-end',
-    alignItems: 'center',
-    // paddingTop: 70,
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: '#B8B8B8',
-    margin: 5,
-    padding: 10,
-    marginTop: 30,
-    width: 320,
-    borderRadius: 10,
-  },
-  textInput: {
-    flex: 1,
-    height: 40,
-    margin: 5,
-  },
-  largeText: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  buttonContainer: {
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginBottom: 70,
-  },
-  loginButton: {
-    padding: 5,
-    width: 320,
-    height: 48,
-    borderRadius: 10,
-    justifyContent: 'center',
-    marginTop: 25,
-  },
-  loginButtonActive: {
-    backgroundColor: '#FFB5D9', // 여기 DE팀이랑 논의 필요
-  },
-  loginButtonInactive: {
-    backgroundColor: '#EEEEEE',
-  },
-  loginButtonText: {
-    color: 'black',
-    textAlign: 'center',
-    fontWeight: '600',
-    fontSize: 18,
-  },
-  signupButton: {
+  signupBtn: {
     marginTop: 15,
-    width: 320,
-  },
-  signupButtonText: {
-    color: 'black',
-    textAlign: 'center',
-    fontSize: 12,
-  },
-  smallText: {
     fontSize: 14,
-    color: '#F06868',
-    textAlign: 'left',
-    paddingVertical: 6,
+    textAlign: 'center',
+    color: Colors.text.gray,
   },
 });

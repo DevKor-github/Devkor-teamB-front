@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Alert,
   FlatList,
@@ -231,6 +231,13 @@ const RegistrationBody = ({
     undefined,
   );
   const navigation = useNavigation<NavigationProps>();
+
+  useEffect(() => {
+    if (state === BottomSheetState.HIDDEN) {
+      setSelectedCourse(undefined);
+    }
+  }, [state]);
+
   const onPress = async () => {
     await fetchUpdateTimetable(timetable);
     navigation.reset({routes: [{name: 'Home'}]});
@@ -371,6 +378,7 @@ const headerStyles = StyleSheet.create({
     alignItems: 'baseline',
     justifyContent: 'space-between',
     marginTop: 32,
+    paddingHorizontal: 8,
   },
   title: {
     fontSize: FontSizes.huge,
@@ -389,6 +397,7 @@ const buttonStyles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     bottom: 0,
+    paddingHorizontal: 8,
   },
   completeButton: {
     height: 48,
@@ -404,9 +413,10 @@ const buttonStyles = StyleSheet.create({
     backgroundColor: Colors.ui.disabled,
   },
   completeButtonText: {
+    ...GlobalStyles.boldText,
     color: Colors.text.white,
     fontSize: 18,
-    ...GlobalStyles.boldText,
+    textAlign: 'center',
   },
   addButtonContainer: {
     justifyContent: 'flex-end',
@@ -444,7 +454,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
   },
   icon: {width: 24, height: 24},
 });

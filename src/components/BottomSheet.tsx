@@ -60,34 +60,40 @@ const BottomSheet: BottomSheetType = ({
   const [animState, setAnimState] = useState(AnimationState.IDLE);
   const topAnim = useRef(new Animated.Value(minHeight)).current;
 
-  const dragEvent = Animated.spring(topAnim, {
-    useNativeDriver: false,
-    bounciness: 0,
-    toValue:
-      state === BottomSheetState.FULL
-        ? 0
-        : state === BottomSheetState.HALF
-        ? height
-        : minHeight,
-  });
-
   useEffect(() => {
-    const keybordListener = Keyboard.addListener('keyboardWillShow', () => {
+    const animateTo = (toValue: number) => {
+      setAnimState(AnimationState.MOVING);
+      Animated.timing(topAnim, {
+        toValue,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setAnimState(AnimationState.IDLE);
+      });
+    };
+
+    const keyboardListener = Keyboard.addListener('keyboardWillShow', () => {
       if (state !== BottomSheetState.FULL) {
-        setAnimState(AnimationState.MOVING);
         onStateChange(BottomSheetState.FULL);
       }
     });
 
-    dragEvent.start(() => {
-      setAnimState(AnimationState.IDLE);
-    });
+    switch (state) {
+      case BottomSheetState.FULL:
+        animateTo(0);
+        break;
+      case BottomSheetState.HALF:
+        animateTo(height);
+        break;
+      case BottomSheetState.HIDDEN:
+        animateTo(minHeight);
+        break;
+    }
 
     return () => {
-      keybordListener.remove();
-      dragEvent.stop();
+      keyboardListener.remove();
     };
-  }, [dragEvent, onStateChange, state]);
+  }, [state, height, minHeight, onStateChange, topAnim]);
 
   return (
     <Animated.View style={{top: topAnim, ...style.modal}}>
@@ -95,7 +101,6 @@ const BottomSheet: BottomSheetType = ({
         state={state}
         animState={animState}
         onStateChange={(nextState: BottomSheetState) => {
-          setAnimState(AnimationState.MOVING);
           onStateChange(nextState);
         }}
       />

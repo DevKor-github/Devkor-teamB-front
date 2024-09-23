@@ -35,6 +35,7 @@ const Colors = {
     black: 'rgb(0, 0, 0)',
     gray: 'rgb(80, 80, 80)',
     lightgray: 'rgb(180, 180, 180)',
+    red: 'rgb(255, 70, 70)',
   },
 };
 

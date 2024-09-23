@@ -3,146 +3,162 @@ import React, {useState} from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
-import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../App';
 import axios from 'axios';
 import {API_URL} from '@env';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import Colors from '@src/Colors';
+import {GlobalStyles} from '@src/GlobalStyles';
+import {InputField} from '@src/screens/SignUp/InputField';
+import {CustomButton} from '@src/screens/SignUp/CustomButton';
+import {useNavigation} from '@react-navigation/native';
 
-type SignUpScreenProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
+const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d]{6,12}$/;
 
-function SignUpScreen({navigation}: SignUpScreenProps) {
+function SignUpScreen({route}: any) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const isFormFilled = username !== '' && password !== '';
+  const [reenteredPassword, setReenteredPassword] = useState('');
+  const {email} = route.params;
+  const navigation = useNavigation<any>();
+  const isUsernameValid = username.length > 0;
+  const isPasswordValid = passwordRegex.test(password);
+  const isPasswordMatch =
+    password === reenteredPassword && reenteredPassword.length > 0;
+  const isFormValid = isUsernameValid && isPasswordValid && isPasswordMatch;
 
-  const handleNext = async (name: string, pw: string) => {
-    navigation.popToTop();
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: false,
+    });
+  }, [navigation]);
 
-    // const userData = {
-    //     username: username,
-    //     first_name: 'youjin',
-    //     last_name: 'kim',
-    //     email: 'zinzinyou@naver.com', // 변수로 앞에서 넘겨주기
-    //     password: password,
-    //     group: 'test'
-    // }
-    // try{
-    //     const response = await axios.post(`${API_URL}/student/signup/`, userData);
-    //     if(response.status==200){
-    //         navigation.popToTop();
-    //     }
-    // } catch(e){
-    //     console.error(e);
-    // }
+  const handleSignUp = async () => {
+    try {
+      const response = await axios.post(`${API_URL}/student/signup/`, {
+        username: username,
+        email: email,
+        password: password,
+        first_name: '',
+        last_name: '',
+        group: '',
+      });
+      if (response.status === 200) {
+        Alert.alert('회원가입 성공', '로그인 화면으로 이동합니다.', [
+          {
+            text: '확인',
+            onPress: () => {
+              navigation.popToTop();
+            },
+          },
+        ]);
+      }
+    } catch (e) {
+      console.log(e);
+      Alert.alert(
+        '회원가입 실패',
+        '네트워크 상태를 확인하고 다시 시도해 주세요.',
+      );
+    }
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}>
-      <View style={{alignSelf: 'flex-start', marginLeft: 40, marginBottom: 30}}>
-        <Text style={styles.largeText}>회원가입</Text>
-      </View>
-
-      <TextInput
-        style={styles.input}
-        onChangeText={setUsername}
-        value={username}
-        placeholder="아이디"
-        autoCapitalize="none"
-      />
-
-      <TextInput
-        style={styles.input}
-        onChangeText={setPassword}
-        value={password}
-        placeholder="패스워드"
-        autoCapitalize="none"
-      />
-
-      <TouchableOpacity
-        style={isFormFilled ? styles.largeBtnActive : styles.largeBtnInactive}
-        onPress={() => handleNext(username, password)}>
-        <Text style={styles.largeBtnText}>다음</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+    <SafeAreaView style={styles.safearea}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={GlobalStyles.expand}>
+          <View style={styles.inputContainer}>
+            <Text style={styles.subTitleText}>이메일 인증</Text>
+            <Text style={styles.titleText}>회원가입</Text>
+            <InputField
+              icon={require('@src/assets/icons/smile_circle.png')}
+              value={username}
+              onChangeText={setUsername}
+              placeholder="아이디를 입력해주세요"
+            />
+            <InputField
+              icon={require('@src/assets/icons/lock_circle.png')}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              placeholder="패스워드를 입력해주세요"
+              errorText="영문 대소문자, 숫자, 6~12자 조합"
+              error={!isPasswordValid}
+            />
+            <InputField
+              icon={require('@src/assets/icons/lock_circle.png')}
+              value={reenteredPassword}
+              onChangeText={setReenteredPassword}
+              secureTextEntry
+              placeholder="패스워드를 다시 입력해주세요"
+              errorText="비밀번호가 일치하지 않습니다"
+              error={!isPasswordMatch}
+            />
+          </View>
+          <View style={styles.buttonContainer}>
+            <CustomButton
+              text="회원가입하기"
+              onPress={() => {
+                handleSignUp();
+              }}
+              disabled={!isFormValid}
+            />
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 }
 
 export default SignUpScreen;
-
 const styles = StyleSheet.create({
+  safearea: {
+    flex: 1,
+    backgroundColor: Colors.ui.background,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
     paddingTop: 130,
     backgroundColor: 'white',
   },
-  input: {
-    borderColor: '#E7E7E7',
-    borderWidth: 1,
-    margin: 10,
-    padding: 10,
-    width: 320,
-    height: 40,
-    borderRadius: 10,
+  subTitleText: {
+    fontSize: 16,
+    color: Colors.text.gray,
+    marginBottom: 8,
+    ...GlobalStyles.text,
   },
-  smallBtn: {
-    backgroundColor: '#F4F4F4',
-    padding: 3,
-    borderRadius: 49,
-    width: 76,
-    height: 29,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  titleText: {
+    fontSize: 28,
+    ...GlobalStyles.boldText,
   },
-  smallBtnText: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#3D3D3D',
+  inputContainer: {
+    flex: 1,
+    marginTop: 64,
+    paddingHorizontal: 32,
   },
-  smallText: {
-    fontSize: 14,
-    color: '#3D3D3D',
-    textAlign: 'left',
-    marginLeft: 6,
+  buttonContainer: {
+    width: '100%',
+    padding: 32,
+    alignSelf: 'flex-start',
+    justifyContent: 'flex-end',
   },
-  verifiedSmallText: {
-    fontSize: 14,
-    color: '#96DE69',
-    textAlign: 'left',
-  },
-  largeBtnInactive: {
-    backgroundColor: '#EEEEEE',
-    marginTop: 25,
-    padding: 5,
-    width: 320,
-    height: 48,
-    borderRadius: 10,
-    justifyContent: 'center',
-  },
-  largeBtnActive: {
-    backgroundColor: '#FCA0CC',
-    marginTop: 25,
-    padding: 5,
-    width: 320,
-    height: 48,
-    borderRadius: 10,
-    justifyContent: 'center',
-  },
-  largeBtnText: {
-    color: 'black',
-    textAlign: 'center',
+  requestButtonText: {
     fontSize: 18,
+    textAlign: 'center',
+    ...GlobalStyles.boldText,
   },
-  largeText: {
-    fontSize: 24,
-    fontWeight: '600',
+  sendCodeButton: {
+    marginTop: 15,
+    fontSize: 14,
+    textAlign: 'center',
+    color: Colors.text.gray,
   },
 });
