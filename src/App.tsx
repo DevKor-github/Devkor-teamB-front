@@ -10,6 +10,9 @@ import EmailScreen from '@screens/SignUp/EmailScreen';
 import SignUpScreen from '@screens/SignUp/SignUpScreen';
 import RegisterInfoScreen from '@src/screens/SignUp/RegisterInfoScreen';
 import RegisterScreen from '@src/screens/SignUp/RegisterScreen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {View} from 'react-native-animatable';
+import Colors from '@src/Colors';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -23,10 +26,29 @@ export type RootStackParamList = {
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 const App: React.FC = () => {
+  const [initialRoute, setInitialRoute] =
+    React.useState<keyof RootStackParamList>('Login');
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const checkToken = async () => {
+      const token = await AsyncStorage.getItem('userToken');
+      if (token !== null) {
+        setInitialRoute('Home');
+      }
+      setIsLoading(false);
+    };
+    checkToken();
+  }, []);
+
+  if (isLoading) {
+    return <View style={{backgroundColor: Colors.ui.background}} />;
+  }
+
   return (
     <NavigationContainer>
       <RootStack.Navigator
-        initialRouteName="Login"
+        initialRouteName={initialRoute}
         screenOptions={{headerShown: false}}>
         <RootStack.Screen name="Login" component={LoginScreen} />
         <RootStack.Screen name="Email" component={EmailScreen} />

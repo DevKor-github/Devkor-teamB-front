@@ -22,7 +22,10 @@ const FloatingButton: React.FC<FloatingButtonProps> = ({
   const insetStyle = {marginBottom: useSafeArea ? inset.bottom : INSET};
   return (
     <View style={{...insetStyle, ...style.container}}>
-      <TouchableOpacity style={style.button} onPress={() => onPress()}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={style.button}
+        onPress={() => onPress()}>
         {children}
       </TouchableOpacity>
     </View>
