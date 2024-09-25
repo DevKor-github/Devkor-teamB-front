@@ -194,6 +194,15 @@ export class TimetableModel implements TimetableData {
   static fromJson = (json: TimetableData): TimetableModel => {
     return new TimetableModel(json);
   };
+
+  static empty = (): TimetableModel => {
+    return new TimetableModel({
+      student: 0,
+      year: '',
+      semester: '',
+      courses: [],
+    });
+  };
 }
 
 // 시간표 업데이트를 위한 인터페이스

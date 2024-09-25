@@ -28,7 +28,7 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 const App: React.FC = () => {
   const [initialRoute, setInitialRoute] =
     React.useState<keyof RootStackParamList>('Login');
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
     const checkToken = async () => {
@@ -65,6 +65,7 @@ const App: React.FC = () => {
           component={RegisterScreen}
           options={{
             gestureEnabled: false,
+            animation: 'none',
           }}
         />
         <RootStack.Screen

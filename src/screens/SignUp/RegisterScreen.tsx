@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
   Alert,
   FlatList,
@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Animated,
 } from 'react-native';
 import Colors from '@src/Colors';
 import BottomSheet, {BottomSheetState} from '@components/BottomSheet';
@@ -307,18 +308,31 @@ const RegistrationHeader = ({subTitle}: {subTitle: string}) => {
 };
 
 const RegisterScreen = ({route}: {route: any}) => {
+  const slideAnim = useRef(new Animated.Value(1000)).current;
   const {courses, timetable} = route.params;
+
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [slideAnim]);
+
   return (
     <View style={styles.background}>
       <SafeAreaView edges={['top']} style={styles.safeArea} />
-      <View style={GlobalStyles.expand}>
-        <View style={styles.top} />
-        <View style={styles.bottom} />
-        <View style={styles.content}>
-          <RegistrationHeader subTitle={'2024학년도 1학기'} />
-          <RegistrationBody courses={courses} data={timetable} />
+      <Animated.View
+        style={[GlobalStyles.expand, {transform: [{translateY: slideAnim}]}]}>
+        <View style={styles.container}>
+          <View style={styles.top} />
+          <View style={styles.bottom} />
+          <View style={styles.content}>
+            <RegistrationHeader subTitle={'2024학년도 1학기'} />
+            <RegistrationBody courses={courses} data={timetable} />
+          </View>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 };
@@ -436,9 +450,13 @@ const buttonStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  background: {
+  container: {
+    flex: 1,
     backgroundColor: Colors.ui.background,
-    ...GlobalStyles.expand,
+  },
+  background: {
+    flex: 1,
+    backgroundColor: Colors.ui.primary,
   },
   safeArea: {backgroundColor: Colors.ui.primary},
   bottom: {flex: 7},

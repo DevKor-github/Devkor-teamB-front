@@ -9,12 +9,13 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@src/Colors';
 
-import {TimetableModel} from '@src/Types';
+// import {TimetableModel} from '@src/Types';
 import {API_URL} from '@env';
 import {GlobalStyles} from '@src/GlobalStyles';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -29,17 +30,17 @@ enum LoginStatus {
   UNKNOWN_FAILURE,
 }
 
-const hasTimetableEntries = async (token: string, userId: string) => {
-  const {data, status} = await axios.get(`${API_URL}/timetables/${userId}/`, {
-    headers: {authorization: `token ${token}`},
-    validateStatus: x => x === 200 || x === 404,
-  });
-  if (status === 404) {
-    throw LoginStatus.TIMETABLE_FAILURE;
-  }
-  const timetable = TimetableModel.fromJson(data);
-  return timetable.courses.length > 0;
-};
+// const hasTimetableEntries = async (token: string, userId: string) => {
+//   const {data, status} = await axios.get(`${API_URL}/timetables/${userId}/`, {
+//     headers: {authorization: `token ${token}`},
+//     validateStatus: x => x === 200 || x === 404,
+//   });
+//   if (status === 404) {
+//     throw LoginStatus.TIMETABLE_FAILURE;
+//   }
+//   const timetable = TimetableModel.fromJson(data);
+//   return timetable.courses.length > 0;
+// };
 
 const getUserInfo = async (token: string) => {
   const {data, status} = await axios.get(`${API_URL}/student/user-info/`, {
@@ -53,10 +54,12 @@ const getUserInfo = async (token: string) => {
 };
 
 function LoginScreen({navigation}: {navigation: any}) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('test1');
+  const [password, setPassword] = useState('test1');
   const [loginError, setLoginError] = useState(false);
   const isFormValid = username.length > 0 && password.length > 0;
+  const [isLoading, setIsLoading] = useState(false);
+
   React.useLayoutEffect(() => {
     navigation.setOptions({
       gestureEnabled: false,
@@ -66,6 +69,7 @@ function LoginScreen({navigation}: {navigation: any}) {
   const handleLogin = async () => {
     try {
       Keyboard.dismiss();
+      setIsLoading(true);
       const {status, data} = await axios.post(
         `${API_URL}/student/login/`,
         {username: username, password: password},
@@ -82,14 +86,16 @@ function LoginScreen({navigation}: {navigation: any}) {
         AsyncStorage.setItem('userId', userId),
         AsyncStorage.setItem('userNickname', userNickname),
       ]);
-      const hasTimetable = await hasTimetableEntries(token, userId);
-      navigation.navigate(
-        hasTimetable ? 'Home' : 'RegisterInfo',
-        hasTimetable ? {} : {userId},
-      );
-      // navigation.navigate('RegisterInfo', {userId});
+      // const hasTimetable = await hasTimetableEntries(token, userId);
+      setIsLoading(false);
+      // navigation.navigate(
+      //  hasTimetable ? 'Home' : 'RegisterInfo',
+      //  hasTimetable ? {} : {userId},
+      // );
+      navigation.navigate('RegisterInfo', {userId});
     } catch (e) {
       console.log(e);
+      setIsLoading(false);
       if (e === LoginStatus.LOGIN_FAILURE) {
         setLoginError(true);
       } else if (e === LoginStatus.TIMETABLE_FAILURE) {
@@ -150,6 +156,11 @@ function LoginScreen({navigation}: {navigation: any}) {
           {/* <View style={{height: Platform.OS == 'android' ? 20 : 0}} /> */}
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={Colors.ui.primary} />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -157,6 +168,15 @@ function LoginScreen({navigation}: {navigation: any}) {
 export default LoginScreen;
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.ui.background,
