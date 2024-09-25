@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {Image, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
+import {Image, StyleSheet, Text, View, Animated} from 'react-native';
 import Colors from '@src/Colors';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
@@ -11,10 +11,24 @@ import {
 } from '@src/Types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {useNavigation} from '@react-navigation/native';
 import {API_URL} from '@env';
 
-const fetchCourses = async (callback: Function) => {
+const ICON_SIZE = 540;
+
+const ICON_START_POSITION = -ICON_SIZE;
+const ICON_CENTER_POSITION = -100;
+const ICON_END_POSITION = ICON_SIZE;
+
+const LOGO_START_POSITION = 1000;
+const LOGO_CENTER_POSITION = 180;
+const LOGO_END_POSITION = -320;
+
+const TEXT_CENTER_POSITION = 0;
+const TEXT_END_POSITION = -800;
+
+const ANIMATION_DURATION = 1500;
+
+const fetchCourses = async () => {
   try {
     const token = await AsyncStorage.getItem('userToken');
     const response = await axios.get(`${API_URL}/courses/`, {
@@ -25,10 +39,10 @@ const fetchCourses = async (callback: Function) => {
     const courseMinimal = response.data.map((e: CourseMinimalData) =>
       CourseMinimal.fromJson(e),
     );
-    const value = await fetchCourseInfo(courseMinimal);
-    callback(value);
+    return await fetchCourseInfo(courseMinimal);
   } catch (e) {
-    console.error(e);
+    console.log(e);
+    return [];
   }
 };
 
@@ -47,7 +61,8 @@ const fetchCourseInfo = async (courseMinimal: CourseMinimal[]) => {
     );
     return items;
   } catch (e) {
-    console.error(e);
+    console.log(e);
+    return [];
   }
 };
 
@@ -65,117 +80,218 @@ const fetchCreateTimetable = async (userId: number) => {
         authorization: `token ${token}`,
       },
     });
+    return timetable;
   } catch (e) {
-    console.error(e);
+    console.log(e);
+    return TimetableModel.empty();
   }
 };
 
-const fetchTimetable = async (uid: number, callback: Function) => {
+const fetchTimetable = async (uid: number) => {
   try {
     const token = await AsyncStorage.getItem('userToken');
     const response = await axios.get(`${API_URL}/timetables/${uid}/`, {
       headers: {
         authorization: `token ${token}`,
       },
+      validateStatus: x => x === 200 || x === 404,
     });
     if (response.status === 200) {
-      const value = TimetableModel.fromJson(response.data);
-      callback(value);
-    } else if (response.status === 404) {
-      await fetchCreateTimetable(uid);
+      return TimetableModel.fromJson(response.data);
     } else {
-      throw Error(`Error code ${response.status}`);
+      return await fetchCreateTimetable(uid);
     }
   } catch (e) {
-    console.error(e);
+    console.log(e);
+    return TimetableModel.empty();
   }
 };
 
-const RegistrationInfoScreen = ({route}: {route: any}) => {
-  const {userId}: {userId: number} = route.params;
-  const [loading, setLoading] = useState(true);
+const RegistrationInfoScreen = ({
+  navigation,
+  route,
+}: {
+  navigation: any;
+  route: any;
+}) => {
+  const {userId} = route.params;
+  const [isLoading, setIsLoading] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [timetable, setTimetable] = useState<TimetableModel | undefined>(
-    undefined,
-  );
-  const navigation = useNavigation<any>();
+  const [timetable, setTimetable] = useState(TimetableModel.empty());
+  const logoAnimation = useRef(new Animated.Value(LOGO_START_POSITION)).current;
+  const iconAnimation = useRef(new Animated.Value(ICON_START_POSITION)).current;
+  const textAnimation = useRef(new Animated.Value(100)).current;
+  const opacityAnimation = useRef(new Animated.Value(1)).current;
+
+  const runEnterAnimation = useCallback(() => {
+    return new Promise<void>(resolve => {
+      Animated.parallel([
+        Animated.timing(iconAnimation, {
+          toValue: ICON_CENTER_POSITION,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoAnimation, {
+          toValue: LOGO_CENTER_POSITION,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textAnimation, {
+          toValue: TEXT_CENTER_POSITION,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        resolve();
+      });
+    });
+  }, [iconAnimation, logoAnimation, textAnimation]);
+
+  const runExitAnimation = useCallback(() => {
+    return new Promise<void>(resolve => {
+      Animated.parallel([
+        Animated.timing(iconAnimation, {
+          toValue: ICON_END_POSITION,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoAnimation, {
+          toValue: LOGO_END_POSITION,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
+        Animated.timing(textAnimation, {
+          toValue: TEXT_END_POSITION,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnimation, {
+          toValue: 0,
+          duration: ANIMATION_DURATION,
+          useNativeDriver: true,
+        }),
+      ]).start(({finished}) => {
+        if (finished) {
+          resolve();
+        }
+      });
+    });
+  }, [iconAnimation, logoAnimation, textAnimation, opacityAnimation]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!loading) {
+    const fetchData = async () => {
+      await runEnterAnimation();
+      const [fetchedCourses, fetchedTimetable] = await Promise.all([
+        fetchCourses(),
+        fetchTimetable(userId),
+      ]);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setCourses(fetchedCourses);
+      setTimetable(fetchedTimetable);
+      setIsLoading(false);
+    };
+    fetchData();
+  }, [userId, runEnterAnimation]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const navigateToRegister = async () => {
+        await runExitAnimation();
         navigation.navigate('Register', {
           courses: courses,
           timetable: timetable,
         });
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [loading, courses, navigation, timetable]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchCourses(setCourses);
-      await fetchTimetable(userId, setTimetable);
-      setLoading(false);
-    };
-    fetchData();
-  }, [setLoading, userId, setTimetable, setCourses]);
+      };
+      navigateToRegister();
+    }
+  }, [isLoading, courses, timetable, navigation, runExitAnimation]);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
       <View style={styles.topContainer}>
-        <Image
-          style={styles.appIcon}
+        <Animated.Image
+          style={[
+            styles.appIcon,
+            {
+              transform: [{translateX: iconAnimation}],
+            },
+          ]}
           source={require('@assets/icons/app_logo.png')}
         />
-        <Text style={styles.appLogo}>KU&A</Text>
       </View>
-      <View style={styles.bottomContainer}>
-        <View style={styles.titleRow}>
-          <Image
-            style={styles.titleIcon}
-            source={require('@assets/icons/app_logo.png')}
-          />
-          <Text style={styles.title}>반갑습니다!</Text>
+      <Animated.View
+        style={[styles.bottomContainer, {opacity: opacityAnimation}]}>
+        <View style={[styles.textContainer]}>
+          <Animated.View
+            style={[
+              styles.titleRow,
+              {
+                transform: [{translateY: textAnimation}],
+              },
+            ]}>
+            <Image
+              style={styles.titleIcon}
+              source={require('@assets/icons/app_logo.png')}
+            />
+            <Text style={styles.title}>반갑습니다!</Text>
+          </Animated.View>
         </View>
-        <Text style={styles.subTitle}>당신의 시간표를 등록해주세요</Text>
-      </View>
+        <View style={[styles.textContainer]}>
+          <Animated.Text
+            style={[
+              styles.subTitle,
+              {
+                transform: [{translateY: textAnimation}],
+              },
+            ]}>
+            당신의 시간표를 등록해주세요
+          </Animated.Text>
+        </View>
+        <View style={styles.bottomPadding} />
+      </Animated.View>
+      <Animated.Text
+        style={[
+          styles.appLogo,
+          {
+            opacity: opacityAnimation,
+            transform: [{translateY: logoAnimation}, {rotate: '-90deg'}],
+          },
+        ]}>
+        KU&A
+      </Animated.Text>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
-    overflow: 'hidden',
     backgroundColor: Colors.ui.primary,
-    ...GlobalStyles.expand,
+    flex: 1,
+    overflow: 'hidden',
   },
   topContainer: {flex: 3},
   bottomContainer: {
     flex: 1,
+    justifyContent: 'flex-start',
     paddingHorizontal: 40,
   },
   appIcon: {
     position: 'absolute',
     resizeMode: 'contain',
-    tintColor: 'rgba(250, 96, 170, 1)',
-    width: 500,
+    tintColor: Colors.primary[300],
+    width: ICON_SIZE,
     bottom: 0,
-    left: -100,
   },
   appLogo: {
     position: 'absolute',
-    top: 120,
     right: -100,
-    fontSize: 120,
+    fontSize: 124,
     color: Colors.primary[100],
-    transform: [{rotate: '-90deg'}],
     ...GlobalStyles.logo,
   },
   titleRow: {
     alignItems: 'flex-end',
-    ...GlobalStyles.row,
+    flexDirection: 'row',
   },
   titleIcon: {
     height: 64,
@@ -196,6 +312,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 4,
     ...GlobalStyles.text,
+  },
+  textContainer: {
+    backgroundColor: Colors.ui.primary,
+  },
+  bottomPadding: {
+    flex: 1,
+    backgroundColor: Colors.ui.primary,
   },
 });
 
