@@ -7,13 +7,13 @@ import {
   Image,
   ImageSourcePropType,
   Dimensions,
+  ScrollView,
 } from 'react-native';
-import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import WeeklyTimetableScreen from '@screens/Timetable/WeeklyTimetableScreen';
+import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {ScrollView} from 'react-native-gesture-handler';
 
 enum ViewMode {
   Daily,
@@ -183,8 +183,7 @@ const TimetableScreen = () => {
 const navigationStyles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 8,
+    marginTop: 28,
     alignItems: 'center',
     justifyContent: 'space-between',
     ...GlobalStyles.row,
@@ -219,8 +218,8 @@ const headerStyles = StyleSheet.create({
     borderBottomLeftRadius: 20,
   },
   container: {
+    height: 64,
     paddingHorizontal: 16,
-    paddingVertical: 12,
     alignItems: 'center',
     ...GlobalStyles.row,
   },

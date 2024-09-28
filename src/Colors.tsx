@@ -39,4 +39,8 @@ const Colors = {
   },
 };
 
+export const setOpacity = (color: string, opacity: number) => {
+  return color.replace('rgb', 'rgba').replace(')', `, ${opacity})`);
+};
+
 export default Colors;

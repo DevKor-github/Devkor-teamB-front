@@ -15,53 +15,15 @@ import FloatingButton from '@components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
 import {RadioButton, RadioGroup} from '@components/RadioButton';
 import SearchBar from '@components/SearchBar';
-import {
-  Course,
-  CourseBlock,
-  TimetableModel,
-  TimetableUpdateData,
-} from '@src/Types';
+import {Course, CourseBlock, TimetableModel} from '@src/Types';
 import Timetable from '@components/Timetable/Timetable';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {doesOverlap, getTimeInfo} from '@components/Timetable/TimetableUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {API_URL} from '@env';
 
 type NavigationProps = StackNavigationProp<any>;
-
-const fetchUserId = async () => {
-  const token = await AsyncStorage.getItem('userToken');
-  const response = await axios.get(`${API_URL}/student/user-info/`, {
-    headers: {
-      authorization: `token ${token}`,
-    },
-  });
-  return response.data.user_id as number;
-};
-
-const fetchUpdateTimetable = async (timetable: TimetableModel) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    const userId = await fetchUserId();
-    const updateData: TimetableUpdateData = {
-      student: timetable.student,
-      course_ids: timetable.courses.map(e => e.id),
-      semester: timetable.semester,
-      year: timetable.year,
-    };
-    await axios.put(`${API_URL}/timetables/${userId}/`, updateData, {
-      headers: {
-        authorization: `token ${token}`,
-      },
-    });
-  } catch (e) {
-    console.error(e);
-  }
-};
 
 const CourseAddButton = ({onPress}: {onPress: Function}) => {
   return (
@@ -240,8 +202,7 @@ const RegistrationBody = ({
   }, [state]);
 
   const onPress = async () => {
-    await fetchUpdateTimetable(timetable);
-    navigation.reset({routes: [{name: 'Home'}]});
+    navigation.navigate('RegisterSave', {timetable: timetable});
   };
 
   return (

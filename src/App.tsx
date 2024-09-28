@@ -1,5 +1,5 @@
 // App.tsx
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
@@ -13,6 +13,7 @@ import RegisterScreen from '@src/screens/SignUp/RegisterScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View} from 'react-native-animatable';
 import Colors from '@src/Colors';
+import RegistrationSaveScreen from '@src/screens/SignUp/RegisterSaveScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -21,20 +22,21 @@ export type RootStackParamList = {
   SignUp: undefined;
   RegisterInfo: undefined;
   Register: undefined;
+  RegisterSave: undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
-const App: React.FC = () => {
+const App = () => {
   const [initialRoute, setInitialRoute] =
-    React.useState<keyof RootStackParamList>('Login');
-  const [isLoading, setIsLoading] = React.useState(false);
+    useState<keyof RootStackParamList>('Login');
+  const [isLoading, setIsLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem('userToken');
       if (token !== null) {
-        setInitialRoute('Home');
+        // setInitialRoute('Home');
       }
       setIsLoading(false);
     };
@@ -50,7 +52,13 @@ const App: React.FC = () => {
       <RootStack.Navigator
         initialRouteName={initialRoute}
         screenOptions={{headerShown: false}}>
-        <RootStack.Screen name="Login" component={LoginScreen} />
+        <RootStack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            gestureEnabled: false,
+          }}
+        />
         <RootStack.Screen name="Email" component={EmailScreen} />
         <RootStack.Screen name="SignUp" component={SignUpScreen} />
         <RootStack.Screen
@@ -66,6 +74,13 @@ const App: React.FC = () => {
           options={{
             gestureEnabled: false,
             animation: 'none',
+          }}
+        />
+        <RootStack.Screen
+          name="RegisterSave"
+          component={RegistrationSaveScreen}
+          options={{
+            gestureEnabled: false,
           }}
         />
         <RootStack.Screen

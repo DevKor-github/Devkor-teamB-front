@@ -287,8 +287,8 @@ const headerStyles = StyleSheet.create({
     borderBottomLeftRadius: 20,
   },
   container: {
+    height: 64,
     paddingHorizontal: 16,
-    paddingVertical: 12,
     alignItems: 'center',
     ...GlobalStyles.row,
   },
