@@ -1,11 +1,9 @@
 import React, {useEffect, useState, useRef} from 'react';
-import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
-  Modal,
   Image,
   FlatList,
   Animated,
@@ -21,6 +19,7 @@ import {
   groupByDay,
   parseTime,
 } from '@src/components/Timetable/TimetableUtils';
+import PollsModal from '@src/screens/Timetable/PollsModal';
 
 const CourseItem = ({
   course,
@@ -142,7 +141,6 @@ const DailyTimetableScreen = () => {
   const [selectedCourse, setSelectedCourse] = useState<number>(-1);
   const [courses, setCourses] = useState<CourseBlock[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [checkboxState, setCheckboxState] = useState(false);
   const handleCloseModal = () => setShowModal(false);
 
   useEffect(() => {
@@ -194,82 +192,11 @@ const DailyTimetableScreen = () => {
         )}
       />
       {selectedCourse !== -1 && (
-        <Modal
+        <PollsModal
+          course={courses[selectedCourse]}
           visible={showModal}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={handleCloseModal}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <View style={styles.headerRow}>
-                <Image
-                  resizeMode="contain"
-                  source={require('@assets/icons/briefing_bell.png')}
-                  style={styles.bellIcon}
-                />
-                <Text style={styles.modalTitle}>
-                  오늘{' '}
-                  <Text style={styles.modalTitlePink}>
-                    {courses[selectedCourse].course_name}
-                  </Text>
-                  의 {'\n'}어떤 공지가 있었나요?
-                </Text>
-              </View>
-
-              <View style={styles.questionContainer}>
-                <BouncyCheckbox
-                  style={styles.bouncyCheckbox}
-                  textStyle={styles.checkboxTextStyle}
-                  fillColor={'#ff1385'}
-                  iconStyle={styles.checkboxStyle}
-                  innerIconStyle={styles.checkboxStyle}
-                  text="출석체크를 진행했어요!"
-                  onPress={() => {
-                    setCheckboxState(!checkboxState);
-                  }}
-                />
-                <BouncyCheckbox
-                  style={styles.bouncyCheckbox}
-                  textStyle={styles.checkboxTextStyle}
-                  fillColor={'#ff1385'}
-                  iconStyle={styles.checkboxStyle}
-                  innerIconStyle={styles.checkboxStyle}
-                  text="과제가 있었어요!"
-                  onPress={() => {
-                    setCheckboxState(!checkboxState);
-                  }}
-                />
-                <BouncyCheckbox
-                  style={styles.bouncyCheckbox}
-                  textStyle={styles.checkboxTextStyle}
-                  fillColor={'#ff1385'}
-                  iconStyle={styles.checkboxStyle}
-                  innerIconStyle={styles.checkboxStyle}
-                  text="공지가 있었어요!"
-                  onPress={() => {
-                    setCheckboxState(!checkboxState);
-                  }}
-                />
-                <BouncyCheckbox
-                  style={styles.bouncyCheckbox}
-                  textStyle={styles.checkboxTextStyle}
-                  fillColor={'#ff1385'}
-                  iconStyle={styles.checkboxStyle}
-                  innerIconStyle={styles.checkboxStyle}
-                  text="해당사항 없음!"
-                  onPress={() => {
-                    setCheckboxState(!checkboxState);
-                  }}
-                />
-              </View>
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleCloseModal}>
-                <Text style={styles.submitButtonText}>제출하기</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
+          onClose={handleCloseModal}
+        />
       )}
     </View>
   );
@@ -398,9 +325,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     paddingLeft: 12,
     paddingVertical: 7,
-  },
-  checkbox: {
-    marginRight: 10,
   },
   contentText: {
     flex: 1,
