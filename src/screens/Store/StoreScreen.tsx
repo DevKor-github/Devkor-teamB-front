@@ -10,14 +10,14 @@ import {
 } from 'react-native';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
-import ProgressBar from '@src/components/ProgessBar';
-import {useNavigation} from '@react-navigation/native';
+// import ProgressBar from '@src/components/ProgessBar';
+// import {useNavigation} from '@react-navigation/native';
 // import Banner from '@src/components/Banner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {PointEventHandler} from '@src/Events';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import Banner from '@src/components/Banner';
+// import Banner from '@src/components/Banner';
 import {API_URL} from '@env';
 
 const fetchPoints = async (callback: Function) => {
@@ -60,31 +60,31 @@ const fetchUsePoints = async (type: string, point: number) => {
   }
 };
 
-const PointHistory = () => {
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
-  const points = [10, 20, 50, 0, 100, 0, 0];
-  const today = new Date().getDay();
+// const PointHistory = () => {
+//   const days = ['일', '월', '화', '수', '목', '금', '토'];
+//   const points = [10, 20, 50, 0, 100, 0, 0];
+//   const today = new Date().getDay();
 
-  return (
-    <View style={pointHistoryStyles.container}>
-      {points.map((value, idx) => {
-        const color = idx === today ? Colors.primary[100] : 'transparent';
-        return (
-          <View key={idx} style={pointHistoryStyles.itemContainer}>
-            <Text style={pointHistoryStyles.dayText}>{days[idx]}</Text>
-            <View
-              style={[
-                pointHistoryStyles.pointContainer,
-                {backgroundColor: color},
-              ]}>
-              <Text style={pointHistoryStyles.pointText}>{value}</Text>
-            </View>
-          </View>
-        );
-      })}
-    </View>
-  );
-};
+//   return (
+//     <View style={pointHistoryStyles.container}>
+//       {points.map((value, idx) => {
+//         const color = idx === today ? Colors.primary[100] : 'transparent';
+//         return (
+//           <View key={idx} style={pointHistoryStyles.itemContainer}>
+//             <Text style={pointHistoryStyles.dayText}>{days[idx]}</Text>
+//             <View
+//               style={[
+//                 pointHistoryStyles.pointContainer,
+//                 {backgroundColor: color},
+//               ]}>
+//               <Text style={pointHistoryStyles.pointText}>{value}</Text>
+//             </View>
+//           </View>
+//         );
+//       })}
+//     </View>
+//   );
+// };
 
 const PointTips = () => {
   const items = [
@@ -94,7 +94,7 @@ const PointTips = () => {
     ],
     [
       [require('@assets/icons/tip_question.png'), '오늘의 질문 답변 시', 10],
-      [require('@assets/icons/tip_accept.png'), '게시글 답변 채택 시', 20],
+      // [require('@assets/icons/tip_accept.png'), '게시글 답변 채택 시', 20],
     ],
   ];
 
@@ -121,24 +121,24 @@ const PointTips = () => {
   );
 };
 
-const PointInfoButton = () => {
-  const navigation = useNavigation<any>();
-  return (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('StoreHistoryScreen')}
-      style={pointStyles.button}>
-      <Image
-        style={pointStyles.buttonIcon}
-        source={require('@assets/icons/coin.png')}
-      />
-      <Text style={{marginLeft: 4}}>nn 포인트</Text>
-      <Image
-        style={pointStyles.buttonIcon}
-        source={require('@assets/icons/arrow_right.png')}
-      />
-    </TouchableOpacity>
-  );
-};
+// const PointInfoButton = () => {
+//   const navigation = useNavigation<any>();
+//   return (
+//     <TouchableOpacity
+//       onPress={() => navigation.navigate('StoreHistoryScreen')}
+//       style={pointStyles.button}>
+//       <Image
+//         style={pointStyles.buttonIcon}
+//         source={require('@assets/icons/coin.png')}
+//       />
+//       <Text style={{marginLeft: 4}}>nn 포인트</Text>
+//       <Image
+//         style={pointStyles.buttonIcon}
+//         source={require('@assets/icons/arrow_right.png')}
+//       />
+//     </TouchableOpacity>
+//   );
+// };
 
 const PointInfoSection = () => {
   const [point, setPoints] = useState(0);
@@ -160,10 +160,10 @@ const PointInfoSection = () => {
             <Text style={pointStyles.pointText}>{point}</Text>
             <Text style={pointStyles.pointLabelText}>P</Text>
           </Text>
-          <PointInfoButton />
+          {/* <PointInfoButton /> */}
         </View>
-        <ProgressBar progress={40} />
-        <PointHistory />
+        {/* <ProgressBar progress={40} /> */}
+        {/* <PointHistory /> */}
       </View>
       <View style={pointStyles.divider} />
       <PointTips />
@@ -252,12 +252,12 @@ const StoreHeader = () => {
               source={require('@assets/icons/bell.png')}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Image
               style={headerStyles.icon}
               source={require('@assets/icons/setting.png')}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>
@@ -265,7 +265,7 @@ const StoreHeader = () => {
 };
 
 const StoreScreen = () => {
-  const promotions = [require('@assets/images/promotion_banner.png')];
+  // const promotions = [require('@assets/images/promotion_banner.png')];
   return (
     <View style={styles.safeArea}>
       <StoreHeader />
@@ -273,7 +273,7 @@ const StoreScreen = () => {
         <View style={styles.container}>
           <PointInfoSection />
           <StoreItemSection />
-          <Banner items={promotions} />
+          {/* <Banner items={promotions} /> */}
         </View>
       </ScrollView>
     </View>
@@ -395,7 +395,7 @@ const pointStyles = StyleSheet.create({
     ...GlobalStyles.boldText,
   },
   pointInfoContainer: {
-    marginBottom: 8,
+    // marginBottom: 8,
     justifyContent: 'space-between',
     ...GlobalStyles.row,
   },
@@ -410,34 +410,34 @@ const pointStyles = StyleSheet.create({
   },
 });
 
-const pointHistoryStyles = StyleSheet.create({
-  container: {
-    marginTop: 18,
-    ...GlobalStyles.row,
-  },
-  dayText: {
-    textAlign: 'center',
-    fontSize: FontSizes.regular,
-    ...GlobalStyles.text,
-  },
-  pointText: {
-    textAlign: 'center',
-    fontSize: FontSizes.medium,
-    ...GlobalStyles.text,
-  },
-  itemContainer: {
-    justifyContent: 'center',
-    ...GlobalStyles.expand,
-  },
-  pointContainer: {
-    marginTop: 12,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: 28,
-    height: 28,
-  },
-});
+// const pointHistoryStyles = StyleSheet.create({
+//   container: {
+//     marginTop: 18,
+//     ...GlobalStyles.row,
+//   },
+//   dayText: {
+//     textAlign: 'center',
+//     fontSize: FontSizes.regular,
+//     ...GlobalStyles.text,
+//   },
+//   pointText: {
+//     textAlign: 'center',
+//     fontSize: FontSizes.medium,
+//     ...GlobalStyles.text,
+//   },
+//   itemContainer: {
+//     justifyContent: 'center',
+//     ...GlobalStyles.expand,
+//   },
+//   pointContainer: {
+//     marginTop: 12,
+//     borderRadius: 14,
+//     justifyContent: 'center',
+//     alignSelf: 'center',
+//     width: 28,
+//     height: 28,
+//   },
+// });
 
 const tipStyles = StyleSheet.create({
   label: {

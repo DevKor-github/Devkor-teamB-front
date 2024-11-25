@@ -2,7 +2,6 @@ import React, {useState, useEffect, useRef} from 'react';
 import {
   Alert,
   FlatList,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -14,8 +13,8 @@ import Colors from '@src/Colors.tsx';
 import BottomSheet, {BottomSheetState} from '@components/BottomSheet';
 import FloatingButton from '@components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
-import {RadioButton, RadioGroup} from '@components/RadioButton';
-import SearchBar from '@components/SearchBar';
+// import {RadioButton, RadioGroup} from '@components/RadioButton';
+// import SearchBar from '@components/SearchBar';
 import {Course, CourseBlock, TimetableModel} from '@src/Types';
 import Timetable from '@components/Timetable/Timetable';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
@@ -154,12 +153,11 @@ const RegistrationBottomSheet = ({
   onItemSelect: Function;
   height: number;
 }) => {
-  const [filterOption, setFilterOption] = useState(0);
-  const [query, setQuery] = useState('');
-
+  // const [filterOption, setFilterOption] = useState(0);
+  // const [query, setQuery] = useState('');
   return (
     <BottomSheet height={height} state={state} onStateChange={onStateChange}>
-      <SearchBar
+      {/* <SearchBar
         icon={
           <Image
             style={styles.icon}
@@ -175,7 +173,7 @@ const RegistrationBottomSheet = ({
         <RadioButton label="과목명" />
         <RadioButton label="교수명" />
         <RadioButton label="과목코드" />
-      </RadioGroup>
+      </RadioGroup> */}
       <CourseList items={items} onTap={onItemSelect} onItemAdd={onItemAdd} />
     </BottomSheet>
   );
@@ -245,7 +243,7 @@ const RegistrationBody = ({
         items={courses}
         onItemSelect={(e: Course) => setSelectedCourse(e)}
         onItemAdd={(newCourse: Course) => {
-          setState(BottomSheetState.HALF);
+          // setState(BottomSheetState.HALF);
           if (timetable.courses.find(e => e.id === newCourse.id)) {
             Alert.alert('이미 등록된 수업입니다');
           } else if (doesOverlap(newCourse, timetable.courses)) {
@@ -260,14 +258,17 @@ const RegistrationBody = ({
   );
 };
 
-const RegistrationHeader = ({subTitle}: {subTitle: string}) => {
-  return (
-    <View style={headerStyles.container}>
-      <Text style={headerStyles.title}>KU&A</Text>
-      <Text style={headerStyles.subTitle}>{subTitle}</Text>
-    </View>
-  );
-};
+const RegistrationHeader = () =>
+  // {subTitle}: {subTitle: string}
+  {
+    // const navigation = useNavigation<NavigationProps>();
+    return (
+      <View style={headerStyles.container}>
+        <Text style={headerStyles.title}>KU&A</Text>
+        {/* <Text style={headerStyles.subTitle}>{subTitle}</Text> */}
+      </View>
+    );
+  };
 
 const RegisterScreen = ({route}: {route: any}) => {
   const slideAnim = useRef(new Animated.Value(1000)).current;
@@ -290,7 +291,8 @@ const RegisterScreen = ({route}: {route: any}) => {
           <View style={styles.top} />
           <View style={styles.bottom} />
           <View style={styles.content}>
-            <RegistrationHeader subTitle={'2024학년도 1학기'} />
+            <RegistrationHeader />
+            {/* <RegistrationHeader subTitle={'2024학년도 1학기'} /> */}
             <RegistrationBody courses={courses} data={timetable} />
           </View>
         </View>

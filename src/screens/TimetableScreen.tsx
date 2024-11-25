@@ -130,12 +130,12 @@ const TimetableHeader = () => {
               source={require('@assets/icons/bell.png')}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Image
               style={headerStyles.icon}
               source={require('@assets/icons/setting.png')}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>
