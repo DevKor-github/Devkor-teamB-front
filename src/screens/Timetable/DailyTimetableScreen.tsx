@@ -20,6 +20,43 @@ import {
   parseTime,
 } from '@src/components/Timetable/TimetableUtils';
 import PollsModal from '@src/screens/Timetable/PollsModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_URL} from '@env';
+import axios from 'axios';
+
+const fetchValidPolls = async (id: number) => {
+  const token = await AsyncStorage.getItem('userToken');
+  const response = await axios.get(`${API_URL}/todaypolls/${id}/`, {
+    headers: {
+      authorization: `token ${token}`,
+    },
+  });
+  const createdAt = response.data.created_at;
+  console.log('생성 시간: ', createdAt);
+
+  const now = new Date();
+  const createdDate = new Date(createdAt).toDateString();
+  const nowDate = now.toDateString();
+  return createdDate === nowDate;
+};
+
+const fetchTodayPolls = async (courseId: number) => {
+  const token = await AsyncStorage.getItem('userToken');
+  const userId = await AsyncStorage.getItem('userId');
+  console.log(courseId);
+  const response = await axios.get(
+    `${API_URL}/todaypolls/?student_id=${Number(userId)}&course_fk=${courseId}`,
+    {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    },
+  );
+
+  return response.data
+    .map((poll: any) => fetchValidPolls(poll.id))
+    .some((valid: boolean) => valid);
+};
 
 const CourseItem = ({
   course,
@@ -38,6 +75,14 @@ const CourseItem = ({
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const [voted, setVoted] = useState(false);
 
+  // useEffect(() => {
+  //   const fetchPolls = async () => {
+  //     const hasVoted = await fetchTodayPolls(Number(course.id));
+  //     setVoted(hasVoted);
+  //   };
+  //   fetchPolls();
+  // }, [course.id]);
+
   useEffect(() => {
     Animated.timing(rotateAnim, {
       toValue: expand ? 1 : 0,
@@ -53,7 +98,6 @@ const CourseItem = ({
 
   const toggleActive = () => {
     if (!voted) {
-      setVoted(true);
       showDialog();
     }
     callback();
@@ -141,6 +185,7 @@ const DailyTimetableScreen = () => {
   const [selectedCourse, setSelectedCourse] = useState<number>(-1);
   const [courses, setCourses] = useState<CourseBlock[]>([]);
   const [showModal, setShowModal] = useState(false);
+
   const handleCloseModal = () => setShowModal(false);
 
   useEffect(() => {

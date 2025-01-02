@@ -45,6 +45,14 @@ class DateUtil {
     const label = ['일', '월', '화', '수', '목', '금', '토'];
     return `${this.month}월 ${this.date}일 ${label[this.day]}요일`;
   }
+
+  public equals(other: DateUtil): boolean {
+    return (
+      this.month === other.month &&
+      this.date === other.date &&
+      this.day === other.day
+    );
+  }
 }
 
 const NavigationButton = ({
@@ -81,16 +89,12 @@ const NavigationButton = ({
 const NavigationRow = ({
   mode,
   onClick,
+  date,
 }: {
   mode: ViewMode;
   onClick: Function;
+  date: DateUtil;
 }) => {
-  const [date, setDate] = useState(DateUtil.getInstance());
-  useEffect(() => {
-    const interval = setInterval(() => setDate(DateUtil.getInstance()), 1000);
-    return () => clearInterval(interval);
-  }, [date]);
-
   return (
     <View style={navigationStyles.container}>
       <View style={GlobalStyles.row}>
@@ -144,8 +148,20 @@ const TimetableHeader = () => {
 
 const TimetableScreen = () => {
   const [viewMode, setViewMode] = useState(ViewMode.Daily);
+  const [currentDate, setCurrentDate] = useState(DateUtil.getInstance());
   const scrollViewRef = useRef<ScrollView | null>(null);
   const width = Dimensions.get('window').width;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newDate = DateUtil.getInstance();
+      if (!currentDate.equals(newDate)) {
+        setCurrentDate(newDate);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [currentDate]);
+
   const handleScroll = (event: any) => {
     const offset = event.nativeEvent.contentOffset.x;
     const index = Math.round(offset / width);
@@ -157,6 +173,7 @@ const TimetableScreen = () => {
       <TimetableHeader />
       <NavigationRow
         mode={viewMode}
+        date={currentDate}
         onClick={(mode: ViewMode) => {
           scrollViewRef.current?.scrollTo({x: mode * width, animated: true});
         }}

@@ -182,9 +182,11 @@ const RegistrationBottomSheet = ({
 const RegistrationBody = ({
   courses,
   data,
+  skip,
 }: {
   courses: Course[];
   data: TimetableModel;
+  skip: boolean;
 }) => {
   const [state, setState] = useState(BottomSheetState.HIDDEN);
   const [contentHeight, setContentHeight] = useState(0);
@@ -201,7 +203,7 @@ const RegistrationBody = ({
   }, [state]);
 
   const onPress = async () => {
-    navigation.navigate('RegisterSave', {timetable: timetable});
+    navigation.navigate('RegisterSave', {timetable: timetable, skip: skip});
   };
 
   return (
@@ -218,10 +220,14 @@ const RegistrationBody = ({
                 text: '삭제',
                 style: 'destructive',
                 onPress: () => {
-                  timetable.courses = timetable.courses.filter(
-                    e => e.id !== course.id,
-                  );
-                  setTimetable(timetable);
+                  // timetable.courses = timetable.courses.filter(
+                  //   e => e.id !== course.id,
+                  // );
+                  const updatedTimetable = {
+                    ...timetable,
+                    courses: timetable.courses.filter(e => e.id !== course.id),
+                  };
+                  setTimetable(updatedTimetable);
                   Alert.alert('삭제되었습니다');
                 },
               },
@@ -272,7 +278,7 @@ const RegistrationHeader = () =>
 
 const RegisterScreen = ({route}: {route: any}) => {
   const slideAnim = useRef(new Animated.Value(1000)).current;
-  const {courses, timetable} = route.params;
+  const {courses, timetable, skip} = route.params;
 
   useEffect(() => {
     Animated.timing(slideAnim, {
@@ -293,7 +299,7 @@ const RegisterScreen = ({route}: {route: any}) => {
           <View style={styles.content}>
             <RegistrationHeader />
             {/* <RegistrationHeader subTitle={'2024학년도 1학기'} /> */}
-            <RegistrationBody courses={courses} data={timetable} />
+            <RegistrationBody courses={courses} data={timetable} skip={skip} />
           </View>
         </View>
       </Animated.View>

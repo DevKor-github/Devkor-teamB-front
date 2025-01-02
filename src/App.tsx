@@ -36,8 +36,7 @@ const App = () => {
     const checkToken = async () => {
       const token = await AsyncStorage.getItem('userToken');
       if (token !== null) {
-        // 자동 로그인 기능 (비활성화)
-        // setInitialRoute('Home');
+        setInitialRoute('Home');
       }
       setIsLoading(false);
     };

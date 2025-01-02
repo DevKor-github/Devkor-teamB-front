@@ -14,13 +14,12 @@ const PRIMARY = {
 const Colors = {
   primary: PRIMARY,
   subject: {
-    color1: 'rgb(255, 20, 133)',
-    color2: 'rgb(235, 112, 129)',
-    color3: 'rgb(121, 148, 249)',
-    color4: 'rgb(240, 161, 117)',
-    color5: 'rgb(236, 112, 226)',
-    color6: 'rgb(137, 234, 146)',
-    color7: 'rgb(149, 111, 248)',
+    color1: PRIMARY[600],
+    color2: PRIMARY[500],
+    color3: PRIMARY[400],
+    color4: PRIMARY[300],
+    color5: PRIMARY[200],
+    color6: PRIMARY[100],
   },
   ui: {
     primary: PRIMARY[400],

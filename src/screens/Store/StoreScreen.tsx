@@ -99,7 +99,8 @@ const PointTips = () => {
   ];
 
   return (
-    <View style={styles.card}>
+    // <View style={styles.card}>
+    <>
       <Text style={tipStyles.label}>포인트 Tip</Text>
       {items.map((row, rowIdx) => {
         return (
@@ -117,7 +118,8 @@ const PointTips = () => {
           </View>
         );
       })}
-    </View>
+    {/* </View> */}
+    </>
   );
 };
 
@@ -164,9 +166,9 @@ const PointInfoSection = () => {
         </View>
         {/* <ProgressBar progress={40} /> */}
         {/* <PointHistory /> */}
+        <View style={pointStyles.divider} />
+        <PointTips />
       </View>
-      <View style={pointStyles.divider} />
-      <PointTips />
     </View>
   );
 };
@@ -385,7 +387,9 @@ const pointStyles = StyleSheet.create({
     fontSize: FontSizes.xxLarge,
     ...GlobalStyles.boldText,
   },
-  divider: {margin: 6},
+  divider: {
+    height: 18,
+  },
   pointText: {
     fontSize: FontSizes.xxxLarge,
     ...GlobalStyles.boldText,

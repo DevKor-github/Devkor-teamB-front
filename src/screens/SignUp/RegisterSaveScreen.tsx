@@ -89,13 +89,13 @@ const RegistrationSaveScreen = ({
   navigation: any;
   route: any;
 }) => {
-  const {timetable} = route.params;
+  const {timetable, skip} = route.params;
   const circleAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const fetchData = async () => {
       await fetchUpdateTimetable(timetable);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigation.reset({routes: [{name: 'Home'}]});
     };
     fetchData();
@@ -112,7 +112,7 @@ const RegistrationSaveScreen = ({
       });
     };
     animate();
-  }, [circleAnimation, navigation, timetable]);
+  }, [circleAnimation, navigation, timetable, skip]);
 
   const circleTranslateX = circleAnimation.interpolate({
     inputRange: [0, 0.5, 1],

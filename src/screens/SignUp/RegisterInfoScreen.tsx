@@ -115,7 +115,7 @@ const RegistrationInfoScreen = ({
   navigation: any;
   route: any;
 }) => {
-  const {userId} = route.params;
+  const {userId, skip} = route.params;
   const [isLoading, setIsLoading] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
   const [timetable, setTimetable] = useState(TimetableModel.empty());
@@ -181,31 +181,38 @@ const RegistrationInfoScreen = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      await runEnterAnimation();
+      if (!skip) {
+        await runEnterAnimation();
+      }
       const [fetchedCourses, fetchedTimetable] = await Promise.all([
         fetchCourses(),
         fetchTimetable(userId),
       ]);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!skip) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       setCourses(fetchedCourses);
       setTimetable(fetchedTimetable);
       setIsLoading(false);
     };
     fetchData();
-  }, [userId, runEnterAnimation]);
+  }, [userId, runEnterAnimation, skip]);
 
   useEffect(() => {
     if (!isLoading) {
       const navigateToRegister = async () => {
-        await runExitAnimation();
+        if (!skip) {
+          await runExitAnimation();
+        }
         navigation.navigate('Register', {
           courses: courses,
           timetable: timetable,
+          skip: skip,
         });
       };
       navigateToRegister();
     }
-  }, [isLoading, courses, timetable, navigation, runExitAnimation]);
+  }, [isLoading, courses, timetable, navigation, runExitAnimation, skip]);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>

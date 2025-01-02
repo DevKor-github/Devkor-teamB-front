@@ -1,340 +1,147 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, Modal, Image} from 'react-native';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-// import axios from 'axios';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {API_URL} from '@env';
-// import {Course, CourseBlock} from '@src/Types';
 import {CourseBlock} from '@src/Types';
 import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-// import jwtDecode from 'jwt-decode';
-// import { default as jwtDecode } from 'jwt-decode';
-// import jwtDecode = require('jwt-decode');
-
-// const PollsModal = ({ visible, onClose, selectedLecture, lectureId }) => {
-//   const [checkboxState, setCheckboxState] = useState<{ [key: string]: any }>({});
-
-//   const handleCheckboxChange = (lectureId: string, key: string) => {
-//     setCheckboxState((prevState) => ({
-//       ...prevState,
-//       [lectureId]: {
-//         ...prevState[lectureId],
-//         [key]: !prevState[lectureId]?.[key],
-//       }
-//     }));
-//     console.log("checkState print: ", checkboxState);
-//   };
-
-//   const handleCloseModal = () => {
-//     if (!selectedLecture || !selectedLecture.id) {
-//       console.error("No lecture selected or invalid lectureId");
-//       return;
-//     }
-
-//     const handleData = async () => {
-//       const lectureState = checkboxState[lectureId] || {
-//         attendance: false,
-//         assignment: false,
-//         notice: false,
-//       };
-
-//       const PollsData = {
-//         check_attention: lectureState.attendance,
-//         check_test: lectureState.notice,
-//         check_homework: lectureState.assignment,
-//         expired: false, // Assuming "해당사항 없음" is mapped to "expired" //이건 back에서 처리??
-//         course_fk: 3, // Assuming `course_fk` is the course ID
-//         student:  1, // Assuming student ID is 0;
-//       }
-
-//       console.log("PollsData to send:", PollsData);
-//       console.log("course_fk type", typeof(PollsData.course_fk));
-
-//       //POST!!
-
-//       // GET !!
-//       // try{
-//       //   const token = await AsyncStorage.getItem('userToken');
-//       //   const response = await axios.get(`${API_URL}/todaypolls/`,
-//       //     {
-//       //       headers: {
-//       //       Authorization: `token ${token}`,
-//       //     }
-//       //   });
-
-//       //   if (response.status === 200) {
-//       //         onClose();
-//       //         console.log("submit success");
-//       //         console.log(response.data);
-//       //       }
-
-//       // } catch(e){
-//       //   onClose();
-//       // }
-
-//       // const id = 4;
-//       // try{
-//       //   const token = await AsyncStorage.getItem('userToken');
-//       //   const response = await axios.get(`${API_URL}/todaypolls/${id}`,
-//       //     {
-//       //       headers: {
-//       //       Authorization: `token ${token}`,
-//       //     }
-//       //   });
-
-//       //   if (response.status === 204 || response.status === 200) {  // 생성 성공
-//       //     onClose();  // 모달 닫기
-//       //     console.log("response : " , response.data);
-//       //     // console.log('Delete success');
-//       //   } else {
-//       //     console.log('Unexpected response:', response.status);
-//       //   }
-//       // } catch (e :any) {
-//       //   if (e.response) {
-//       //     console.log('Error response data:', e.response.data);
-//       //   } else {
-//       //     console.log('Request failed:', e.message);
-//       //   }
-//       //   onClose();  // 실패 시에도 모달 닫기
-//       // }
-
-//       try{
-//         const token = await AsyncStorage.getItem('userToken');
-//         const response = await axios.get(`${API_URL}/courses/`,
-//           {
-//             headers: {
-//             Authorization: `token ${token}`,
-//           }
-//         });
-//         if (response.status === 204 || response.status === 200) {  // 생성 성공
-//           onClose();  // 모달 닫기
-//           console.log("response : " , response.data);
-//           const targetCourseId = 'test7';  // 여기에 원하는 course_id 값을 입력하세요.
-//           let targetId: any = null;
-//           // 응답 데이터에서 특정 course_id를 가진 객체 찾기
-//           response.data.forEach( course => {
-//             if (course.course_id === targetCourseId) {
-//               targetId = course.id;  // 해당 course_id를 가진 id 값을 targetId에 저장
-//               }
-//               console.log('course_fk', targetId);
-//        }); // console.log('Delete success');
-//        try {
-
-//         const token = await AsyncStorage.getItem('userToken');
-//         const response = await axios.post(`${API_URL}/todaypolls/`, PollsData,
-//           {
-//             headers: {
-//             Authorization: `token ${token}`,
-//           }
-//         });
-
-//         console.log(response.status);
-//         if (response.status === 201) {
-//           onClose();
-//           console.log("submit success");
-//         }
-
-//       } catch (error: any) {
-//         // console.error(e);
-//         // onClose();
-//         if (error.response) {
-//           console.log('Error response data:', error.response.data);
-//           console.log('Error response status:', error.response.status);
-//           console.log('Error response headers:', error.response.headers);
-//         } else if (error.request) {
-//           console.log('No response received:', error.request);
-//         } else {
-//           console.log('Error in setting up request:', error.message);
-//         }
-//         onClose();
-//             }
-
-//         } else {
-//           console.log('Unexpected response:', response.status);
-//         }
-//       } catch (e :any) {
-//         if (e.response) {
-//           console.log('Error response data:', e.response.data);
-//         } else {
-//           console.log('Request failed:', e.message);
-//         }
-//         onClose();  // 실패 시에도 모달 닫기
-//       }
-//     }
-//     handleData();
-
-//   };
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_URL} from '@env';
 
 interface PollsModalProps {
   course: CourseBlock;
   visible: boolean;
-  onClose: Function;
+  onClose: () => void;
 }
 
 const PollsModal: React.FC<PollsModalProps> = ({course, visible, onClose}) => {
-  const [checkboxState, setCheckboxState] = useState<{[key: string]: any}>({});
+  const [checkboxState, setCheckboxState] = useState<Map<string, boolean>>(
+    new Map(),
+  );
+  const [isAnyCheckboxChecked, setIsAnyCheckboxChecked] = useState(false);
 
-  const handleCheckboxChange = (lectureId: string, key: string) => {
-    setCheckboxState(prevState => ({
-      ...prevState,
-      [lectureId]: {
-        ...prevState[lectureId],
-        [key]: !prevState[lectureId]?.[key],
-      },
-    }));
-    console.log('checkState print: ', checkboxState);
+  const handleCheckboxChange = (key: string) => {
+    if (checkboxState.has(key)) {
+      setCheckboxState(prevState => prevState.set(key, !prevState.get(key)!));
+    } else {
+      setCheckboxState(prevState => prevState.set(key, true));
+    }
+    setIsAnyCheckboxChecked(
+      Array.from(checkboxState.values()).some(value => value === true),
+    );
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (submitted: boolean = false) => {
+    if (submitted) {
+      const submitData = async () => {
+        const userId = await AsyncStorage.getItem('userId');
+        const data = {
+          check_attention: checkboxState.get('check_attendance') || false,
+          check_test: checkboxState.get('check_test') || false,
+          check_homework: checkboxState.get('check_homework') || false,
+          answered_at: new Date().toISOString(),
+          expired: false,
+          course_fk: Number(course.id),
+          student: Number(userId),
+        };
+
+        // try {
+        //   const token = await AsyncStorage.getItem('userToken');
+        //   const response = await axios.post(`${API_URL}/todaypolls/`, data, {
+        //     headers: {
+        //       authorization: `token ${token}`,
+        //     },
+        //   });
+        //   if (response.status === 200) {
+        //     onClose();
+        //   }
+        // } catch (error) {
+        //   console.error('Failed to submit poll:', error);
+        // }
+      };
+      submitData();
+    }
     onClose();
-    // const handleData = async () => {
-    //   try {
-    //     const token = await AsyncStorage.getItem('userToken');
-    //     const response = await axios.get(`${API_URL}/courses/`, {
-    //       headers: {
-    //         Authorization: `token ${token}`,
-    //       },
-    //     });
-
-    //     if (response.status === 200 || response.status === 204) {
-    //       //여기를 고쳐야합니다 !!!! 강의 학수번호에 맞춰서 !!!
-    //       const targetCourseId = 'test7'; // Replace 'test7' with the desired course_id value
-    //       let targetId = null;
-
-    //       // Find the course with the specific course_id
-    //       response.data.forEach((item: Course) => {
-    //         if (item.course_id === targetCourseId) {
-    //           targetId = item.course_id; // Store the id
-    //         }
-    //       });
-
-    //       if (targetId) {
-    //         console.log('course_fk:', targetId);
-
-    //         const lectureState = checkboxState[course.course_id] || {
-    //           attendance: false,
-    //           assignment: false,
-    //           notice: false,
-    //         };
-
-    //         const PollsData = {
-    //           check_attention: lectureState.attendance,
-    //           check_test: lectureState.notice,
-    //           check_homework: lectureState.assignment,
-    //           expired: false,
-    //           course_fk: targetId,
-    //           student: 1,
-    //         };
-
-    //         // Now, post the data
-    //         const postResponse = await axios.post(
-    //           `${API_URL}/todaypolls/`,
-    //           PollsData,
-    //           {
-    //             headers: {
-    //               Authorization: `token ${token}`,
-    //             },
-    //           },
-    //         );
-
-    //         if (postResponse.status === 201) {
-    //           console.log('Submit success');
-    //           onClose();
-    //         } else {
-    //           console.log(
-    //             'Unexpected response during POST:',
-    //             postResponse.status,
-    //           );
-    //         }
-    //       } else {
-    //         console.error(`Course with course_id ${targetCourseId} not found.`);
-    //         onClose();
-    //       }
-    //     } else {
-    //       console.log('Unexpected response:', response.status);
-    //     }
-    //   } catch (error) {
-    //     console.error('Error:', error);
-    //     onClose();
-    //   }
-    // };
-    // handleData();
   };
 
   return (
     <Modal
       visible={visible}
+      animationType="fade"
       transparent={true}
-      animationType="slide"
-      onRequestClose={() => onClose()}>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <View style={styles.headerRow}>
-            <Image
-              resizeMode="contain"
-              source={require('@assets/icons/briefing_bell.png')}
-              style={styles.bellIcon}
-            />
-            <Text style={styles.modalTitle}>
-              오늘{' '}
-              <Text style={styles.modalTitleAccent}>{course.course_name}</Text>
-              의 {'\n'}어떤 공지가 있었나요?
-            </Text>
-          </View>
+      onRequestClose={() => handleCloseModal()}>
+      <View style={styles.modalOverlay} onTouchStart={() => handleCloseModal()}>
+        <View style={styles.modalContainer}>
+          <View
+            style={styles.modalContent}
+            onTouchStart={e => e.stopPropagation()}>
+            <View style={styles.headerRow}>
+              <Image
+                resizeMode="contain"
+                source={require('@assets/icons/briefing_bell.png')}
+                style={styles.bellIcon}
+              />
+              <Text style={styles.modalTitle}>
+                오늘{' '}
+                <Text style={styles.modalTitleAccent}>
+                  {course.course_name}
+                </Text>
+                의 {'\n'}어떤 공지가 있었나요?
+              </Text>
+            </View>
 
-          <View style={styles.questionContainer}>
-            <BouncyCheckbox
-              style={styles.bouncyCheckbox}
-              textStyle={styles.checkboxTextStyle}
-              fillColor={Colors.ui.primary}
-              iconStyle={styles.checkboxStyle}
-              innerIconStyle={styles.checkboxStyle}
-              text="출석체크를 진행했어요!"
-              onPress={() => {
-                handleCheckboxChange(course.course_id, 'attendance');
-              }}
-            />
-            <BouncyCheckbox
-              style={styles.bouncyCheckbox}
-              textStyle={styles.checkboxTextStyle}
-              fillColor={Colors.ui.primary}
-              iconStyle={styles.checkboxStyle}
-              innerIconStyle={styles.checkboxStyle}
-              text="과제가 있었어요!"
-              onPress={() => {
-                handleCheckboxChange(course.course_id, 'assignment');
-              }}
-            />
-            <BouncyCheckbox
-              style={styles.bouncyCheckbox}
-              textStyle={styles.checkboxTextStyle}
-              fillColor={Colors.ui.primary}
-              iconStyle={styles.checkboxStyle}
-              innerIconStyle={styles.checkboxStyle}
-              text="공지가 있었어요!"
-              onPress={() => {
-                handleCheckboxChange(course.course_id, 'notice');
-              }}
-            />
-            <BouncyCheckbox
-              style={styles.bouncyCheckbox}
-              textStyle={styles.checkboxTextStyle}
-              fillColor={Colors.ui.primary}
-              iconStyle={styles.checkboxStyle}
-              innerIconStyle={styles.checkboxStyle}
-              text="해당사항 없음!"
-              onPress={() => {
-                handleCheckboxChange(course.course_id, 'none');
-              }}
-            />
+            <View style={styles.questionContainer}>
+              <BouncyCheckbox
+                style={styles.bouncyCheckbox}
+                textStyle={styles.checkboxTextStyle}
+                fillColor={Colors.ui.primary}
+                iconStyle={styles.checkboxStyle}
+                innerIconStyle={styles.checkboxStyle}
+                text="출석체크를 진행했어요!"
+                onPress={() => {
+                  handleCheckboxChange('check_attendance');
+                }}
+              />
+              <BouncyCheckbox
+                style={styles.bouncyCheckbox}
+                textStyle={styles.checkboxTextStyle}
+                fillColor={Colors.ui.primary}
+                iconStyle={styles.checkboxStyle}
+                innerIconStyle={styles.checkboxStyle}
+                text="과제가 있었어요!"
+                onPress={() => {
+                  handleCheckboxChange('check_homework');
+                }}
+              />
+              <BouncyCheckbox
+                style={styles.bouncyCheckbox}
+                textStyle={styles.checkboxTextStyle}
+                fillColor={Colors.ui.primary}
+                iconStyle={styles.checkboxStyle}
+                innerIconStyle={styles.checkboxStyle}
+                text="공지가 있었어요!"
+                onPress={() => {
+                  handleCheckboxChange('notice');
+                }}
+              />
+            </View>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity onPress={() => handleCloseModal(true)}>
+                <Text style={styles.noneButtonText}>해당사항 없음</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={
+                  !isAnyCheckboxChecked
+                    ? styles.submitButtonDisabled
+                    : styles.submitButton
+                }
+                disabled={!isAnyCheckboxChecked}
+                onPress={() => handleCloseModal(true)}>
+                <Text style={styles.submitButtonText}>제출하기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={handleCloseModal}>
-            <Text style={styles.submitButtonText}>제출하기</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -342,6 +149,21 @@ const PollsModal: React.FC<PollsModalProps> = ({course, visible, onClose}) => {
 };
 
 const styles = StyleSheet.create({
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  noneButtonText: {
+    color: Colors.text.accent,
+    paddingHorizontal: 12,
+    alignSelf: 'center',
+    textAlign: 'center',
+    alignContent: 'center',
+    fontSize: FontSizes.medium,
+    ...GlobalStyles.text,
+  },
   separator: {
     height: 12,
   },
@@ -371,11 +193,8 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   modalContainer: {
-    flex: 1,
-    borderRadius: 10,
+    width: '90%',
     marginHorizontal: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   modalContent: {
     width: '100%',
@@ -394,10 +213,16 @@ const styles = StyleSheet.create({
   modalTitleAccent: {
     color: Colors.text.accent,
   },
+  submitButtonDisabled: {
+    backgroundColor: Colors.ui.disabled,
+    borderRadius: 10,
+    alignSelf: 'flex-end',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+  },
   submitButton: {
     backgroundColor: Colors.ui.primary,
     borderRadius: 10,
-    marginTop: 12,
     alignSelf: 'flex-end',
     paddingVertical: 12,
     paddingHorizontal: 32,
@@ -436,6 +261,12 @@ const styles = StyleSheet.create({
     borderBlockColor: Colors.ui.primary,
     width: 18,
     height: 18,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

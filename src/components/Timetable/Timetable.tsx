@@ -222,8 +222,8 @@ const clickableLectureStyle = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     padding: 4,
-    backgroundColor: Colors.ui.secondary,
-    opacity: 0.5,
+    backgroundColor: Colors.ui.disabled,
+    opacity: 0.9,
   },
 });
 

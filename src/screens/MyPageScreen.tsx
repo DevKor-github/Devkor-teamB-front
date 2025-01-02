@@ -1,30 +1,81 @@
-import React, {useEffect, useState} from 'react';
-import {View, Text, Image, TouchableOpacity, StyleSheet} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import Colors from '@src/Colors';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontSizes, GlobalStyles } from '@src/GlobalStyles';
 import axios from 'axios';
-import {API_URL} from '@env';
+import { API_URL } from '@env';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { useNavigation } from '@react-navigation/native';
 
 const fetchUserImage = async () => {
   const token = await AsyncStorage.getItem('userToken');
-  const {data} = await axios.get(`${API_URL}/student/image/`, {
-    headers: {authorization: `token ${token}`},
+  const { data } = await axios.get(`${API_URL}/student/image/`, {
+    headers: { authorization: `token ${token}` },
   });
-  return data[0].image;
+  // (임시) 존재하는 이미지로 대체
+  return data[data.length - 2].image;
+};
+
+const fetchUserInfo = async () => {
+  const token = await AsyncStorage.getItem('userToken');
+  const { data } = await axios.get(`${API_URL}/student/user-info/`, {
+    headers: { authorization: `token ${token}` },
+  });
+  return data.nickname;
+};
+
+const MY_INFO_ITEMS = {
+  // '아이디 변경하기': 'changeId',
+  '비밀번호 변경하기': 'changePassword',
+  '시간표 수정하기': 'editTimetable',
+  '로그아웃': 'logout',
+  // '탈퇴하기': 'withdraw',
+};
+
+const MY_POST_ITEMS = [
+  '내가 쓴 게시물',
+  '내가 쓴 댓글',
+  // '내가 스크랩한 글',
+];
+
+const handleItemPress = ({key, navigation}: {key: string, navigation: any}) => {
+  switch (key) {
+    case 'editTimetable':
+      AsyncStorage.getItem('userId').then(id =>
+        navigation.navigate('RegisterInfo', {userId: id, skip: true}),
+      );
+      break;
+    case 'logout':
+      Alert.alert('로그아웃하겠습니까?', '', [
+        { text: '취소' },
+        {
+          text: '확인',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('userToken');
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          },
+        },
+      ]);
+      break;
+    default:
+      break;
+  }
 };
 
 const MyPageScreen = () => {
   const [userImage, setUserImage] = useState('');
-  const [userId, setUserId] = useState('');
+  const [nickname, setNickname] = useState('');
+  const navigation = useNavigation();
 
   useEffect(() => {
-    AsyncStorage.getItem('userId').then(id => setUserId(id ?? ''));
     fetchUserImage().then(image => setUserImage(image));
+    fetchUserInfo().then(nickname => setNickname(nickname));
   }, []);
-
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.container}>
@@ -34,14 +85,18 @@ const MyPageScreen = () => {
         />
         <View style={styles.content}>
           <View style={styles.headerTop} />
-          <Image
-            source={require('@assets/images/UserImage.png')}
-            // source={{uri: `${API_URL}${userImage}`}}
-            style={styles.avatar}
-          />
+          <View style={styles.avatarContainer}>
+            <Image
+              // source={require('@assets/images/UserImage.png')}
+              source={{
+                uri: `${API_URL}${userImage}`,
+              }}
+              style={styles.avatar}
+            />
+          </View>
           <View style={GlobalStyles.row}>
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{userId}</Text>
+              <Text style={styles.userName}>{nickname}</Text>
               {/* <View style={styles.userDetail}>
                 <Text style={styles.userSchool}>고려대학교 재학</Text>
                 <TouchableOpacity style={styles.schoolCertificationButton}>
@@ -55,14 +110,11 @@ const MyPageScreen = () => {
           <View style={styles.separator} />
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>내 정보 수정</Text>
-            {[
-              // '아이디 변경하기',
-              '비밀번호 변경하기',
-              // '시간표 수정하기',
-              '로그아웃',
-              '탈퇴하기',
-            ].map((item, index) => (
-              <TouchableOpacity key={index} style={styles.item}>
+            {Object.entries(MY_INFO_ITEMS).map(([item, key], index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.item}
+                onPress={() => handleItemPress({key, navigation})}>
                 <View style={styles.itemContainer}>
                   <Text style={styles.itemText}>{item}</Text>
                   <Image
@@ -76,8 +128,7 @@ const MyPageScreen = () => {
           <View style={styles.separator} />
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>내 글 관리</Text>
-            {/* {['내가 쓴 게시물', '내가 쓴 댓글', '내가 스크랩한 글'].map( */}
-            {['내가 쓴 게시물', '내가 쓴 댓글'].map((item, index) => (
+            {MY_POST_ITEMS.map((item, index) => (
               <TouchableOpacity key={index} style={styles.item}>
                 <View style={styles.itemContainer}>
                   <Text style={styles.itemText}>{item}</Text>
@@ -129,16 +180,25 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
   },
-  avatar: {
-    borderRadius: 30,
+  avatarContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     marginTop: 32,
+    backgroundColor: Colors.ui.disabled,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatar: {
+    width:52,
+    height: 52,
   },
   userInfo: {
     paddingBottom: 12,
   },
   userName: {
     marginTop: 12,
-    fontSize: FontSizes.xLarge,
+    fontSize: FontSizes.xxLarge,
     ...GlobalStyles.boldText,
   },
   userSchool: {

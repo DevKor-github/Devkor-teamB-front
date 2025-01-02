@@ -226,7 +226,7 @@ export const getTimeInfo = (e: Course) => {
 
 export const getDay = () => {
   const label = ['일', '월', '화', '수', '목', '금', '토'];
-  const idx = new Date(2024, 9, 31).getDay();
+  const idx = new Date().getDay();
   return label[idx];
 };
 
