@@ -9,10 +9,9 @@ import Colors from '@src/Colors.tsx';
 import {ColorValue} from 'react-native';
 
 const colorMap: Map<number, number> = new Map();
-const defaultSlotCount = 7;
+export const DEFAULT_SLOT_COUNT = 7;
 const defaultStartTime = 9;
 const defaultLabel = ['월', '화', '수', '목', '금'];
-
 const strToInt = (timeStr: string) => {
   const [hourStr, minStr] = timeStr.split(':');
   return [parseInt(hourStr, 10), parseInt(minStr, 10)];
@@ -73,13 +72,17 @@ export const groupByDay = (courses: Course[]) => {
     });
   });
 
+  Object.keys(items).forEach(day => {
+    items[day].sort((a, b) => a.start.localeCompare(b.start));
+  });
+
   return items;
 };
 
 // 시간표의 전체 슬롯 수를 계산하는 함수
 export const calculateTotalSlots = (courses: Course[]) => {
   if (courses.length === 0) {
-    return defaultSlotCount;
+    return DEFAULT_SLOT_COUNT;
   }
   const coursesSlots = courses.map(e => getCourseSlot(e));
   let latestEndTime = defaultStartTime;
@@ -91,7 +94,7 @@ export const calculateTotalSlots = (courses: Course[]) => {
     });
   });
   const slotCount = latestEndTime - defaultStartTime + 1;
-  return Math.max(defaultSlotCount, slotCount);
+  return Math.max(DEFAULT_SLOT_COUNT, slotCount);
 };
 
 export const getLabels = (courses: Course[]) => {
@@ -219,4 +222,21 @@ export const getTimeInfo = (e: Course) => {
     }
   });
   return timeInfo.join(', ');
+};
+
+export const getDay = () => {
+  const label = ['일', '월', '화', '수', '목', '금', '토'];
+  const idx = new Date().getDay();
+  return label[idx];
+};
+
+export const parseTime = (time: string | Date) => {
+  if (typeof time === 'string') {
+    const [hour, minute] = strToInt(time);
+    return hour * 100 + minute;
+  } else {
+    const hour = time.getHours();
+    const minute = time.getMinutes();
+    return hour * 100 + minute;
+  }
 };

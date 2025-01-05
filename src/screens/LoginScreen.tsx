@@ -60,12 +60,6 @@ function LoginScreen({navigation}: {navigation: any}) {
   const isFormValid = username.length > 0 && password.length > 0;
   const [isLoading, setIsLoading] = useState(false);
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      gestureEnabled: false,
-    });
-  }, [navigation]);
-
   const handleLogin = async () => {
     try {
       Keyboard.dismiss();
@@ -117,6 +111,21 @@ function LoginScreen({navigation}: {navigation: any}) {
     }
   };
 
+  const renderButtons = () => {
+    if (!isLoading) {
+      return (
+        <CustomButton
+          text="로그인"
+          onPress={handleLogin}
+          disabled={!isFormValid}
+        />
+      );
+    } else {
+      return (
+        <CustomButton text="로그인 중" onPress={() => {}} disabled={true} />
+      );
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -144,16 +153,12 @@ function LoginScreen({navigation}: {navigation: any}) {
             />
           </View>
           <View style={styles.buttonWrapper}>
-            <CustomButton
-              text="로그인"
-              onPress={handleLogin}
-              disabled={!isFormValid}
-            />
+            {renderButtons()}
             <TouchableOpacity onPress={() => navigation.navigate('Email')}>
               <Text style={styles.signupBtn}>회원가입</Text>
             </TouchableOpacity>
           </View>
-          {/* <View style={{height: Platform.OS == 'android' ? 20 : 0}} /> */}
+          <View style={styles.androidPadding} />
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
       {isLoading && (
@@ -168,6 +173,7 @@ function LoginScreen({navigation}: {navigation: any}) {
 export default LoginScreen;
 
 const styles = StyleSheet.create({
+  androidPadding: {height: Platform.OS === 'android' ? 20 : 0},
   loadingContainer: {
     position: 'absolute',
     top: 0,

@@ -23,6 +23,7 @@ const LOGO_START_POSITION = 1000;
 const LOGO_CENTER_POSITION = 180;
 const LOGO_END_POSITION = -320;
 
+const TEXT_START_POSITION = 80;
 const TEXT_CENTER_POSITION = 0;
 const TEXT_END_POSITION = -800;
 
@@ -114,13 +115,13 @@ const RegistrationInfoScreen = ({
   navigation: any;
   route: any;
 }) => {
-  const {userId} = route.params;
+  const {userId, skip} = route.params;
   const [isLoading, setIsLoading] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
   const [timetable, setTimetable] = useState(TimetableModel.empty());
   const logoAnimation = useRef(new Animated.Value(LOGO_START_POSITION)).current;
   const iconAnimation = useRef(new Animated.Value(ICON_START_POSITION)).current;
-  const textAnimation = useRef(new Animated.Value(100)).current;
+  const textAnimation = useRef(new Animated.Value(TEXT_START_POSITION)).current;
   const opacityAnimation = useRef(new Animated.Value(1)).current;
 
   const runEnterAnimation = useCallback(() => {
@@ -180,31 +181,38 @@ const RegistrationInfoScreen = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      await runEnterAnimation();
+      if (!skip) {
+        await runEnterAnimation();
+      }
       const [fetchedCourses, fetchedTimetable] = await Promise.all([
         fetchCourses(),
         fetchTimetable(userId),
       ]);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!skip) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
       setCourses(fetchedCourses);
       setTimetable(fetchedTimetable);
       setIsLoading(false);
     };
     fetchData();
-  }, [userId, runEnterAnimation]);
+  }, [userId, runEnterAnimation, skip]);
 
   useEffect(() => {
     if (!isLoading) {
       const navigateToRegister = async () => {
-        await runExitAnimation();
+        if (!skip) {
+          await runExitAnimation();
+        }
         navigation.navigate('Register', {
           courses: courses,
           timetable: timetable,
+          skip: skip,
         });
       };
       navigateToRegister();
     }
-  }, [isLoading, courses, timetable, navigation, runExitAnimation]);
+  }, [isLoading, courses, timetable, navigation, runExitAnimation, skip]);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
@@ -221,7 +229,7 @@ const RegistrationInfoScreen = ({
       </View>
       <Animated.View
         style={[styles.bottomContainer, {opacity: opacityAnimation}]}>
-        <View style={[styles.textContainer]}>
+        <View style={styles.textContainer}>
           <Animated.View
             style={[
               styles.titleRow,
@@ -265,8 +273,8 @@ const RegistrationInfoScreen = ({
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: Colors.ui.primary,
     flex: 1,
+    backgroundColor: Colors.ui.primary,
     overflow: 'hidden',
   },
   topContainer: {flex: 3},

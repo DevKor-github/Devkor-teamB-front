@@ -1,365 +1,350 @@
-import React, { useState } from 'react';
-import { mockLectures } from '../../MockData.tsx';
-import Accordion from 'react-native-collapsible/Accordion';
-import BouncyCheckbox from "react-native-bouncy-checkbox";
+import React, {useEffect, useState, useRef} from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
-  Modal,
-  TouchableHighlight,
   Image,
+  FlatList,
+  Animated,
 } from 'react-native';
-import * as Animatable from 'react-native-animatable';
-import Icon from 'react-native-vector-icons/AntDesign.js';
-import {HeaderStyleInterpolators, StackNavigationProp} from '@react-navigation/stack';
+
+import Colors from '@src/Colors';
+import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
+import {fetchTimetableData} from '@src/screens/Timetable/TimetableAPI';
+import {CourseBlock} from '@src/Types';
 import {useNavigation} from '@react-navigation/native';
+import {
+  getDay,
+  groupByDay,
+  parseTime,
+} from '@src/components/Timetable/TimetableUtils';
+import PollsModal from '@src/screens/Timetable/PollsModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {API_URL} from '@env';
+import axios from 'axios';
 
-const getCurrentDay = () => {
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
-  const today = new Date(2024, 8, 2);
-  return days[today.getDay()];
+const fetchValidPolls = async (id: number) => {
+  const token = await AsyncStorage.getItem('userToken');
+  const response = await axios.get(`${API_URL}/todaypolls/${id}/`, {
+    headers: {
+      authorization: `token ${token}`,
+    },
+  });
+  const createdAt = response.data.created_at;
+  console.log('생성 시간: ', createdAt);
+
+  const now = new Date();
+  const createdDate = new Date(createdAt).toDateString();
+  const nowDate = now.toDateString();
+  return createdDate === nowDate;
 };
 
-const filterLecturesByDay = (lectures: any[], day: string) => {
-  return lectures.filter(lecture =>
-    lecture.time.some((timeSlot: any) => timeSlot.day === day)
-  ).map(lecture => {
-    const TimeSlot = lecture.time.find((timeSlot: any) => timeSlot.day === day);
-    return{
-    id: lecture.id,
-    name: lecture.name,
-    start: TimeSlot?.start,
-    end: TimeSlot?.end,
-    room: lecture.room,
-    professor: lecture.professor,
-    content: [
-      '출석을 자주 부르는 과목이에요.',
-      '지난 시간에 과제 공지가 있었어요.',
-      '지난 시간에 휴강 공지가 있었어요.',
-    ],
-    briefing: '게시글 확인하기',
-    survey: [],
-  }});
+const fetchTodayPolls = async (courseId: number) => {
+  const token = await AsyncStorage.getItem('userToken');
+  const userId = await AsyncStorage.getItem('userId');
+  console.log(courseId);
+  const response = await axios.get(
+    `${API_URL}/todaypolls/?student_id=${Number(userId)}&course_fk=${courseId}`,
+    {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    },
+  );
+
+  return response.data
+    .map((poll: any) => fetchValidPolls(poll.id))
+    .some((valid: boolean) => valid);
 };
 
-const currentDay = getCurrentDay();
-const todayLectures = filterLecturesByDay(mockLectures, currentDay);
+const CourseItem = ({
+  course,
+  active,
+  expand,
+  showDialog,
+  callback,
+}: {
+  course: CourseBlock;
+  active: boolean;
+  expand: boolean;
+  showDialog: Function;
+  callback: Function;
+}) => {
+  const navigation = useNavigation<any>();
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const [voted, setVoted] = useState(false);
 
-const App = () => {
-  const [activeSection, setActiveSection] = useState<number | null>(null);
-  const [lectureClicks, setLectureClicks] = useState<{ [key: string]: number }>({});
-  const [showModal, setShowModal] = useState<boolean>(false);
-  const [selectedLecture, setSelectedLecture] = useState<any>(null);
-  const [modalOptions, setModalOptions] = useState<{ [key: string]: any }>({});
-  const[checkboxState, setCheckboxState] = useState<boolean>(false);
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  // useEffect(() => {
+  //   const fetchPolls = async () => {
+  //     const hasVoted = await fetchTodayPolls(Number(course.id));
+  //     setVoted(hasVoted);
+  //   };
+  //   fetchPolls();
+  // }, [course.id]);
 
-  const handleSetSections = (section: any[]) => {
-    if (section.length === 0 || section[0] === undefined) {
-      setActiveSection(null);
-      return;
+  useEffect(() => {
+    Animated.timing(rotateAnim, {
+      toValue: expand ? 1 : 0,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  }, [expand, rotateAnim]);
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '90deg'],
+  });
+
+  const toggleActive = () => {
+    if (!voted) {
+      showDialog();
     }
-
-    const selectedLectureId = todayLectures[section[0]]?.id;
-
-    if (!selectedLectureId) {
-      setActiveSection(null);
-      return;
-    }
-
-    if (!lectureClicks[selectedLectureId]) {
-      setShowModal(true);
-      setSelectedLecture(todayLectures[section[0]]);
-      setLectureClicks({
-        ...lectureClicks,
-        [selectedLectureId]: 1, // 클릭 횟수를 1로 설정
-      });
-      setActiveSection(section.includes(undefined) ? null : section[0]);
-      setModalOptions({
-        ...modalOptions,
-        [selectedLectureId]: modalOptions[selectedLectureId] || {
-          attendance: false,
-          assignment: false,
-          announcement: false,
-          none: false,
-        }
-      });
-    } else {
-      setLectureClicks({
-        ...lectureClicks,
-        [selectedLectureId]: lectureClicks[selectedLectureId] + 1,
-      });
-      setActiveSection(section.includes(undefined) ? null : section[0]);
-      setSelectedLecture(todayLectures[section[0]]);
-    }
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-  };
-
-  const handleOptionChange = (option: string) => {
-    if (selectedLecture) {
-      const lectureId = selectedLecture.id;
-      setModalOptions(prevModalOptions => ({
-        ...prevModalOptions,
-        [lectureId]: {
-          ...prevModalOptions[lectureId],
-          [option]: !prevModalOptions[lectureId][option],
-        }
-      }));
-    }
-  };
-
-  const convertTimeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
-  }
-  
-  const isNowInLectureTime = (section: any) => {
-    const beforeConvert = new Date(2024,8,6,13,45,0).toTimeString().slice(0, 5)
-    const currentTime = convertTimeToMinutes(beforeConvert); // 현재 시간 "HH:mm" 형식으로 변환
-    const startTime = convertTimeToMinutes(section.start);
-    const endTime = convertTimeToMinutes(section.end);
-    return currentTime >= startTime && currentTime <= endTime;
-  }
-
-  const isTouched = (section: any) => {
-    if (!lectureClicks[section.id]) return true;
-    else  return false; 
-  }
-  const renderHeader = (section: any, _: any, isActive: boolean) => {
-    const value = isNowInLectureTime(section);
-    console.log({value});
-
-    return(
-      <Animatable.View duration={400} transition="backgroundColor">
-
-<Animatable.View  style={[
-          styles.lectureHeader,
-          isNowInLectureTime(section) && styles.nowLectureHeader, // 현재 시간이 수업 시간이라면 적용
-          isActive && styles.lectureHeaderActive, // 활성 상태라면 적용
-         ]}>
-          <View style={styles.headerRow}>
-        <Image source={ isTouched(section)? 
-                        require('@assets/images/statusBlue.png') : require('@assets/images/statusGreen.png')} // Replace with your avatar image URL
-                        style={styles.statusImage}
-                    />
-{/* <Image source={lectureClicks(section.id) > 0  ? require('@assets/images/statusBlue.png'): require('@assets/images/statusGreen.png'} style={styles.statusImage}/> */}
-          <Text style={styles.lectureHeaderText}>{section.name} </Text>
-          <Icon name={isActive ? 'down' : 'right'} size={15} color="#333" style={styles.iconStyle} />
-        </View>
-        <Text style={styles.lectureHeaderSubText}>{section.start} / {section.room} / {section.professor}</Text>
-        
-        
-        {isActive && <View style={styles.lectureContent}>
-          <View>
-            {section.content.map((item: any, index: any) => (
-              <View key={index} style={styles.checkboxContainer}>
-                <Image source={ require('@assets/icons/icon_smile.png')} style={styles.faceIcon}/>
-                <Text style={styles.contentText}>{item}</Text>
-              </View>
-            ))}
-          </View>
-          </View>
-          }
-
-        {isActive&&
-          <View>
-            <TouchableOpacity style={styles.briefingButton}
-            onPress={() => {navigation.navigate('Community', { id: section.id })}}
-              >
-                <View style={styles.navigateButtonInOneRow}>
-              <Text style={styles.briefingText}>{section.briefing}</Text>
-              <Image source={ require('@assets/icons/icon_arrow_circle.png')} style={styles.arrowIcon}/>
-                </View>
-            </TouchableOpacity>
-            </View>
-          }
-        
- </Animatable.View>
-  
-      </Animatable.View>
-    );
-  };
-
-  const renderContent = (section: any, _: any, isActive: boolean) => {
-    return null; // isActive가 false일 때는 아무것도 렌더링하지 않음
-  };
-  
-
-  const lectureId = selectedLecture?.id;
-  const currentOptions = modalOptions[lectureId] || {
-    attendance: false,
-    assignment: false,
-    announcement: false,
-    none: false,
+    callback();
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingTop: 20 }}>
-        <Accordion
-          activeSections={[activeSection]}
-          sections={todayLectures}
-          touchableComponent={TouchableOpacity}
-          expandMultiple={false}
-          renderHeader={renderHeader}
-          renderContent={renderContent}
-          duration={400}
-          onChange={handleSetSections}
-        />
-      </ScrollView>
-
-      <Modal
-        visible={showModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleCloseModal}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.headerRow}>
+    <TouchableOpacity onPress={toggleActive}>
+      <View
+        style={[itemStyles.container, active && itemStyles.activeContainer]}>
+        <View style={itemStyles.headerRow}>
+          {!voted && (
             <Image
-                        source={require('@assets/images/bellImage.png')} 
-                        style={styles.bellImage}
-                    />
-              <Text style={styles.modalTitle}>오늘 <Text style={styles.modalTitlePink}>{selectedLecture?.name}</Text>의 {'\n'}어떤 공지가 있었나요?</Text>
-            </View>
-
-            <View style={styles.questionContainer}>
-              <BouncyCheckbox style={styles.bouncyCheckbox} 
-               textStyle={styles.checkboxTextStyle} fillColor={'#ff1385'} iconStyle={styles.checkboxStyle} innerIconStyle={styles.checkboxStyle}
-              text="출석체크를 진행했어요!" onPress={() => {setCheckboxState(!checkboxState)}}/>
-            {/* <View style={styles.checkboxContainer}> */}
-              {/* <Text style={styles.checkboxLabel}>출석체크를 진행했어요!</Text> */}
-            {/* </View> */}
-
-              <BouncyCheckbox style={styles.bouncyCheckbox} 
-              textStyle={styles.checkboxTextStyle} fillColor={'#ff1385'} iconStyle={styles.checkboxStyle} innerIconStyle={styles.checkboxStyle} 
-              text="과제가 있었어요!"onPress={() => {setCheckboxState(!checkboxState)}}/>
-
-              <BouncyCheckbox style={styles.bouncyCheckbox} 
-              textStyle={styles.checkboxTextStyle} fillColor={'#ff1385'} iconStyle={styles.checkboxStyle} innerIconStyle={styles.checkboxStyle}
-              text="공지가 있었어요!" onPress={() => {setCheckboxState(!checkboxState)}}/>
-              
-              <BouncyCheckbox style={styles.bouncyCheckbox} 
-              textStyle={styles.checkboxTextStyle} fillColor={'#ff1385'} iconStyle={styles.checkboxStyle} innerIconStyle={styles.checkboxStyle}
-              text="해당사항 없음!" onPress={() => {setCheckboxState(!checkboxState)}}/> 
-           </View>
-
-            <TouchableHighlight style={styles.submitButton} onPress={handleCloseModal}>
-              <Text style={styles.submitButtonText}>제출하기</Text>
-            </TouchableHighlight>
-          </View>
+              source={require('@assets/icons/warn_circle.png')}
+              style={[itemStyles.statusIcon]}
+            />
+          )}
+          <Text style={itemStyles.titleText}>{course.course_name}</Text>
+          <Animated.Image
+            source={require('@assets/icons/arrow_right.png')}
+            style={[styles.iconStyle, {transform: [{rotate: spin}]}]}
+          />
         </View>
-      </Modal>
+        <Text style={itemStyles.subTitleText}>
+          {course.start + ' / '}
+          {course.course_room + ' / '}
+          {course.instructor}
+        </Text>
+        {expand && (
+          <View>
+            <View style={itemStyles.briefingContainer}>
+              <View style={itemStyles.briefingTextContainer}>
+                <Image
+                  source={require('@assets/icons/smile_circle.png')}
+                  style={itemStyles.smileIcon}
+                />
+                <Text style={itemStyles.briefingText}>
+                  출석을 자주 부르는 과목이에요.
+                </Text>
+              </View>
+              <View style={itemStyles.briefingTextContainer}>
+                <Image
+                  source={require('@assets/icons/smile_circle.png')}
+                  style={itemStyles.smileIcon}
+                />
+                <Text style={itemStyles.briefingText}>
+                  지난 시간에 과제 공지가 있었어요.
+                </Text>
+              </View>
+              <View style={itemStyles.briefingTextContainer}>
+                <Image
+                  source={require('@assets/icons/smile_circle.png')}
+                  style={itemStyles.smileIcon}
+                />
+                <Text style={itemStyles.briefingText}>
+                  지난 시간에 휴강 공지가 있었어요.
+                </Text>
+              </View>
+            </View>
+            <View>
+              <TouchableOpacity
+                style={itemStyles.navigateContainer}
+                onPress={() => {
+                  navigation.navigate('Community', {course: course});
+                }}>
+                <View style={itemStyles.navigateButton}>
+                  <Text style={itemStyles.navigateText}>게시글 확인하기</Text>
+                  <Image
+                    source={require('@assets/icons/arrow_right_circle.png')}
+                    style={itemStyles.arrowIcon}
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
+};
 
+const Separator = () => <View style={styles.separator} />;
+
+const DailyTimetableScreen = () => {
+  const [activeCourse, setActiveCourse] = useState<number>(-1);
+  const [selectedCourse, setSelectedCourse] = useState<number>(-1);
+  const [courses, setCourses] = useState<CourseBlock[]>([]);
+  const [showModal, setShowModal] = useState(false);
+
+  const handleCloseModal = () => setShowModal(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await fetchTimetableData();
+      if (result) {
+        const coursesByDay = groupByDay(result.courses);
+        setCourses(coursesByDay[getDay()]);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const time = new Date(2024, 9, 10, 10, 15);
+      const now = parseTime(time);
+      // for (let i = 0; i < courses.length; i++) { // 여기 에러떠서 주석처리해둠
+      //   if (parseTime(courses[i].end) > now) {
+      //     setActiveCourse(i);
+      //     break;
+      //   }
+      // }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [courses]);
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        style={styles.scrollView}
+        ItemSeparatorComponent={Separator}
+        bounces={false}
+        data={courses}
+        renderItem={({item, index}: {item: CourseBlock; index: number}) => (
+          <CourseItem
+            course={item}
+            showDialog={() => setShowModal(true)}
+            active={activeCourse === index}
+            expand={selectedCourse === index}
+            callback={() => {
+              if (selectedCourse === index) {
+                setSelectedCourse(-1);
+              } else {
+                setSelectedCourse(index);
+              }
+            }}
+          />
+        )}
+      />
+      {selectedCourse !== -1 && (
+        <PollsModal
+          course={courses[selectedCourse]}
+          visible={showModal}
+          onClose={handleCloseModal}
+        />
+      )}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+export default DailyTimetableScreen;
+
+const itemStyles = StyleSheet.create({
+  container: {
+    backgroundColor: Colors.ui.background,
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.ui.background,
+    ...GlobalStyles.shadow,
+  },
+  activeContainer: {
+    borderColor: Colors.ui.primary,
+    borderWidth: 1,
+    backgroundColor: Colors.primary[50],
+  },
+  statusIcon: {
+    width: FontSizes.large,
+    height: FontSizes.large,
+    marginRight: 10,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-
+    marginBottom: 4,
   },
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    width: '100%',
-    height: '100%',
-    padding: 10,
-
+  titleText: {
+    paddingRight: 6,
+    textAlign: 'center',
+    fontSize: FontSizes.xLarge,
+    ...GlobalStyles.boldText,
   },
-  lectureContainer: {
-    backgroundColor: '#FFF',
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-    borderColor: '#FFF',
-    borderWidth: 1,
+  subTitleText: {
+    fontSize: FontSizes.medium,
+    color: Colors.text.gray,
+    ...GlobalStyles.text,
   },
-  lectureHeader: {
-    backgroundColor: '#FFF',
-    padding: 7,
-    borderRadius: 10,
-    marginVertical: 5,
-    marginHorizontal: 3,
-    borderColor: '#FFF',
-    borderWidth: 2.5,
-    height: 85,
-    elevation: 8,
-    overflow: 'hidden',
-  },
-  nowLectureHeader: {
-    backgroundColor: '#FFE7F3',
-    padding: 7,
-    borderRadius: 10,
-    marginVertical: 5,
-    borderColor: '#FF1485',
-    borderWidth: 1.5,
-    height: 85,
-    elevation: 8,
-    overflow: 'hidden',
-    
-  },
-  lectureHeaderActive: {
-    backgroundColor: '#FFE7F3',
-    borderColor: '#FF1485',
-    height: 290,
-    overflow: 'hidden',
-  },
-  lectureHeaderText: {
-    paddingVertical: 1,
-    paddingLeft: 10,
-    textAlign: 'left',
-    fontSize: 18,
-    fontWeight: '700',
-    marginVertical: 5,
-    color: '#333',
-    marginRight: 3,
-  },
-  lectureHeaderSubText: {
-    paddingLeft: 10,
-    textAlign: 'left',
-    fontSize: 14,
-    fontWeight: '400',
-    marginVertical: 1,
-    color: '#666',
-  },
-  lectureContent: {
-    backgroundColor: '#FFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#FF4081',
+  briefingContainer: {
+    backgroundColor: Colors.ui.background,
     marginTop: 12,
-    paddingVertical: 10,
-    height: 140,
-    borderColor: '#EDB5D0',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderColor: Colors.primary[100],
     borderWidth: 1,
     borderRadius: 10,
-    overflow: 'hidden',
   },
-  briefingButton: {
+  smileIcon: {
+    width: FontSizes.large,
+    height: FontSizes.large,
+    marginRight: 8,
+  },
+  briefingTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  briefingText: {
+    fontSize: FontSizes.large,
+    ...GlobalStyles.text,
+  },
+  navigateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  arrowIcon: {
+    width: FontSizes.xLarge,
+    height: FontSizes.xLarge,
+    marginLeft: 8,
+  },
+  navigateText: {
+    fontSize: FontSizes.xLarge,
+    ...GlobalStyles.boldText,
+  },
+  navigateContainer: {
     marginTop: 8,
-    padding: 10,
-    backgroundColor: '#FFF',
-    borderColor: '#EDB5D0',
+    padding: 12,
+    backgroundColor: Colors.ui.background,
+    borderColor: Colors.primary[100],
     borderRadius: 10,
     borderWidth: 1,
-    height: 53,
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
-  briefingText: {
-    color: '#2D0519',
-    fontWeight: '700',
-    fontSize: 16,
+});
+
+const styles = StyleSheet.create({
+  separator: {
+    height: 12,
+  },
+  scrollView: {
+    padding: 12,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: Colors.ui.background,
   },
   activeLectureContent: {
     backgroundColor: '#EF478E',
@@ -368,19 +353,16 @@ const styles = StyleSheet.create({
   inactiveLectureContent: {
     backgroundColor: '#FFE6E6',
   },
-  questionContainer:{
-    borderColor: "white",
-    borderWidth: 1,
+  questionContainer: {
+    borderWidth: 2,
     borderRadius: 10,
-    backgroundColor: "white",
+    borderColor: Colors.ui.disabled,
     padding: 9,
-    shadowColor: '#000', // 그림자 색상
-    shadowOffset: { width: 0, height: 0 }, // 그림자 오프셋
-    shadowOpacity: 0.25, // 그림자 투명도
-    shadowRadius: 3, // 그림자 반경
-
-    // Android 그림자 설정
-    elevation: 3, // 그림자 강도 (Android에서는 elevation으로 설정)
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -388,9 +370,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     paddingLeft: 12,
     paddingVertical: 7,
-  },
-  checkbox: {
-    marginRight: 10,
   },
   contentText: {
     flex: 1,
@@ -402,34 +381,28 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-  modalContainer: { //modal 뒷 배경
+  modalContainer: {
     flex: 1,
-    borderRadius: 0, 
+    borderRadius: 10,
+    marginHorizontal: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(121,111,116,0.95)',
   },
   modalContent: {
+    width: '100%',
     padding: 20,
-    width: '80%',
     borderRadius: 10,
-    backgroundColor: '#FFF',
-    shadowColor: 'rgba(169, 130, 152, 0.25)',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 15,
-    elevation: 5,
+    backgroundColor: Colors.ui.background,
+    ...GlobalStyles.shadow,
   },
   modalTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: 'black',
-    marginBottom: 10,
-    textAlign: 'left',
-    alignSelf: 'flex-start',
+    flex: 1,
+    fontSize: FontSizes.xLarge,
+    alignSelf: 'center',
     paddingLeft: 8,
+    ...GlobalStyles.boldText,
   },
-  modalTitlePink:{
+  modalTitlePink: {
     fontSize: 17,
     fontWeight: '700',
     color: '#E8036E',
@@ -459,55 +432,41 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   iconStyle: {
-    marginTop: 3,
+    width: 18,
+    height: 18,
+    tintColor: Colors.text.gray,
   },
-  statusImage:{
+  statusImage: {
     marginLeft: 9,
     marginTop: 5,
   },
-  bellImage: {
-    marginBottom: 10, 
+  bellIcon: {
+    width: 48,
+    height: 48,
+    justifyContent: 'center',
   },
-  bouncyCheckbox:{
+  bouncyCheckbox: {
     padding: 8,
   },
-  checkboxTextStyle:{
+  checkboxTextStyle: {
     color: '#010101',
     fontWeight: '500',
     fontSize: 15,
-    textDecorationLine: "none",
+    textDecorationLine: 'none',
     fontFamily: 'Pretendard',
     padding: 1,
     marginBottom: 1,
   },
-  checkboxStyle:{
+  checkboxStyle: {
     borderRadius: 0,
     borderBlockColor: '#ff1385',
     width: 18,
     height: 18,
   },
-  faceIcon:{
-    width: 18, 
+  faceIcon: {
+    width: 18,
     height: 18,
     marginRight: 9,
     marginTop: 3,
-    
   },
-  navigateButtonInOneRow:{
-    flexDirection: 'row', 
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-
-  },
-  arrowIcon:{
-    width: 18, 
-    height: 18,
-    marginRight: 9,
-    marginTop: 3,
-    marginLeft: 9,
-
-
-  }
 });
-
-export default App;

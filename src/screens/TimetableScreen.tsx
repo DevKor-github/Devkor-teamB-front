@@ -7,13 +7,13 @@ import {
   Image,
   ImageSourcePropType,
   Dimensions,
+  ScrollView,
 } from 'react-native';
-import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import WeeklyTimetableScreen from '@screens/Timetable/WeeklyTimetableScreen';
+import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {ScrollView} from 'react-native-gesture-handler';
 
 enum ViewMode {
   Daily,
@@ -44,6 +44,14 @@ class DateUtil {
   public toString(): string {
     const label = ['일', '월', '화', '수', '목', '금', '토'];
     return `${this.month}월 ${this.date}일 ${label[this.day]}요일`;
+  }
+
+  public equals(other: DateUtil): boolean {
+    return (
+      this.month === other.month &&
+      this.date === other.date &&
+      this.day === other.day
+    );
   }
 }
 
@@ -81,16 +89,12 @@ const NavigationButton = ({
 const NavigationRow = ({
   mode,
   onClick,
+  date,
 }: {
   mode: ViewMode;
   onClick: Function;
+  date: DateUtil;
 }) => {
-  const [date, setDate] = useState(DateUtil.getInstance());
-  useEffect(() => {
-    const interval = setInterval(() => setDate(DateUtil.getInstance()), 1000);
-    return () => clearInterval(interval);
-  }, [date]);
-
   return (
     <View style={navigationStyles.container}>
       <View style={GlobalStyles.row}>
@@ -130,12 +134,12 @@ const TimetableHeader = () => {
               source={require('@assets/icons/bell.png')}
             />
           </TouchableOpacity>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Image
               style={headerStyles.icon}
               source={require('@assets/icons/setting.png')}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </SafeAreaView>
@@ -144,8 +148,20 @@ const TimetableHeader = () => {
 
 const TimetableScreen = () => {
   const [viewMode, setViewMode] = useState(ViewMode.Daily);
+  const [currentDate, setCurrentDate] = useState(DateUtil.getInstance());
   const scrollViewRef = useRef<ScrollView | null>(null);
   const width = Dimensions.get('window').width;
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newDate = DateUtil.getInstance();
+      if (!currentDate.equals(newDate)) {
+        setCurrentDate(newDate);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [currentDate]);
+
   const handleScroll = (event: any) => {
     const offset = event.nativeEvent.contentOffset.x;
     const index = Math.round(offset / width);
@@ -157,6 +173,7 @@ const TimetableScreen = () => {
       <TimetableHeader />
       <NavigationRow
         mode={viewMode}
+        date={currentDate}
         onClick={(mode: ViewMode) => {
           scrollViewRef.current?.scrollTo({x: mode * width, animated: true});
         }}
@@ -183,8 +200,7 @@ const TimetableScreen = () => {
 const navigationStyles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 8,
+    marginTop: 28,
     alignItems: 'center',
     justifyContent: 'space-between',
     ...GlobalStyles.row,
@@ -219,8 +235,8 @@ const headerStyles = StyleSheet.create({
     borderBottomLeftRadius: 20,
   },
   container: {
+    height: 64,
     paddingHorizontal: 16,
-    paddingVertical: 12,
     alignItems: 'center',
     ...GlobalStyles.row,
   },

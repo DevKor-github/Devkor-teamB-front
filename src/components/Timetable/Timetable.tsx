@@ -15,6 +15,7 @@ import {
   convertTo12HourFormat,
   convertToSlot,
   getCourseSlot,
+  DEFAULT_SLOT_COUNT,
 } from '@components/Timetable/TimetableUtils';
 
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
@@ -31,6 +32,7 @@ interface TimetableProps {
   onPress: Function;
   candidate?: Course;
   scrollable?: boolean;
+  slotCount?: number;
 }
 
 const TimetableHeader = ({labels}: {labels: string[]}) => {
@@ -152,7 +154,9 @@ const Timetable: React.FC<TimetableProps> = ({
   candidate,
   scrollable = false,
 }) => {
-  const maxHeight = scrollable ? slotHeight * 7 + labelSize + 4 : null;
+  const maxHeight = scrollable
+    ? slotHeight * DEFAULT_SLOT_COUNT + labelSize + 4
+    : null;
   const scrollViewRef = useRef<ScrollView | null>(null);
 
   useEffect(() => {
@@ -218,8 +222,8 @@ const clickableLectureStyle = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     padding: 4,
-    backgroundColor: Colors.ui.secondary,
-    opacity: 0.5,
+    backgroundColor: Colors.ui.disabled,
+    opacity: 0.9,
   },
 });
 
