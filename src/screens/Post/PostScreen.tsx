@@ -13,7 +13,7 @@ import {
   Modal,
   KeyboardAvoidingView,
 } from 'react-native';
-import {Comment, Post, Attachment, Tag} from '@src/Types';
+import {Comment, Post, Attachment, Tag, UserInfo} from '@src/Types';
 import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
@@ -24,121 +24,379 @@ import DocumentPicker from 'react-native-document-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
+import { CommentTextField, CommentContainer } from './Comment';
+import {API_URL} from '@env';
 
 
-function CommentTextField({ addComment, postId }: { addComment: (comment: Comment) => void, postId: number}) {
-  const [text, setText] = useState('');
-  const [inputHeight, setInputHeight] = useState(20);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const placeholder = '첫 댓글 작성 시 포인트 3배 적립';
 
-  const handleAddComment = async () => {
-    const commentData = {
-      content: text,
-      is_chosen: false,
-      post: postId, 
-      student: 1, // 하드코딩
-    }
-    
-    if(text.trim().length>0){
-      const API_URL = "http://3.37.163.236:8000/"
-      try{
-        const token = await AsyncStorage.getItem('userToken')
-        const nickname = await AsyncStorage.getItem('userNickname')
-        
-        // 예외처리
-        if (!token || !nickname) {
-          console.error('Error: token or userId is null');
-          return;
-        }
-        const response = await axios.post(`${API_URL}/comments/`,commentData,
-          {
-            headers: {
-              authorization: `token ${token}`,
-            },
-          },
-        );
+interface PostScreenProps {
+  route: any;
+  navigation: any;
+}
 
-        const newComment: Comment = {
-          commentId: response.data.id,
-          author: nickname,
-          content: response.data.content,
-          date: response.data.created_at,
-          updatedDate: response.data.updated_at,
-          isChosen: response.data.is_chosen,
-          postId: response.data.post,
-        }
-        addComment(newComment);
-        setText('');
-        setInputHeight(20);
-        setAttachments([]);
-      } catch (error) {
-        console.error(error)
+const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
+  const post: Post = route.params.post;
+  const lectureName: string = route.params.lecture;
+  const author: UserInfo = new UserInfo(
+    post.author.id,
+    post.author.name,
+    post.author.profile,
+  );
+  const [postState, setPostState] = useState(post);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isLikeModalVisible, setIsLikeModalVisible] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [images, setImages] = useState<Attachment[]>([]);
+  const [files, setFiles] = useState<Attachment[]>([]);
+
+  useEffect(()=>{
+    console.log("\n\nPostScreen입니다")
+    console.log("넘어온 post : ",post)
+    console.log("넘어온 lectureName : ",lectureName)
+    console.log("author:",author)
+    fetchComments(post.postId)
+    setTags(post.tags)
+    sortAttachments(post.attachments)
+    // console.log(post.attachments)
+  },[]) 
+
+
+  const sortAttachments = (attachments: Attachment[]) => {
+    console.log("attachments:",attachments)
+    const images: Attachment[] = [];
+    const files: Attachment[] = [];
+    attachments.forEach(attachment => {
+      // console.log(attachment.type)
+      if(attachment.type.startsWith('image')){
+        images.push(attachment)
       }
+      else{
+        files.push(attachment)
+      }
+    });
+    setImages(images);
+    setFiles(files); 
+  }
+
+  const fetchComments = async (postId:number) => {
+    try{
+      const token = await AsyncStorage.getItem('userToken')
+      const response = await axios.get(`${API_URL}/comments/`,  
+        {
+          params: {
+            post_id: postId
+          },
+          headers: {
+            authorization: `token ${token}`,
+          },
+        },
+      );
+
+      const commentIds = response.data.map((comment: any) => comment.id);
+      // 모든 comment ID에 대해 content를 가져오기 위한 비동기 요청 배열 생성
+      const contentPromises = commentIds.map(async (commentId: number) => {
+        const commentResponse = await axios.get(`${API_URL}/comments/${commentId}/`, {
+          headers: {
+            authorization: `token ${token}`,
+          },
+        });
+        // console.log(commentResponse)
+        const fetchedComment : Comment = {
+          commentId: commentResponse.data.id,
+          author: commentResponse.data.author.nickname,
+          content: commentResponse.data.content,
+          date: commentResponse.data.created_at,
+          updatedDate: commentResponse.data.updated_at,
+          // isChosen: commentResponse.data.is_chosen,
+          isChosen: false,
+          postId: commentResponse.data.parent_post.id
+        }
+        return fetchedComment;
+      });
+
+      // 모든 요청이 완료되기를 기다림
+      const comments = await Promise.all(contentPromises);
+      setComments(comments)
+    } catch (error) {
+      console.error('Error fetching comments:', error);
     }
   }
 
-  const handleSelectAttachment = () => {
-    launchImageLibrary({ mediaType: 'mixed', selectionLimit: 3 }, (response) => {
-      if (response.assets) {
-        const newAttachments = response.assets.map(asset => ({
-          uri: asset.uri,
-          name: asset.fileName,
-          type: asset.type,
-        } as Attachment));
-        setAttachments([...attachments, ...newAttachments]);
-      }
-    });
+  const addComment = (newComment: Comment) => {
+    setComments([newComment, ...comments]);
+    console.log(newComment)
   };
 
-  const handleRemoveAttachment = (uri: string) => {
-    setAttachments(attachments.filter(attachment => attachment.uri !== uri));
+  const toggleMenu = () => {
+    if(!isModalVisible){
+      setIsModalVisible(!isModalVisible);
+    }
+    if(isLikeModalVisible){
+      setIsLikeModalVisible(!isLikeModalVisible);
+    }
   };
+  const onPressModalClose = () => {
+    if(isModalVisible){
+      setIsModalVisible(false);
+    }
+    if(isLikeModalVisible){
+      setIsLikeModalVisible(false);
+    }
+  };
+
+  const handleDeletePost = () => {
+    deletePost();
+    setIsModalVisible(false);
+  };
+
+  const handleDeleteComment = () => {
+    console.log('delete comment')
+    fetchComments(post.postId)
+  }
+
+  const handlePostEdit = () => {
+    console.log(post)
+    navigation.navigate('PostEditScreen', {post: post, lectureName: lectureName});
+  }
+
+  const deletePost = () =>
+    Alert.alert('게시글을 삭제하시겠습니까?', '', [
+      {
+        text: '취소',
+        style: 'cancel',
+      },
+      {
+        text: '삭제하기',
+        style: 'default',
+        onPress: async () => {
+          // 삭제 로직
+          const token = await AsyncStorage.getItem('userToken')
+          try{
+            const response = await axios.delete(`${API_URL}/posts/${post.postId}/`,
+              {
+                headers: {
+                  authorization: `token ${token}`,
+                },
+              },
+            );
+            console.log("게시글 삭제: ",response.data)
+            navigation.goBack()
+
+          } catch(error) {
+            console.error(error)
+          }
+
+        }
+      },
+    ]);
+
+    const handlePressLike = async () => {
+      try{
+        setIsLikeModalVisible(true);
+        post.likes += 1;
+        setPostState({ ...postState, likes: post.likes });
+        console.log('poststate:',postState)
+        setIsLikeModalVisible(false);
+  
+        // 서버에 동기화 요청
+        const token = await AsyncStorage.getItem('userToken')
+        console.log(post.title) // Test2
+        console.log(post.content) // 테스트입니다
+        console.log(post.postId) // 37
+        const response = await axios.patch(`${API_URL}/posts/${post.postId}/`, 
+          { title: post.title,
+            content: post.content,
+            course_fk: post.postId,
+            student: post.postId,
+            id: post.postId,
+            likes: post.likes }, 
+          { headers: { authorization: `token ${token}`,}},
+        );
+        console.log(response)
+      } catch(error){
+        console.error(error)
+      }
+
+    }
+
+    useEffect(() => {
+      navigation.setOptions({title: lectureName});
+    }, [lectureName,navigation]);
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <View style={styles.inner}>
-          <View style={[styles.textfield,{height:inputHeight+25}]}>
-            <TextInput
-              style={{flex: 1,paddingHorizontal:10,color:'#000',height:inputHeight}}
-              onChangeText={setText}
-              onContentSizeChange={(e)=>setInputHeight(e.nativeEvent.contentSize.height)}
-              value={text}
-              placeholder={placeholder}
-              multiline
+    <SafeAreaView style={{height: 850}}>
+      <>
+        <ScrollView
+          style={{
+            paddingHorizontal: 16,
+            marginBottom: 50,
+            backgroundColor: 'white',
+          }}>
+          <View style={style.userArea}>
+            <Image // 수정 필요..
+              source={{uri: `${author.profile}`}}
+              style={{
+                width: 52,
+                height: 51,
+                flexShrink: 0,
+                borderRadius: 25,
+                alignSelf: 'flex-start'
+              }}
             />
-            <View>
-              <TouchableOpacity onPress={handleAddComment}>
-                <Icon name="send" size={18} color={Colors.ui.primary} />
+
+            <View style={style.userArea2}>
+              <Text style={{color: '#3D3D3D', fontSize: 16, fontWeight: '500'}}>
+                {post.author.name}
+              </Text>
+              <View style={style.userArea3}>
+                <View style={{...GlobalStyles.row,gap:5,flexWrap:'wrap'}}>
+                  {tags.map(tag => (
+                      <View style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
+                          <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
+                      </View>
+                  ))}
+                </View>
+              </View>
+            </View>
+
+            <TouchableOpacity style={{justifyContent:'center',right:0,position:'absolute'}} onPress={toggleMenu}>
+              <Icon name="more-vertical" size={24} color="#3D3D3D" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={style.postArea}>
+            <Text style={style.postTitle}>{post.title}</Text>
+
+            <View style={style.postContentArea}>
+              <Text style={style.postContent}>{post.content}</Text>
+            </View>
+
+            {images.length > 0 && (
+              <View style={[style.postPhotoArea, { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center'}]}>
+                {images.map((image: Attachment, index: number) => (
+                  <Image
+                    key={index}
+                    source={{ uri: `${API_URL}/${image.uri}` }}
+                    style={{
+                      width: 94,
+                      height: 94,
+                      borderRadius: 9,
+                      marginLeft: 4,
+                      marginBottom: 2, // 줄 간격
+                    }}
+                  />
+                ))}
+              </View>
+            )}
+
+
+            {files.length>0 && (
+              <View style={style.postPhotoArea}>
+                {files.map((file:Attachment, index: number)=>(
+                  <Text style={{fontStyle:'italic'}}>{index+1}: {file.name.substring(12,)}</Text>
+                ))}
+              </View>
+            )}
+
+          </View>
+
+          {/* 게시글 더보기 모달 */}
+          <View style={{marginTop: 10}}>
+            <Modal
+              visible={isModalVisible}
+              transparent={true}
+              onRequestClose={toggleMenu}>
+              <TouchableOpacity
+                onPressOut={onPressModalClose}
+                activeOpacity={1}
+                style={style.overlay}
+              >
+                <View style={style.menu}>
+                  <TouchableOpacity
+                    onPress={handlePostEdit}
+                    style={[style.menuItem,{borderBottomColor:Colors.text.lightgray,borderBottomWidth:1,paddingBottom: 10}]}>
+                    <Text>수정하기</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleDeletePost} style={style.menuItem}>
+                    <Text style={{color:Colors.primary[500]}}>삭제하기</Text>
+                  </TouchableOpacity>
+                </View>
               </TouchableOpacity>
-              {/* <TouchableOpacity onPress={handleSelectAttachment}>
-                <Icon name="image" size={18} color={Colors.ui.primary} />
-              </TouchableOpacity> */}
+            </Modal>
+          </View>
+
+          {/* 공감 모달 */}
+          <View>
+            <Modal
+              visible={isLikeModalVisible}
+              transparent={true}
+              onRequestClose={toggleMenu}>
+              <TouchableOpacity
+                onPressOut={onPressModalClose}
+                activeOpacity={1}
+                style={style.overlay}
+              >
+                <View style={style.menu_like}>
+                  <Text style={{fontSize: 16}}>해당 게시글에 공감하시겠어요?</Text>
+                  <View style={{flexDirection:'row', justifyContent:'space-between'}}>
+                    <TouchableOpacity onPress={()=>setIsLikeModalVisible(false)}>
+                      <Text>취소</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handlePressLike}>
+                      <Text style={{color:Colors.primary[500]}}>확인</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </View>
+
+
+          <View style={style.buttonArea}>
+            {/* 왼쪽 정렬된 버튼 */}
+            <View style={{ flexDirection: 'row', flex: 1 }}>
+              <TouchableOpacity style={[style.button, { flexDirection: 'row', alignItems: 'center', marginRight: 10 }]} onPress={()=>setIsLikeModalVisible(true)}>
+                <Icon2 name="thumb-up" size={14} color="#ff1485" />
+                <Text style={{ color: '#4D4D4D', fontSize: 12, fontWeight: '500', marginLeft: 5 }}>
+                  공감
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[style.button, { flexDirection: 'row', alignItems: 'center' }]}>
+                <Icon3 name="star" size={14} color="#ff1485" />
+                <Text style={{ color: '#4D4D4D', fontSize: 12, fontWeight: '500', marginLeft: 5 }}>
+                  스크랩
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 오른쪽 정렬된 텍스트 */}
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1, alignItems: 'center'}}>
+              <Text style={{ marginLeft: 10, color: '#4D4D4D', fontSize: 12 }}>조회 {post.views}</Text>
+              <Text style={{ marginLeft: 10, color: '#4D4D4D', fontSize: 12 }}>댓글 {comments.length}</Text>
+              <Text style={{ marginLeft: 10, color: '#4D4D4D', fontSize: 12 }}>공감 {post.likes}</Text>
             </View>
           </View>
-          {/* <View style={styles.attachmentPreviewContainer}>
-            {attachments.map(attachment => (
-              <View key={attachment.uri} style={[styles.attachmentWrapper,{paddingBottom: inputHeight}]}>
-                {attachment.type.startsWith('image/') ? (
-                  <Image source={{ uri: attachment.uri }} style={styles.previewImage} />
-                ) : (
-                  <Text style={styles.fileName}>{attachment.name}</Text>
-                )}
-                <TouchableOpacity onPress={() => handleRemoveAttachment(attachment.uri)} style={styles.removeButton}>
-                  <Icon name="x" size={18} color="white" />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View> */}
-      </View>
-    </KeyboardAvoidingView>
+
+          {comments.map(comment => (
+            <View style={{marginTop: 10}}>
+              <CommentContainer key={comment.commentId} comment={comment} handleDeleteComment={handleDeleteComment}/>
+            </View>
+          ))}
+          <View style={{height:90}}></View>
+        </ScrollView>
+        <CommentTextField 
+          addComment={addComment}
+          postId={post.postId}
+        />
+      </>
+    </SafeAreaView>
   );
 }
+export default PostScreen;
 
-const styles = StyleSheet.create({
+
+export const styles = StyleSheet.create({
   container: {
     // flex: 1,
     // paddingBottom: 700,
@@ -209,509 +467,7 @@ const styles = StyleSheet.create({
 })
 
 
-function CommentContainer({comment, handleDeleteComment}: {comment: Comment, handleDeleteComment: (commentId:number)=>void}) {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isBlurVisible, setIsBluerVisible] = useState(true);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
-  const moreButtonRef = useRef<TouchableOpacity>(null);
-  const [point, setPoint] = useState(40); // 샘플
-  const date = new Date(comment.date)
-
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); 
-  const day = String(date.getDate()).padStart(2, '0'); 
-  const hours = String(date.getHours()).padStart(2, '0'); 
-  const minutes = String(date.getMinutes()).padStart(2, '0'); 
-  
-
-  const onPressModalClose = () => {
-    setIsModalVisible(false);
-  };
-
-  const toggleMenu = () => {
-    setIsModalVisible(!isModalVisible);
-    console.log(comment);
-  };
-
-  const onPressMore = () => {
-    if(moreButtonRef.current){
-        moreButtonRef.current.measure((fx:any, fy:any, width:any, height:any, px:any, py:any) => {
-          setMenuPosition({ top: py + height, left: px - 178 + width });
-          toggleMenu();
-        });
-    }
-
-  }
-
-  const handleDelete =  () => {
-    Alert.alert('댓글을 삭제하시겠습니까?','',[
-      {
-        text: '취소',
-        style: 'cancel'
-      },
-      {
-        text: '삭제하기',
-        style: 'destructive',
-        onPress: async () => {
-          // 삭제 로직
-          const API_URL = "http://3.37.163.236:8000/"
-          const token = await AsyncStorage.getItem('userToken')
-          try{
-            const response = await axios.delete(`${API_URL}/comments/${comment.commentId}/`,
-              {
-                headers: {
-                  authorization: `token ${token}`,
-                },
-              },
-            );
-            if(response.status==204){
-              Alert.alert('삭제되었습니다','',[
-                {
-                  text: '확인',
-                  style: 'cancel'
-                }
-              ])
-              handleDeleteComment(comment.commentId);
-            }
-            // console.log('deleted')
-          } catch(error) {
-            console.error(error)
-          }
-
-        }
-      }
-    ])
-  }
-
-  const toggleBlur = (point:number) => {
-    Alert.alert('포인트를 사용하시겠습니까?',`현재 보유 포인트: ${point}`,[
-      {
-        text: '취소',
-        style: 'cancel'
-      },
-      {
-        text: '사용하기',
-        style: 'default',
-        onPress: () => {
-          setIsBluerVisible(false);
-          // 포인트 사용 로직
-        }
-      }
-    ])
-  };
-
-  return (
-    <View>
-      <View style={style.userArea}>
-        <Image
-          // source={{uri:post.author.profile}}
-          source={require('@assets/images/hamster.png')} // 여기 수정 필요 (지금 하드코딩..)
-          style={{width: 38, height: 36, borderRadius: 25}}
-        />
-
-        <View style={style.userArea2_comment}>
-          <Text style={{color: '#3D3D3D', fontSize: 14, fontWeight: '500'}}>{comment.author}</Text>
-          <View style={style.userArea3_comment}>
-            {/* <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{comment.date.substring(0,10)}</Text> */}
-            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{month}/{day}</Text>
-            <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{hours}:{minutes}</Text>
-          </View>
-        </View>
-
-        <TouchableOpacity ref={moreButtonRef} style={{marginLeft: 210}} onPress={onPressMore}>
-          <Icon name="more-vertical" size={24} color="#3D3D3D" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={{marginTop: 10}}>
-        <Modal
-          visible={isModalVisible}
-          transparent={true}
-          onRequestClose={toggleMenu}>
-          <TouchableOpacity
-            onPressOut={onPressModalClose}
-            activeOpacity={1}
-            style={style.overlay}
-          >
-            <View style={[style.menu_comment,menuPosition]}>
-              <TouchableOpacity style={style.menuItem} onPress={handleDelete}>
-                <Text style={{color:Colors.primary[500]}}>삭제하기</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </Modal>
-      </View>
-
-      <View style={style.commentArea}>
-
-        <Text style={style.comment}>
-          {comment.content}
-        </Text>
-        {/* {comment.attachments.map((attachment: Attachment, index: number) => (
-          <Image
-            key={index}
-            source={{ uri: attachment.uri }}
-            style={{ width: 82, height: 82, borderRadius: 9 }}
-          />
-        ))} */}
-
-        {isBlurVisible && (
-          <View style={style.commentArea_Blur}>
-            <Text style={style.text_Blur}>포인트 사용하고 댓글 보기</Text>
-            <TouchableOpacity onPress={()=>toggleBlur(point)} style={style.button_Blur}>
-              <Text style={style.buttonText_Blur}>사용하기</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      <View style={style.buttonArea}>
-        <TouchableOpacity style={style.button}>
-          <Icon2 name="thumb-up" size={14} color="#ff1485" />
-          <Text
-            style={{
-              color: '#4D4D4D',
-              fontSize: 12,
-              fontWeight: '500',
-              marginLeft: 5,
-            }}>
-            19
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={style.button}>
-          <Icon2 name="comment" size={14} color="#ff1485" />
-          <Text
-            style={{
-              color: '#4D4D4D',
-              fontSize: 12,
-              fontWeight: '500',
-              marginLeft: 5,
-            }}>
-            12
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={style.button}>
-          <Icon name="smile" size={14} color="#8012F1" />
-          <Text style={{color: '#8012F1', fontSize: 12, fontWeight: '500'}}>
-            채택
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
-
-interface PostScreenProps {
-  route: any;
-  navigation: any;
-}
-
-
-const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
-  const post: Post = route.params.post;
-  const lectureName: string = route.params.lecture;
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [images, setImages] = useState<Attachment[]>([]);
-  const [files, setFiles] = useState<Attachment[]>([]);
-
-  useEffect(()=>{
-    console.log("\n\nPostScreen입니다")
-    console.log("넘어온 post : ",post)
-    console.log("넘어온 lectureName : ",lectureName)
-    fetchComments(post.postId)
-    setTags(post.tags)
-    sortAttachments(post.attachments)
-    console.log(images)
-  },[])
-
-
-  const sortAttachments = (attachments: Attachment[]) => {
-    console.log(attachments)
-    const images: Attachment[] = [];
-    const files: Attachment[] = [];
-    attachments.forEach(attachment => {
-      console.log(attachment.type)
-      if(attachment.type.startsWith('image')){
-        images.push(attachment)
-      }
-      else{
-        files.push(attachment)
-      }
-    });
-    setImages(images);
-    setFiles(files); 
-  }
-
-
-  const fetchComments = async (postId:number) => {
-    const API_URL = "http://3.37.163.236:8000/"
-    try{
-      const token = await AsyncStorage.getItem('userToken')
-      const response = await axios.get(`${API_URL}/comments/`,  
-        {
-          params: {
-            post_id: postId
-          },
-          headers: {
-            authorization: `token ${token}`,
-          },
-        },
-      );
-
-      const commentIds = response.data.map((comment: any) => comment.id);
-      // 모든 comment ID에 대해 content를 가져오기 위한 비동기 요청 배열 생성
-      const contentPromises = commentIds.map(async (commentId: number) => {
-        const commentResponse = await axios.get(`${API_URL}/comments/${commentId}/`, {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        });
-        // console.log(commentResponse)
-        const fetchedComment : Comment = {
-          commentId: commentResponse.data.id,
-          author: commentResponse.data.author.nickname,
-          content: commentResponse.data.content,
-          date: commentResponse.data.created_at,
-          updatedDate: commentResponse.data.updated_at,
-          // isChosen: commentResponse.data.is_chosen,
-          isChosen: false,
-          postId: commentResponse.data.parent_post.id
-        }
-        return fetchedComment;
-      });
-
-      // 모든 요청이 완료되기를 기다림
-      const comments = await Promise.all(contentPromises);
-      setComments(comments)
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    }
-  }
-
-  const addComment = (newComment: Comment) => {
-    setComments([newComment, ...comments]);
-    console.log(newComment)
-  };
-
-  const toggleMenu = () => {
-    setIsModalVisible(!isModalVisible);
-  };
-  const onPressModalClose = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleDeletePost = () => {
-    deletePost();
-    setIsModalVisible(false);
-  };
-
-  const handleDeleteComment = () => {
-    console.log('delete comment')
-    fetchComments(post.postId)
-  }
-
-  const handlePostEdit = () => {
-    console.log(post)
-    navigation.navigate('PostEditScreen', {post: post, lectureName: lectureName});
-  }
-
-  const deletePost = () =>
-    Alert.alert('게시글을 삭제하시겠습니까?', '', [
-      {
-        text: '취소',
-        style: 'cancel',
-      },
-      {
-        text: '삭제하기',
-        style: 'default',
-        onPress: async () => {
-          // 삭제 로직
-          const API_URL = "http://3.37.163.236:8000/"
-          const token = await AsyncStorage.getItem('userToken')
-          try{
-            const response = await axios.delete(`${API_URL}/posts/${post.postId}/`,
-              {
-                headers: {
-                  authorization: `token ${token}`,
-                },
-              },
-            );
-            console.log("게시글 삭제: ",response.data)
-            navigation.goBack()
-
-          } catch(error) {
-            console.error(error)
-          }
-
-        }
-      },
-    ]);
-
-    const handlePressLike = () => {
-      // 좋아요 룆ㄱ
-    }
-
-    useEffect(() => {
-      navigation.setOptions({title: lectureName});
-    }, [lectureName,navigation]);
-
-  return (
-    <SafeAreaView style={{height: 850}}>
-      <>
-        <ScrollView
-          style={{
-            paddingHorizontal: 16,
-            marginBottom: 50,
-            backgroundColor: 'white',
-          }}>
-          <View style={style.userArea}>
-            <Image
-              source={require('@assets/images/hamster.png')} // 여기 수정 필요 (지금 하드코딩..)
-              // source={{uri: `http://15.165.198.75:8000${post.author.profile}`}}
-              style={{
-                width: 52,
-                height: 51,
-                flexShrink: 0,
-                borderRadius: 25,
-                alignSelf: 'flex-start'
-              }}
-            />
-
-            <View style={style.userArea2}>
-              <Text style={{color: '#3D3D3D', fontSize: 16, fontWeight: '500'}}>
-                {post.author.name}
-              </Text>
-              <View style={style.userArea3}>
-                <View style={{...GlobalStyles.row,gap:5,flexWrap:'wrap'}}>
-                  {tags.map(tag => (
-                      <View style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
-                          <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
-                      </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-
-            <TouchableOpacity style={{justifyContent:'center',right:0,position:'absolute'}} onPress={toggleMenu}>
-              <Icon name="more-vertical" size={24} color="#3D3D3D" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={style.postArea}>
-            <Text style={style.postTitle}>{post.title}</Text>
-
-            <View style={style.postContentArea}>
-              <Text style={style.postContent}>{post.content}</Text>
-            </View>
-
-            {images.length>0 && (
-              <View style={style.postPhotoArea}>
-                {images.map((image: Attachment, index: number)=>(
-                  <Image
-                    key={index}
-                    source={{uri: `http://15.165.198.75:8000${image.uri}`}}
-                    style={{ width: 82, height: 82, borderRadius: 9}}
-                  />
-                ))}
-            </View>
-            )}
-
-            {files.length>0 && (
-              <View style={style.postPhotoArea}>
-                {files.map((file:Attachment, index: number)=>(
-                  <Text style={{fontStyle:'italic'}}>{index+1}: {file.name.substring(12,)}</Text>
-                ))}
-              </View>
-            )}
-
-          </View>
-
-          <View style={{marginTop: 10}}>
-            <Modal
-              visible={isModalVisible}
-              transparent={true}
-              onRequestClose={toggleMenu}>
-              <TouchableOpacity
-                onPressOut={onPressModalClose}
-                activeOpacity={1}
-                style={style.overlay}
-              >
-                <View style={style.menu}>
-                  <TouchableOpacity
-                    onPress={handlePostEdit}
-                    style={[style.menuItem,{borderBottomColor:Colors.text.lightgray,borderBottomWidth:1,paddingBottom: 10}]}>
-                    <Text>수정하기</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleDeletePost} style={style.menuItem}>
-                    <Text style={{color:Colors.primary[500]}}>삭제하기</Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            </Modal>
-          </View>
-
-          <View style={style.buttonArea}>
-            <TouchableOpacity style={style.button} onPress={handlePressLike}>
-              <Icon2 name="thumb-up" size={14} color="#ff1485" />
-              <Text
-                style={{
-                  color: '#4D4D4D',
-                  fontSize: 12,
-                  fontWeight: '500',
-                  marginLeft: 5,
-                }}>
-                {post.likes} 
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={style.button}>
-              <Icon2 name="comment" size={14} color="#ff1485" />
-              <Text
-                style={{
-                  color: '#4D4D4D',
-                  fontSize: 12,
-                  fontWeight: '500',
-                  marginLeft: 5,
-                }}>
-                {comments.length}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={style.button}>
-              <Icon3 name="star" size={14} color="#ff1485" />
-              <Text
-                style={{
-                  color: '#4D4D4D',
-                  fontSize: 12,
-                  fontWeight: '500',
-                  marginLeft: 5,
-                }}>
-                스크랩
-              </Text>
-            </TouchableOpacity>
-            <Text>view: {post.views}</Text>
-          </View>
-
-          {comments.map(comment => (
-            <View style={{marginTop: 10}}>
-              <CommentContainer key={comment.commentId} comment={comment} handleDeleteComment={handleDeleteComment}/>
-            </View>
-          ))}
-          <View style={{height:90}}></View>
-        </ScrollView>
-        <CommentTextField 
-          addComment={addComment}
-          postId={post.postId}
-        />
-      </>
-    </SafeAreaView>
-  );
-}
-export default PostScreen;
-
-
-const style = StyleSheet.create({
+export const style = StyleSheet.create({
   textfield: {
     flexDirection: 'row',
     position: 'absolute',
@@ -899,6 +655,21 @@ const style = StyleSheet.create({
     width: 178,
     height: 50,
     justifyContent: 'center',
+    gap: 10,
+    shadowOpacity: 0.25,
+    shadowOffset: {
+      width:1,
+      height:0,
+    }
+  },
+  menu_like: {
+    backgroundColor: '#FFF',
+    borderRadius: 5,
+    marginTop: 10,
+    width: 244,
+    height: 124,
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: 10,
     shadowOpacity: 0.25,
     shadowOffset: {

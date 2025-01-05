@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/Octicons';
 import { TextInput } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import {API_URL} from '@env';
 
 interface CommunityScreenProps {
   route: any;
@@ -25,13 +26,10 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   const [fetchedPost, setFetchedPost] = useState<Post>();
 
   useEffect(()=>{
-    // console.log('post:',post.postId)
-    // console.log('lectureName2:',lectureName)
     fetchPostInfo(post.postId)
-  },[])
+  },[post.postId])
 
   const fetchPostInfo = async (postId:number) => {
-    const API_URL = "http://3.37.163.236:8000/"
     try{
       const token = await AsyncStorage.getItem('userToken')
       const response = await axios.get(`${API_URL}/posts/${postId}/`,  
@@ -49,7 +47,7 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
         author: new UserInfo(
           data.author.id,
           data.author.nickname,
-          'https://example.com/image3.jpg', // 이거 어카지
+          data.author.profileImage,
         ),
         postDate: data.created_at,
         views: data.views, // 예시
@@ -57,11 +55,8 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
         reports: data.reports,
         content: data.content,
         attachments: data.attachment,
-        // images : data.attached_file,
-        // files: data.attached_file,
         tags: data.tags,
       }
-      // console.log('newpost:',newPost)
       setFetchedPost(newPost)
     } catch (error) {
       console.error('Error fetching tags:', error);
@@ -69,8 +64,8 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   }
 
   const handleNavigate = () => {
-    console.log('navigate:',fetchedPost)
-    console.log('navigate:',lectureName)
+    console.log('handleNavigate:',fetchedPost)
+    console.log('handleNavigate:',lectureName)
     navigation.navigate('PostScreen', {post: fetchedPost, lecture: lectureName});
   }
 
@@ -94,8 +89,7 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
         {/* 이미지 preview */}
         {fetchedPost && fetchedPost.attachments && fetchedPost.attachments.length > 0 && (
           <Image 
-            // source={{uri: fetchedPost.images[0].uri}} 
-            source={{uri: `http://15.165.198.75:8000${fetchedPost.attachments[0].uri}`}}
+            source={{uri: `${API_URL}/${fetchedPost.attachments[0].uri}`}}
             style={{width:65,height:65,borderRadius:5,alignSelf: 'center'}}
           />
         )}
@@ -163,8 +157,7 @@ const PostListScreen: React.FC<CommunityScreenProps> = ({route,navigation,}) => 
   
   useEffect(()=>{
     console.log('PostListScreen')
-    console.log(route.params)
-  },[])
+  },[route.params.lectureName])
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
@@ -173,27 +166,6 @@ const PostListScreen: React.FC<CommunityScreenProps> = ({route,navigation,}) => 
   );
 };
 
-const headerStyle = StyleSheet.create({
-  container: {
-    justifyContent: 'space-between',
-    ...GlobalStyles.row,
-    margin: 10,
-  },
-  title: {
-    textAlign: 'center',
-    color: Colors.text.black,
-    fontSize: FontSizes.large,
-    padding: 4,
-    ...GlobalStyles.boldText,
-  },
-  more: {
-    color: Colors.text.lightgray,
-    textAlign: 'center',
-    fontSize: FontSizes.medium,
-    ...GlobalStyles.text,
-  },
-  arrow: {width: 16, height: 16, tintColor: Colors.text.lightgray},
-});
 
 
 const styles = StyleSheet.create({

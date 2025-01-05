@@ -3,7 +3,6 @@ import { View, Text, TextInput, StyleSheet, Image, Alert } from 'react-native';
 import { Post, UserInfo } from '@src/Types';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { mockPosts, mockTags } from '@src/MockData';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { launchImageLibrary, Asset } from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker'
@@ -234,7 +233,7 @@ function PostCreationScreen({ route }: { route: any }) {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('content', content);
-      formData.append('course_fk', lectureId); // course_fk 앞에서 받아와야됨 [완료]
+      formData.append('course_fk', lectureId); 
       formData.append('student', userid);
       formData.append('tags', selectedTags);
       if (attachments.length > 0) { // 여기 수정 필요
