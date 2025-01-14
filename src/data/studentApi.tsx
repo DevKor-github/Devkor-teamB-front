@@ -2,7 +2,13 @@ import {API_URL} from '@env';
 import axios from 'axios';
 import {getToken, getUserId} from './authStorage';
 import {logger} from '@src/logger';
-import {TimetableModel} from '@src/Types';
+import {
+  Course,
+  CourseData,
+  CourseMinimal,
+  CourseMinimalData,
+  TimetableModel,
+} from '@src/Types';
 
 interface StudentInfo {
   user_id: number;
@@ -65,5 +71,74 @@ export const fetchTimetables = async () => {
   } catch (error) {
     logger.error('fetchTimetables', error);
     throw Error('Unable to fetch timetables.');
+  }
+};
+
+export const fetchCourses = async () => {
+  try {
+    const token = await getToken();
+    const {data} = await axios.get<CourseData[]>(`${API_URL}/courses/`, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+    logger.info('fetchCourses', data);
+    return data;
+  } catch (e) {
+    logger.error('fetchCourses', e);
+    return [];
+  }
+};
+
+export const fetchCourseInfo = async (courseId: number) => {
+  try {
+    const token = await getToken();
+    const {data} = await axios.get<CourseData>(
+      `${API_URL}/courses/${courseId}/`,
+      {
+        headers: {
+          authorization: `token ${token}`,
+        },
+      },
+    );
+    logger.info('fetchCourseInfo', data);
+    return data;
+  } catch (e) {
+    logger.error('fetchCourseInfo', e);
+    return null;
+  }
+};
+
+export const fetchCreateTimetable = async (data: TimetableModel) => {
+  try {
+    const token = await getToken();
+    const {status} = await axios.post(`${API_URL}/timetables/`, data, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+    });
+    logger.info('fetchCreateTimetable', status);
+    return status;
+  } catch (e) {
+    logger.error('fetchCreateTimetable', e);
+    throw Error('Unable to create timetable.');
+  }
+};
+
+export const fetchAllCourses = async () => {
+  try {
+    const courses = await fetchCourses();
+    const courseMinimal = courses.map(CourseMinimal.fromJson);
+    const items: Course[] = await Promise.all(
+      courseMinimal.map(async (data: CourseMinimalData) => {
+        const courseData = await fetchCourseInfo(data.id);
+        return Course.fromJson(courseData!);
+      }),
+    );
+    logger.info('fetchAllCourses', items);
+    return items;
+  } catch (e) {
+    logger.error('fetchAllCourses', e);
+    return [];
   }
 };

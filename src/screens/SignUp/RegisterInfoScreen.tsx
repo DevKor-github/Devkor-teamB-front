@@ -1,17 +1,11 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useRef, useCallback} from 'react';
 import {Image, StyleSheet, Text, View, Animated} from 'react-native';
 import Colors from '@src/Colors';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
-import {
-  Course,
-  CourseMinimal,
-  CourseMinimalData,
-  TimetableModel,
-} from '@src/Types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import {API_URL} from '@env';
+import {TimetableModel} from '@src/Types';
+import {fetchAllCourses, fetchTimetables} from '@src/data/studentApi';
+import {getUserId} from '@src/data/authStorage';
 
 const ICON_SIZE = 540;
 
@@ -29,96 +23,7 @@ const TEXT_END_POSITION = -800;
 
 const ANIMATION_DURATION = 1500;
 
-const fetchCourses = async () => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.get(`${API_URL}/courses/`, {
-      headers: {
-        authorization: `token ${token}`,
-      },
-    });
-    const courseMinimal = response.data.map((e: CourseMinimalData) =>
-      CourseMinimal.fromJson(e),
-    );
-    return await fetchCourseInfo(courseMinimal);
-  } catch (e) {
-    console.log(e);
-    return [];
-  }
-};
-
-const fetchCourseInfo = async (courseMinimal: CourseMinimal[]) => {
-  try {
-    const items: Course[] = await Promise.all(
-      courseMinimal.map(async (data: CourseMinimalData) => {
-        const token = await AsyncStorage.getItem('userToken');
-        const response = await axios.get(`${API_URL}/courses/${data.id}/`, {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        });
-        return Course.fromJson(response.data);
-      }),
-    );
-    return items;
-  } catch (e) {
-    console.log(e);
-    return [];
-  }
-};
-
-const fetchCreateTimetable = async (userId: number) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    const timetable = new TimetableModel({
-      student: userId,
-      courses: [],
-      semester: '2',
-      year: '2024',
-    });
-    await axios.post(`${API_URL}/timetables/`, timetable, {
-      headers: {
-        authorization: `token ${token}`,
-      },
-    });
-    return timetable;
-  } catch (e) {
-    console.log(e);
-    return TimetableModel.empty();
-  }
-};
-
-const fetchTimetable = async (uid: number) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.get(`${API_URL}/timetables/${uid}/`, {
-      headers: {
-        authorization: `token ${token}`,
-      },
-      validateStatus: x => x === 200 || x === 404,
-    });
-    if (response.status === 200) {
-      return TimetableModel.fromJson(response.data);
-    } else {
-      return await fetchCreateTimetable(uid);
-    }
-  } catch (e) {
-    console.log(e);
-    return TimetableModel.empty();
-  }
-};
-
-const RegistrationInfoScreen = ({
-  navigation,
-  route,
-}: {
-  navigation: any;
-  route: any;
-}) => {
-  const {userId, skip} = route.params;
-  const [isLoading, setIsLoading] = useState(true);
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [timetable, setTimetable] = useState(TimetableModel.empty());
+const RegistrationInfoScreen = ({navigation}: {navigation: any}) => {
   const logoAnimation = useRef(new Animated.Value(LOGO_START_POSITION)).current;
   const iconAnimation = useRef(new Animated.Value(ICON_START_POSITION)).current;
   const textAnimation = useRef(new Animated.Value(TEXT_START_POSITION)).current;
@@ -148,7 +53,8 @@ const RegistrationInfoScreen = ({
     });
   }, [iconAnimation, logoAnimation, textAnimation]);
 
-  const runExitAnimation = useCallback(() => {
+  const runExitAnimation = useCallback(async () => {
+    await new Promise(resolve => setTimeout(resolve, 500));
     return new Promise<void>(resolve => {
       Animated.parallel([
         Animated.timing(iconAnimation, {
@@ -179,40 +85,39 @@ const RegistrationInfoScreen = ({
     });
   }, [iconAnimation, logoAnimation, textAnimation, opacityAnimation]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!skip) {
-        await runEnterAnimation();
-      }
-      const [fetchedCourses, fetchedTimetable] = await Promise.all([
-        fetchCourses(),
-        fetchTimetable(userId),
-      ]);
-      if (!skip) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      setCourses(fetchedCourses);
-      setTimetable(fetchedTimetable);
-      setIsLoading(false);
-    };
-    fetchData();
-  }, [userId, runEnterAnimation, skip]);
+  const getTimetable = async () => {
+    const fetchedTimetables = await fetchTimetables();
+    if (fetchedTimetables == null) {
+      const userId = await getUserId();
+      const newTimetable = new TimetableModel({
+        student: Number(userId),
+        courses: [],
+        semester: '2',
+        year: '2024',
+      });
+      return newTimetable;
+    } else {
+      return TimetableModel.fromJson(fetchedTimetables);
+    }
+  };
 
   useEffect(() => {
-    if (!isLoading) {
-      const navigateToRegister = async () => {
-        if (!skip) {
-          await runExitAnimation();
-        }
+    try {
+      const fetchData = async () => {
+        await runEnterAnimation();
+        const courses = await fetchAllCourses();
+        const timetable = await getTimetable();
+        await runExitAnimation();
         navigation.navigate('Register', {
           courses: courses,
           timetable: timetable,
-          skip: skip,
         });
       };
-      navigateToRegister();
+      fetchData();
+    } catch (e) {
+      console.error('[RegisterInfoScreen]', e);
     }
-  }, [isLoading, courses, timetable, navigation, runExitAnimation, skip]);
+  }, [runEnterAnimation, navigation, runExitAnimation]);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>

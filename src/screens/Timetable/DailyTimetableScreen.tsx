@@ -11,7 +11,6 @@ import {
 
 import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
-import {fetchTimetableData} from '@src/screens/Timetable/TimetableAPI';
 import {CourseBlock} from '@src/Types';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -20,43 +19,40 @@ import {
   parseTime,
 } from '@src/components/Timetable/TimetableUtils';
 import PollsModal from '@src/screens/Timetable/PollsModal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {API_URL} from '@env';
-import axios from 'axios';
+import {fetchTimetables} from '@src/data/studentApi';
+// const fetchValidPolls = async (id: number) => {
+//   const token = await AsyncStorage.getItem('userToken');
+//   const response = await axios.get(`${API_URL}/todaypolls/${id}/`, {
+//     headers: {
+//       authorization: `token ${token}`,
+//     },
+//   });
+//   const createdAt = response.data.created_at;
+//   console.log('생성 시간: ', createdAt);
 
-const fetchValidPolls = async (id: number) => {
-  const token = await AsyncStorage.getItem('userToken');
-  const response = await axios.get(`${API_URL}/todaypolls/${id}/`, {
-    headers: {
-      authorization: `token ${token}`,
-    },
-  });
-  const createdAt = response.data.created_at;
-  console.log('생성 시간: ', createdAt);
+//   const now = new Date();
+//   const createdDate = new Date(createdAt).toDateString();
+//   const nowDate = now.toDateString();
+//   return createdDate === nowDate;
+// };
 
-  const now = new Date();
-  const createdDate = new Date(createdAt).toDateString();
-  const nowDate = now.toDateString();
-  return createdDate === nowDate;
-};
+// const fetchTodayPolls = async (courseId: number) => {
+//   const token = await AsyncStorage.getItem('userToken');
+//   const userId = await AsyncStorage.getItem('userId');
+//   console.log(courseId);
+//   const response = await axios.get(
+//     `${API_URL}/todaypolls/?student_id=${Number(userId)}&course_fk=${courseId}`,
+//     {
+//       headers: {
+//         authorization: `token ${token}`,
+//       },
+//     },
+//   );
 
-const fetchTodayPolls = async (courseId: number) => {
-  const token = await AsyncStorage.getItem('userToken');
-  const userId = await AsyncStorage.getItem('userId');
-  console.log(courseId);
-  const response = await axios.get(
-    `${API_URL}/todaypolls/?student_id=${Number(userId)}&course_fk=${courseId}`,
-    {
-      headers: {
-        authorization: `token ${token}`,
-      },
-    },
-  );
-
-  return response.data
-    .map((poll: any) => fetchValidPolls(poll.id))
-    .some((valid: boolean) => valid);
-};
+//   return response.data
+//     .map((poll: any) => fetchValidPolls(poll.id))
+//     .some((valid: boolean) => valid);
+// };
 
 const CourseItem = ({
   course,
@@ -73,7 +69,7 @@ const CourseItem = ({
 }) => {
   const navigation = useNavigation<any>();
   const rotateAnim = useRef(new Animated.Value(0)).current;
-  const [voted, setVoted] = useState(false);
+  const [voted] = useState(false);
 
   // useEffect(() => {
   //   const fetchPolls = async () => {
@@ -180,28 +176,33 @@ const CourseItem = ({
 
 const Separator = () => <View style={styles.separator} />;
 
+const EmptyCourseView = () => {
+  return (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>오늘은 수업이 없는 날이에요</Text>
+    </View>
+  );
+};
+
 const DailyTimetableScreen = () => {
   const [activeCourse, setActiveCourse] = useState<number>(-1);
   const [selectedCourse, setSelectedCourse] = useState<number>(-1);
   const [courses, setCourses] = useState<CourseBlock[]>([]);
   const [showModal, setShowModal] = useState(false);
-
   const handleCloseModal = () => setShowModal(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const result = await fetchTimetableData();
-      if (result) {
-        const coursesByDay = groupByDay(result.courses);
-        setCourses(coursesByDay[getDay()]);
+    fetchTimetables().then(timetableData => {
+      if (timetableData) {
+        const coursesByDay = groupByDay(timetableData.courses);
+        setCourses(coursesByDay[getDay()] || []);
       }
-    };
-    fetchData();
+    });
   }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      const time = new Date(2024, 9, 10, 10, 15);
+      const time = new Date();
       const now = parseTime(time);
       for (let i = 0; i < courses.length; i++) {
         if (parseTime(courses[i].end) > now) {
@@ -217,9 +218,11 @@ const DailyTimetableScreen = () => {
     <View style={styles.container}>
       <FlatList
         style={styles.scrollView}
+        contentContainerStyle={GlobalStyles.expand}
         ItemSeparatorComponent={Separator}
         bounces={false}
         data={courses}
+        ListEmptyComponent={EmptyCourseView}
         renderItem={({item, index}: {item: CourseBlock; index: number}) => (
           <CourseItem
             course={item}
@@ -341,6 +344,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     padding: 12,
+    flex: 1,
   },
   container: {
     flex: 1,
@@ -468,5 +472,16 @@ const styles = StyleSheet.create({
     height: 18,
     marginRight: 9,
     marginTop: 3,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.ui.background,
+  },
+  emptyText: {
+    fontSize: FontSizes.large,
+    color: Colors.text.black,
+    ...GlobalStyles.text,
   },
 });

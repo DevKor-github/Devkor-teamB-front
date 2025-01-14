@@ -7,14 +7,14 @@ import {
   TouchableOpacity,
   View,
   Animated,
+  Image,
 } from 'react-native';
 import Colors from '@src/Colors.tsx';
 
 import BottomSheet, {BottomSheetState} from '@components/BottomSheet';
 import FloatingButton from '@components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
-// import {RadioButton, RadioGroup} from '@components/RadioButton';
-// import SearchBar from '@components/SearchBar';
+import {RadioButton, RadioGroup} from '@components/RadioButton';
 import {Course, CourseBlock, TimetableModel} from '@src/Types';
 import Timetable from '@components/Timetable/Timetable';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
@@ -22,6 +22,7 @@ import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {doesOverlap, getTimeInfo} from '@components/Timetable/TimetableUtils';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import SearchBar from '@src/components/SearchBar';
 
 type NavigationProps = StackNavigationProp<any>;
 
@@ -153,11 +154,11 @@ const RegistrationBottomSheet = ({
   onItemSelect: Function;
   height: number;
 }) => {
-  // const [filterOption, setFilterOption] = useState(0);
-  // const [query, setQuery] = useState('');
+  const [filterOption, setFilterOption] = useState(0);
+  const [query, setQuery] = useState('');
   return (
     <BottomSheet height={height} state={state} onStateChange={onStateChange}>
-      {/* <SearchBar
+      <SearchBar
         icon={
           <Image
             style={styles.icon}
@@ -173,7 +174,7 @@ const RegistrationBottomSheet = ({
         <RadioButton label="과목명" />
         <RadioButton label="교수명" />
         <RadioButton label="과목코드" />
-      </RadioGroup> */}
+      </RadioGroup>
       <CourseList items={items} onTap={onItemSelect} onItemAdd={onItemAdd} />
     </BottomSheet>
   );
@@ -212,6 +213,7 @@ const RegistrationBody = ({
         <Timetable
           courses={timetable.courses}
           scrollable
+          slotCount={6}
           candidate={selectedCourse}
           onPress={(course: CourseBlock) =>
             Alert.alert('수업을 삭제하겠습니까?', '', [
@@ -234,9 +236,11 @@ const RegistrationBody = ({
             ])
           }
         />
-        <FloatingButton onPress={() => setState(BottomSheetState.HALF)}>
-          <Icon name="plus" size={24} color={Colors.ui.background} />
-        </FloatingButton>
+        {state === BottomSheetState.HIDDEN && (
+          <FloatingButton onPress={() => setState(BottomSheetState.HALF)}>
+            <Icon name="plus" size={24} color={Colors.ui.background} />
+          </FloatingButton>
+        )}
       </View>
       <CompleteButton
         disabled={timetable.courses.length === 0}
@@ -247,9 +251,12 @@ const RegistrationBody = ({
         onStateChange={setState}
         height={contentHeight + 16}
         items={courses}
-        onItemSelect={(e: Course) => setSelectedCourse(e)}
+        onItemSelect={(e: Course) => {
+          setSelectedCourse(e);
+          setState(BottomSheetState.HALF);
+        }}
         onItemAdd={(newCourse: Course) => {
-          // setState(BottomSheetState.HALF);
+          setState(BottomSheetState.HALF);
           if (timetable.courses.find(e => e.id === newCourse.id)) {
             Alert.alert('이미 등록된 수업입니다');
           } else if (doesOverlap(newCourse, timetable.courses)) {
@@ -298,7 +305,6 @@ const RegisterScreen = ({route}: {route: any}) => {
           <View style={styles.bottom} />
           <View style={styles.content}>
             <RegistrationHeader />
-            {/* <RegistrationHeader subTitle={'2024학년도 1학기'} /> */}
             <RegistrationBody courses={courses} data={timetable} skip={skip} />
           </View>
         </View>
