@@ -1,58 +1,24 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@src/Colors';
-import ProgressBar from '@src/components/ProgessBar';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
-import axios from 'axios';
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
 import {FlatList} from 'react-native-gesture-handler';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {API_URL} from '@env';
+import {
+  fetchGetNowPoints,
+  fetchGetPointHistory,
+  PointHistory,
+} from '@src/data/storeApi';
+import {
+  getPermissionRemainder,
+  getPermissionType,
+  PermissionType,
+} from './StoreHandler';
 
 enum PointViewMode {
   usage,
   earning,
 }
-
-const fetchPoints = async (callback: Function) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.get(`${API_URL}/student/get-now-points/`, {
-      headers: {
-        authorization: `token ${token}`,
-      },
-    });
-    const value = response.data as number;
-    callback(value);
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-const fetchHistory = async (callback: Function) => {
-  const history = [
-    ['use', 'KU&A 30일 열람권 300P 사용', '58분 전'],
-    ['use', 'KU&A 14일 열람권 240P 사용', '1일 전'],
-    ['use', 'KU&A 7일 열람권 160P 사용', '1주 전'],
-    ['use', 'KU&A 1일 열람권 80P 사용', '1달 전'],
-    ['add', '게시글 답변 채택 20P 적립', '3분 전'],
-    ['add', '오늘의 질문 답변 작성 10P 적립', '11일 전'],
-    ['add', '게시글 답변 작성 5P 적립', '1일 전'],
-    ['add', '신입 회원 100P', '1년 전'],
-  ];
-
-  try {
-    // const token = await AsyncStorage.getItem('userToken');
-    // await axios.get(`${API_URL}/student/get-point-history/`, {
-    //   headers: {
-    //     authorization: `token ${token}`,
-    //   },
-    // });
-    callback(history);
-  } catch (e) {
-    console.error(e);
-  }
-};
 
 const PointHistoryButton = ({
   mode,
@@ -103,28 +69,112 @@ const PointHistoryButton = ({
   );
 };
 
-const PointHistoryList = ({history}: {history: any[]}) => {
-  const getSeperator = () => <View style={itemStyles.seperator} />;
+const TimeStamp = ({timestamp}: {timestamp: string}) => {
+  const now = new Date();
+  const pointTime = new Date(timestamp);
+  const diffMs = now.getTime() - pointTime.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const month = (pointTime.getMonth() + 1).toString().padStart(2, '0');
+  const date = pointTime.getDate().toString().padStart(2, '0');
+  if (diffMins < 1) {
+    return <Text style={itemStyles.timestampTextAccent}>방금</Text>;
+  } else if (diffMins < 60) {
+    return (
+      <Text style={itemStyles.timestampTextAccent}>{`${diffMins}분 전`}</Text>
+    );
+  } else if (diffMins < 60 * 24) {
+    const hours = Math.floor(diffMins / 60);
+    return (
+      <Text style={itemStyles.timestampTextAccent}>{`${hours}시간 전`}</Text>
+    );
+  } else if (
+    pointTime.getDate() === now.getDate() - 1 &&
+    pointTime.getMonth() === now.getMonth() &&
+    pointTime.getFullYear() === now.getFullYear()
+  ) {
+    return <Text style={itemStyles.timestampText}>어제</Text>;
+  } else if (diffMins < 60 * 24 * 7) {
+    const days = Math.floor(diffMins / (60 * 24));
+    return <Text style={itemStyles.timestampText}>{`${days}일 전`}</Text>;
+  } else if (pointTime.getFullYear() === now.getFullYear()) {
+    const timestampText = `${month}/${date}`;
+    return <Text style={itemStyles.timestampText}>{timestampText}</Text>;
+  } else {
+    const yearDiff = now.getFullYear() - pointTime.getFullYear();
+    return <Text style={itemStyles.timestampText}>{`${yearDiff}년 전`}</Text>;
+  }
+};
+
+const Separator = () => <View style={itemStyles.seperator} />;
+
+const PointHistoryList = ({
+  mode,
+  history,
+}: {
+  mode: PointViewMode;
+  history: PointHistory[];
+}) => {
+  const getPointDetailText = (item: PointHistory) => {
+    const {point, purpose} = item;
+    const absPoint = Math.abs(point);
+
+    if (purpose === 'U') {
+      switch (absPoint) {
+        case 80:
+          return `KU&A 1일 열람권 ${absPoint}포인트 사용`;
+        case 160:
+          return `KU&A 7일 열람권 ${absPoint}포인트 사용`;
+        case 240:
+          return `KU&A 14일 열람권 ${absPoint}포인트 사용`;
+        case 300:
+          return `KU&A 30일 열람권 ${absPoint}포인트 사용`;
+        default:
+          return `${absPoint}포인트 사용`;
+      }
+    } else {
+      switch (absPoint) {
+        case 5:
+          return `게시글 답변 작성 ${absPoint}포인트 적립`;
+        case 10:
+          return `오늘의 질문 답변 작성 ${absPoint}포인트 적립`;
+        case 20:
+          return `게시글 답변 채택 ${absPoint}포인트 적립`;
+        case 100:
+          return `신규 회원 ${absPoint}포인트`;
+        default:
+          return `${absPoint}포인트 적립`;
+      }
+    }
+  };
+
   if (history.length === 0) {
     return (
       <View style={historyStyles.emptyContainer}>
-        <Text>기록이 없습니다</Text>
+        <Text>
+          {mode === PointViewMode.usage
+            ? '포인트 사용 기록이 없습니다'
+            : '포인트 적립 기록이 없습니다'}
+        </Text>
       </View>
     );
   } else {
     return (
       <View style={historyStyles.listConatiner}>
         <FlatList
-          ItemSeparatorComponent={getSeperator}
-          data={history}
-          renderItem={({item}: {item: [string, string, string]}) => {
-            const [_, detail, timestamp] = item;
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          ItemSeparatorComponent={Separator}
+          data={history.reverse()}
+          renderItem={({item}: {item: PointHistory}) => {
             return (
               <View style={itemStyles.container}>
                 <View style={GlobalStyles.expand}>
-                  <Text style={itemStyles.detailText}>{detail}</Text>
+                  <Text style={itemStyles.detailText}>
+                    {getPointDetailText(item)}
+                  </Text>
                 </View>
-                <Text style={itemStyles.timestampText}>{timestamp}</Text>
+                <TimeStamp timestamp={item.point_time} />
               </View>
             );
           }}
@@ -136,12 +186,21 @@ const PointHistoryList = ({history}: {history: any[]}) => {
 
 const PointSummary = () => {
   const [points, setPoints] = useState(0);
-  const [ticket] = useState(30);
-  const [remainder] = useState(9);
+  const [permissionType, setPermissionType] = useState(PermissionType.NONE);
+  const [remainder, setRemainder] = useState(0);
+  const getDdayText = () => {
+    if (remainder === 0) {
+      return 'D-DAY';
+    } else {
+      return `D-${remainder}`;
+    }
+  };
 
   useEffect(() => {
-    fetchPoints(setPoints);
-  }, [setPoints]);
+    fetchGetNowPoints().then(setPoints);
+    getPermissionType().then(setPermissionType);
+    getPermissionRemainder().then(setRemainder);
+  }, []);
 
   return (
     <View style={summaryStyles.container}>
@@ -150,22 +209,25 @@ const PointSummary = () => {
           style={summaryStyles.icon}
           source={require('@assets/icons/calendar_3d.png')}
         />
-        <View style={GlobalStyles.expand}>
+        <View style={summaryStyles.summaryContainer}>
           <Text style={summaryStyles.remainderText}>현재 잔여</Text>
           <View style={summaryStyles.infoContainer}>
             <Text style={GlobalStyles.expand}>
               <Text style={summaryStyles.pointText}>{points}</Text>
               <Text style={summaryStyles.pointLabelText}>P</Text>
             </Text>
-            <Text>
-              <Text style={summaryStyles.expireText}>
-                {ticket}일 열람권 만료기한
-              </Text>
-              <Text> </Text>
-              <Text style={summaryStyles.ddayText}>D-{remainder}</Text>
-            </Text>
+            {permissionType === PermissionType.NONE ? (
+              <Text style={summaryStyles.expireText}>열람권이 없습니다</Text>
+            ) : (
+              <>
+                <Text style={summaryStyles.expireText}>
+                  {permissionType.days}일 열람권 만료기한
+                </Text>
+                <Text>&nbsp;</Text>
+                <Text style={summaryStyles.ddayText}>{getDdayText()}</Text>
+              </>
+            )}
           </View>
-          <ProgressBar progress={(1 - remainder / ticket) * 100} />
         </View>
       </View>
     </View>
@@ -173,13 +235,13 @@ const PointSummary = () => {
 };
 
 const StoreHistoryScreen = () => {
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState<PointHistory[]>([]);
   const [mode, setMode] = useState(PointViewMode.usage);
-  const usageHistory = history.filter(value => value[0] === 'use');
-  const earningHistory = history.filter(value => value[0] === 'add');
+  const usageHistory = history.filter(value => value.purpose === 'U');
+  const earningHistory = history.filter(value => value.purpose === 'G');
 
   useEffect(() => {
-    fetchHistory(setHistory);
+    fetchGetPointHistory().then(setHistory);
   }, [setHistory]);
 
   return (
@@ -188,6 +250,7 @@ const StoreHistoryScreen = () => {
       <View style={historyStyles.container}>
         <PointHistoryButton mode={mode} onPress={setMode} />
         <PointHistoryList
+          mode={mode}
           history={mode === PointViewMode.usage ? usageHistory : earningHistory}
         />
         <SafeAreaView edges={['bottom']} />
@@ -207,12 +270,15 @@ const summaryStyles = StyleSheet.create({
   infoContainer: {
     alignItems: 'baseline',
     ...GlobalStyles.row,
+  },
+  summaryContainer: {
+    justifyContent: 'center',
     ...GlobalStyles.expand,
   },
   icon: {
     marginRight: 16,
-    width: 72,
-    height: 72,
+    width: 64,
+    height: 64,
     alignSelf: 'flex-start',
     alignContent: 'center',
   },
@@ -286,7 +352,7 @@ const styles = StyleSheet.create({
 const itemStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    margin: 12,
+    margin: 16,
   },
   seperator: {
     borderBottomColor: Colors.ui.disabled,
@@ -300,6 +366,11 @@ const itemStyles = StyleSheet.create({
   timestampText: {
     fontSize: FontSizes.medium,
     color: Colors.text.gray,
+    ...GlobalStyles.text,
+  },
+  timestampTextAccent: {
+    fontSize: FontSizes.medium,
+    color: Colors.text.accent,
     ...GlobalStyles.text,
   },
 });

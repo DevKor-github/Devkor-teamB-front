@@ -20,7 +20,7 @@ const StoreNavigator = () => {
         name="StoreHistoryScreen"
         component={StoreHistoryScreen}
         options={{
-          title: '적립 및 사용내역',
+          title: '포인트 내역',
           headerBackTitleVisible: false,
           headerTintColor: Colors.text.accent,
         }}

@@ -10,81 +10,73 @@ import {
 } from 'react-native';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
-// import ProgressBar from '@src/components/ProgessBar';
-// import {useNavigation} from '@react-navigation/native';
-// import Banner from '@src/components/Banner';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import {PointEventHandler} from '@src/Events';
 import {SafeAreaView} from 'react-native-safe-area-context';
-// import Banner from '@src/components/Banner';
-import {API_URL} from '@env';
+import {useNavigation} from '@react-navigation/native';
+import {consumePoints, PermissionType} from './StoreHandler';
+import {
+  fetchCheckPermission,
+  fetchGetNowPoints,
+  fetchGetPointHistory,
+  PointHistory,
+} from '@src/data/storeApi';
+import Banner from '@src/components/Banner';
 
-const fetchPoints = async (callback: Function) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.get(`${API_URL}/student/get-now-points/`, {
-      headers: {
-        authorization: `token ${token}`,
-      },
+const PointHistoryView = () => {
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  const [points, setPoints] = useState([0, 0, 0, 0, 0, 0, 0]);
+  const today = new Date().getDay();
+
+  const filterPointHistory = (history: PointHistory[]) => {
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekPoints = new Array(7).fill(0);
+    history.forEach(item => {
+      const itemDate = new Date(item.point_time);
+      if (itemDate >= weekStart && item.purpose === 'G') {
+        const dayIndex = itemDate.getDay();
+        weekPoints[dayIndex] += item.point;
+      }
     });
-    const value = response.data as number;
-    callback(value);
-  } catch (e) {
-    console.error(e);
-  }
+    return weekPoints;
+  };
+
+  useEffect(() => {
+    const getPointHistory = async () => {
+      const history = await fetchGetPointHistory();
+      const weekPoints = filterPointHistory(history);
+      setPoints(weekPoints);
+    };
+    getPointHistory();
+  }, []);
+
+  return (
+    <View style={pointHistoryStyles.container}>
+      {points.map((value, idx) => {
+        const color = idx === today ? Colors.primary[100] : 'transparent';
+        const pointColor =
+          idx === today ? Colors.text.accent : Colors.text.black;
+        return (
+          <View key={idx} style={GlobalStyles.expand}>
+            <Text style={pointHistoryStyles.dayText}>{days[idx]}</Text>
+            <View
+              style={[
+                pointHistoryStyles.pointContainer,
+                {backgroundColor: color},
+              ]}>
+              <Text style={[pointHistoryStyles.pointText, {color: pointColor}]}>
+                {value}
+              </Text>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
 };
-
-const fetchUsePoints = async (type: string, point: number) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.post(
-      `${API_URL}/student/use-points/`,
-      {point_costs: type},
-      {
-        headers: {
-          authorization: `token ${token}`,
-        },
-      },
-    );
-
-    if (response.status === 201) {
-      PointEventHandler.emit('POINTS_UPDATED', -point);
-      return true;
-    } else {
-      return false;
-    }
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-};
-
-// const PointHistory = () => {
-//   const days = ['일', '월', '화', '수', '목', '금', '토'];
-//   const points = [10, 20, 50, 0, 100, 0, 0];
-//   const today = new Date().getDay();
-
-//   return (
-//     <View style={pointHistoryStyles.container}>
-//       {points.map((value, idx) => {
-//         const color = idx === today ? Colors.primary[100] : 'transparent';
-//         return (
-//           <View key={idx} style={pointHistoryStyles.itemContainer}>
-//             <Text style={pointHistoryStyles.dayText}>{days[idx]}</Text>
-//             <View
-//               style={[
-//                 pointHistoryStyles.pointContainer,
-//                 {backgroundColor: color},
-//               ]}>
-//               <Text style={pointHistoryStyles.pointText}>{value}</Text>
-//             </View>
-//           </View>
-//         );
-//       })}
-//     </View>
-//   );
-// };
 
 const PointTips = () => {
   const items = [
@@ -99,8 +91,7 @@ const PointTips = () => {
   ];
 
   return (
-    // <View style={styles.card}>
-    <>
+    <View style={styles.card}>
       <Text style={tipStyles.label}>포인트 Tip</Text>
       {items.map((row, rowIdx) => {
         return (
@@ -118,38 +109,41 @@ const PointTips = () => {
           </View>
         );
       })}
-    {/* </View> */}
-    </>
+    </View>
   );
 };
 
-// const PointInfoButton = () => {
-//   const navigation = useNavigation<any>();
-//   return (
-//     <TouchableOpacity
-//       onPress={() => navigation.navigate('StoreHistoryScreen')}
-//       style={pointStyles.button}>
-//       <Image
-//         style={pointStyles.buttonIcon}
-//         source={require('@assets/icons/coin.png')}
-//       />
-//       <Text style={{marginLeft: 4}}>nn 포인트</Text>
-//       <Image
-//         style={pointStyles.buttonIcon}
-//         source={require('@assets/icons/arrow_right.png')}
-//       />
-//     </TouchableOpacity>
-//   );
-// };
+const PointInfoButton = () => {
+  const navigation = useNavigation<any>();
+  const style = {marginLeft: 4};
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('StoreHistoryScreen')}
+      style={pointStyles.button}>
+      <Image
+        style={pointStyles.buttonIcon}
+        source={require('@assets/icons/coin.png')}
+      />
+      <Text style={style}>포인트 내역</Text>
+      <Image
+        style={pointStyles.buttonIcon}
+        source={require('@assets/icons/arrow_right.png')}
+      />
+    </TouchableOpacity>
+  );
+};
 
 const PointInfoSection = () => {
   const [point, setPoints] = useState(0);
+
   useEffect(() => {
-    fetchPoints((value: number) => setPoints(value));
+    fetchGetNowPoints().then((points: number) => setPoints(points));
+  }, []);
+
+  useEffect(() => {
     PointEventHandler.addListener('POINTS_UPDATED', (value: number) => {
       setPoints(point + value);
     });
-
     return () => PointEventHandler.removeListener('POINTS_UPDATED');
   }, [point, setPoints]);
 
@@ -162,13 +156,12 @@ const PointInfoSection = () => {
             <Text style={pointStyles.pointText}>{point}</Text>
             <Text style={pointStyles.pointLabelText}>P</Text>
           </Text>
-          {/* <PointInfoButton /> */}
+          <PointInfoButton />
         </View>
-        {/* <ProgressBar progress={40} /> */}
-        {/* <PointHistory /> */}
-        <View style={pointStyles.divider} />
-        <PointTips />
+        <PointHistoryView />
       </View>
+      <View style={pointStyles.divider} />
+      <PointTips />
     </View>
   );
 };
@@ -176,11 +169,11 @@ const PointInfoSection = () => {
 const StoreItemCard = ({
   title,
   point,
-  type,
+  pass_type,
 }: {
   title: string;
   point: number;
-  type: string;
+  pass_type: PermissionType;
 }) => {
   const onStoreItemPress = () => {
     Alert.alert(`${title}을 구매합니다`, '', [
@@ -188,11 +181,24 @@ const StoreItemCard = ({
       {
         text: '확인',
         onPress: async () => {
-          const request = await fetchUsePoints(type, point);
-          if (request) {
-            Alert.alert('구매 완료');
+          if (await fetchCheckPermission()) {
+            Alert.alert(
+              '이미 열람권을 보유 중입니다',
+              '그래도 구매하겠습니까?\n기존 열람권은 더이상 사용할 수 없습니다',
+              [
+                {text: '취소', style: 'destructive'},
+                {
+                  text: '확인',
+                  onPress: async () => {
+                    const success = await consumePoints(pass_type);
+                    Alert.alert(success ? '구매 완료' : '포인트가 부족합니다');
+                  },
+                },
+              ],
+            );
           } else {
-            Alert.alert('포인트가 부족합니다');
+            const success = await consumePoints(pass_type);
+            Alert.alert(success ? '구매 완료' : '포인트가 부족합니다');
           }
         },
       },
@@ -218,20 +224,35 @@ const StoreItemCard = ({
 };
 
 const StoreItemSection = () => {
+  const storeItems = [
+    [PermissionType.DAY, PermissionType.WEEK],
+    [PermissionType.FORTNIGHT, PermissionType.MONTH],
+  ];
+
   return (
     <View>
       <Text style={styles.label}>상점</Text>
-      <View style={GlobalStyles.row}>
-        <StoreItemCard title="1일 열람권" point={80} type="1" />
-        <View style={storeStyles.divider} />
-        <StoreItemCard title="7일 열람권" point={160} type="7" />
-      </View>
-      <View style={storeStyles.divider} />
-      <View style={GlobalStyles.row}>
-        <StoreItemCard title="14일 열람권" point={240} type="14" />
-        <View style={storeStyles.divider} />
-        <StoreItemCard title="30일 열람권" point={300} type="30" />
-      </View>
+      {storeItems.map((row, rowIndex) => (
+        <React.Fragment key={rowIndex}>
+          <View style={GlobalStyles.row}>
+            {row.map((passType, colIndex) => (
+              <React.Fragment key={colIndex}>
+                <StoreItemCard
+                  title={`${passType.days}일 열람권`}
+                  point={passType.cost}
+                  pass_type={passType}
+                />
+                {colIndex < row.length - 1 && (
+                  <View style={storeStyles.divider} />
+                )}
+              </React.Fragment>
+            ))}
+          </View>
+          {rowIndex < storeItems.length - 1 && (
+            <View style={storeStyles.divider} />
+          )}
+        </React.Fragment>
+      ))}
     </View>
   );
 };
@@ -267,7 +288,7 @@ const StoreHeader = () => {
 };
 
 const StoreScreen = () => {
-  // const promotions = [require('@assets/images/promotion_banner.png')];
+  const promotions = [require('@assets/images/promotion_banner.png')];
   return (
     <View style={styles.safeArea}>
       <StoreHeader />
@@ -275,7 +296,7 @@ const StoreScreen = () => {
         <View style={styles.container}>
           <PointInfoSection />
           <StoreItemSection />
-          {/* <Banner items={promotions} /> */}
+          <Banner items={promotions} />
         </View>
       </ScrollView>
     </View>
@@ -414,34 +435,30 @@ const pointStyles = StyleSheet.create({
   },
 });
 
-// const pointHistoryStyles = StyleSheet.create({
-//   container: {
-//     marginTop: 18,
-//     ...GlobalStyles.row,
-//   },
-//   dayText: {
-//     textAlign: 'center',
-//     fontSize: FontSizes.regular,
-//     ...GlobalStyles.text,
-//   },
-//   pointText: {
-//     textAlign: 'center',
-//     fontSize: FontSizes.medium,
-//     ...GlobalStyles.text,
-//   },
-//   itemContainer: {
-//     justifyContent: 'center',
-//     ...GlobalStyles.expand,
-//   },
-//   pointContainer: {
-//     marginTop: 12,
-//     borderRadius: 14,
-//     justifyContent: 'center',
-//     alignSelf: 'center',
-//     width: 28,
-//     height: 28,
-//   },
-// });
+const pointHistoryStyles = StyleSheet.create({
+  container: {
+    marginTop: 18,
+    ...GlobalStyles.row,
+  },
+  dayText: {
+    textAlign: 'center',
+    fontSize: FontSizes.regular,
+    ...GlobalStyles.text,
+  },
+  pointText: {
+    textAlign: 'center',
+    fontSize: FontSizes.medium,
+    ...GlobalStyles.text,
+  },
+  pointContainer: {
+    marginTop: 12,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    width: 28,
+    height: 28,
+  },
+});
 
 const tipStyles = StyleSheet.create({
   label: {
