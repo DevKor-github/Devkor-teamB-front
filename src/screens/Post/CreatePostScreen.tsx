@@ -144,7 +144,6 @@ function PostCreationScreen({ route }: { route: any }) {
   const [content, setContent] = useState('');
   const [images, setImages] = useState<Attachment[]>([]);
   const [files, setFiles] = useState<Attachment[]>([]);
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
@@ -172,8 +171,11 @@ function PostCreationScreen({ route }: { route: any }) {
           name: asset.fileName ?? '',
           type: asset.type ?? '',
         }));
-        setImages([...images, ...photoAttachment]);
-        console.log(images)
+        setImages((prevImages) => {
+          const updatedImages = [...prevImages, ...photoAttachment];
+          console.log('Updated Images:', updatedImages);
+          return updatedImages;
+        });
       }
     } catch (error) {
       console.log('Error picking photo:', error);
@@ -235,7 +237,7 @@ function PostCreationScreen({ route }: { route: any }) {
       formData.append('content', content);
       formData.append('course_fk', lectureId); 
       formData.append('student', userid);
-      formData.append('tags', selectedTags);
+      formData.append('tags', selectedTags)
       if (attachments.length > 0) { // 여기 수정 필요
         attachments.forEach((attachment) => {
           formData.append('image_uploads', {

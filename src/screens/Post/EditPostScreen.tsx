@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white'
   },
   attachmentPreview: {
-    // margin: 5,
     alignSelf: 'center',
     alignItems: 'center',
     borderRadius: 5,
@@ -143,31 +142,29 @@ const styles = StyleSheet.create({
     ...GlobalStyles.text
   }
 });
+
+
 function PostEditScreen({ route }: { route: any }) {
-    const { post } = route.params.post; // 넘어온 post 데이터
+    const { post } = route.params; // 넘어온 post 데이터
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [images, setImages] = useState<Attachment[]>([]);
-    const [files, setFiles] = useState<Attachment[]>([]);
-    const [attachments, setAttachments] = useState<Attachment[]>([]);
+    const [deletedImages, setDeletedImages] = useState<number[]>([]);
     const navigation = useNavigation<StackNavigationProp<any>>();
     const [tags, setTags] = useState<Tag[]>([]);
     const [selectedTags, setSelectedTags] = useState<number[]>([]);
   
     useEffect(() => {
-      console.log(route.params)
+      // console.log(post)
       fetchTags();
       setTitle(post.title); 
       setContent(post.content); 
-      setImages(post.images); 
-      setFiles(post.files); 
+      setImages(post.attachments); 
       setSelectedTags(post.tags.map((tag:Tag) => tag.id)); 
-      console.log("이미지개수:",post)
     }, []);
   
     // Fetch tags
     const fetchTags = async () => {
-      const API_URL = "http://3.37.163.236:8000/"
       try {
         const token = await AsyncStorage.getItem('userToken');
         const response = await axios.get(`${API_URL}/tags/`, {
@@ -189,61 +186,24 @@ function PostEditScreen({ route }: { route: any }) {
       }
     };
   
-    // Handle image attachment
-    const handleAttachPhoto = async () => {
-    //   if (images.length >= 10) {
-    //     Alert.alert('이미지는 최대 10장까지 업로드할 수 있습니다.');
-    //     return;
-    //   }
-      try {
-        const result = await launchImageLibrary({
-          mediaType: 'photo',
-          selectionLimit: 10 - images.length,
-        });
-  
-        if (result.assets) {
-          const photoAttachment: Attachment[] = result.assets.map((asset) => ({
-            uri: asset.uri ?? '',
-            name: asset.fileName ?? '',
-            type: asset.type ?? '',
-          }));
-          setImages([...images, ...photoAttachment]);
-        }
-      } catch (error) {
-        console.log('Error picking photo:', error);
-      }
-    };
-  
-    // Handle file attachment
-    const handleAttachFile = async () => {
-      try {
-        const result = await DocumentPicker.pick({
-          type: [DocumentPicker.types.allFiles],
-        });
-  
-        const fileAttachment: Attachment[] = result.map((file) => ({
-          uri: file.uri ?? '',
-          name: file.name ?? '',
-          type: file.type ?? '',
-        }));
-        setFiles([...files, ...fileAttachment]);
-      } catch (error) {
-        if (DocumentPicker.isCancel(error)) {
-          console.log('User cancelled file picker');
-        } else {
-          console.log('Error picking file:', error);
-        }
-      }
-    };
-  
     // Handle image removal
-    const handleRemoveImage = (uri: string) => {
-      setImages(images.filter((image) => image.uri !== uri));
-    };
-  
-    // Handle file removal
-    const handleRemoveFile = (uri: string) => {
-      setFiles(files.filter((file) => file.uri !== uri));
+    const handleRemoveImage = (attachment: Attachment) => {
+      console.log('removing : ',attachment)
+
+      setImages((prevImages) => {
+        const updatedImages = prevImages.filter((image) => image.uri !== attachment.uri);
+        return updatedImages;
+      });
+
+      setDeletedImages((prevDeletedImages) => {
+        const indexToRemove = images.findIndex((image) => image.uri === attachment.uri);
+        if (indexToRemove !== -1) {
+          const updatedDeletedImages = [...prevDeletedImages, indexToRemove];
+          console.log(updatedDeletedImages)
+          return updatedDeletedImages;
+        }
+        return prevDeletedImages; 
+      });
     };
   
     // Handle form submission
@@ -260,30 +220,23 @@ function PostEditScreen({ route }: { route: any }) {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
-        formData.append('course_fk', lectureId); // course_fk 앞에서 받아와야됨 [완료]
-        formData.append('student', userid);
+        formData.append('course_fk', post.postId); 
+        formData.append('student', post.postId);
         formData.append('tags', selectedTags);
-        if (images && images.length > 0) {
-          images.forEach((file) => {
-            formData.append('attached_file', {
-              uri: file.uri,
-              type: file.type,
-              name: file.name,
-            });
-          });
-        }
-  
-        const response = await axios.post(`${API_URL}/posts/`, formData, {
-          headers: {
-            authorization: `token ${token}`,
-            'Content-Type': 'multipart/form-data',
+        // formData.append('id', post.postId);
+        formData.append('delete_image_ids',deletedImages);
+        console.log(formData._parts)
+        const response = await axios.patch(`${API_URL}/posts/${post.postId}/`, formData,
+          { 
+            headers: { 
+              authorization: `token ${token}`,
+            }
           },
-        });
-        console.log(response.data);
+        );
+        console.log(response.data)
       } catch (error) {
         console.error(error);
       }
-  
       navigation.goBack();
     };
   
@@ -313,6 +266,7 @@ function PostEditScreen({ route }: { route: any }) {
           ))}
         </View>
   
+  
         <Text style={{ color: Colors.text.black, ...GlobalStyles.text, fontSize: 18, fontWeight: 600, marginBottom: 10 }}>
           게시글 작성하기
         </Text>
@@ -330,45 +284,36 @@ function PostEditScreen({ route }: { route: any }) {
           multiline
         />
   
-        <TouchableOpacity onPress={handleAttachFile} style={{ backgroundColor: '#F2F2F2', marginTop: 10, paddingHorizontal: 130, paddingVertical: 12, borderRadius: 5, display: 'flex', flexDirection: 'row' }}>
+        {/* 문서 첨부 관련인데 일단은 주석처리.. */}
+        {/* <TouchableOpacity onPress={handleAttachFile} style={{ backgroundColor: '#F2F2F2', marginTop: 10, paddingHorizontal: 130, paddingVertical: 12, borderRadius: 5, display: 'flex', flexDirection: 'row' }}>
           <Icon name="plus" size={15} color={Colors.primary[500]} />
           <Text style={{ color: Colors.primary[500] }}> 문서 첨부하기</Text>
-        </TouchableOpacity>
-  
-        <View>
-          {/* {files.map((attachment, index) => (
-            <View key={index}>
-              {attachment.uri ? (
-                <View style={{ ...GlobalStyles.row, marginTop: 7, justifyContent: 'space-between', borderBottomColor: '#F2F2F2', borderBottomWidth: 1 }}>
-                  <Text style={{ justifyContent: 'center', alignSelf: 'center', color: '#737373', marginVertical: 7 }}>
-                    {attachment.name}
-                  </Text>
-                  <TouchableOpacity onPress={() => handleRemoveFile(attachment.uri)} style={{ width: 25, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ color: '#737373', fontSize: 15 }}>x</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : <Text>none</Text>}
-            </View>
-          ))} */}
-        </View>
-  
+        </TouchableOpacity> */}
+
+
         <View style={styles.photoContainer}>
-          <TouchableOpacity onPress={handleAttachPhoto} style={[styles.attachmentItem, { backgroundColor: '#F2F2F2', borderRadius: 5, alignItems: 'center', justifyContent: 'center' }]}>
-            <Icon3 name="camera" size={25} color={Colors.primary[500]} />
-            <Text style={{ fontSize: 10, fontWeight: 400 }}>{images.length}/10</Text>
-          </TouchableOpacity>
-          {/* {images.map((attachment, index) => (
+          {images.map((attachment, index) => (
             <View key={index}>
               {attachment.uri ? (
                 <View style={styles.attachmentItem}>
-                  <Image
+                  {attachment.uri.startsWith('/media') ? (
+                    <Image
+                      source={{ uri: `${API_URL}/${attachment.uri}` }}
+                      style={styles.attachmentPreview}
+                      width={80}
+                      height={80}
+                    /> 
+                  ) : (
+                    <Image
                     source={{ uri: attachment.uri }}
                     style={styles.attachmentPreview}
                     width={80}
                     height={80}
                   />
+                  )
+                  }
                   <View style={{ width: 10, height: 10 }}>
-                    <FloatingButton2 onPress={() => handleRemoveImage(attachment.uri)}>
+                    <FloatingButton2 onPress={() => handleRemoveImage(attachment)}>
                       <Icon name="x" size={15} color="white" />
                     </FloatingButton2>
                   </View>
@@ -379,7 +324,7 @@ function PostEditScreen({ route }: { route: any }) {
                 </View>
               )}
             </View>
-          ))} */}
+          ))}
         </View>
   
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>

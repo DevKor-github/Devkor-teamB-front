@@ -24,10 +24,13 @@ interface CommunityScreenProps {
 const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [fetchedPost, setFetchedPost] = useState<Post>();
+  const [commentNum, setCommentNum] = useState(Number);
 
   useEffect(()=>{
     fetchPostInfo(post.postId)
+    fetchComments(post.postId)
   },[post.postId])
+
 
   const fetchPostInfo = async (postId:number) => {
     try{
@@ -39,7 +42,6 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
           },
         },
       );
-      // console.log('response:',response.data)
       const data = response.data
       const newPost : Post = {
         postId: data.id,
@@ -50,7 +52,7 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
           data.author.profileImage,
         ),
         postDate: data.created_at,
-        views: data.views, // 예시
+        views: data.views, 
         likes: data.likes,
         reports: data.reports,
         content: data.content,
@@ -60,6 +62,26 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
       setFetchedPost(newPost)
     } catch (error) {
       console.error('Error fetching tags:', error);
+    }
+  }
+
+  const fetchComments = async (postId:number) => {
+    try{
+      const token = await AsyncStorage.getItem('userToken')
+      const response = await axios.get(`${API_URL}/comments/`,  
+        {
+          params: {
+            post_id: postId
+          },
+          headers: {
+            authorization: `token ${token}`,
+          },
+        },
+      );
+      const commentIds = response.data.map((comment: any) => comment.id);
+      setCommentNum(commentIds.length)
+    } catch (error) {
+      console.error('Error fetching comments:', error);
     }
   }
 
@@ -77,14 +99,19 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
       <View style={{...GlobalStyles.row, justifyContent: 'space-between'}}>
         <View>
           <Text style={postStyles.postText}>{post.title}</Text>
-          <View style={{...GlobalStyles.row,gap:5,flexWrap : 'wrap',}}>
+          <View style={{...GlobalStyles.row,gap:5,flexWrap : 'wrap',maxWidth: 280}}>
             {fetchedPost && fetchedPost.tags.map(tag => (
-                <View style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3,}}>
+                <View style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
                     <Text style={{...GlobalStyles.text,fontSize:12,}}>{tag.name}</Text>
                 </View>
             ))}
           </View>
-          <Text style={{color:Colors.text.lightgray,marginTop: 7}}>{fetchedPost && fetchedPost.postDate.substring(0,10)} | 조회 {fetchedPost && fetchedPost.views} | 댓글 {10} | 좋아요 0</Text>
+          <Text style={{color:Colors.text.lightgray,marginTop: 7}}>
+            {fetchedPost && fetchedPost.postDate.substring(0,10)} 
+            {" "}| 조회 {fetchedPost && fetchedPost.views}  
+            {" "}댓글 {commentNum}  
+            {" "}좋아요 {fetchedPost?.likes} 
+          </Text>
         </View>
         {/* 이미지 preview */}
         {fetchedPost && fetchedPost.attachments && fetchedPost.attachments.length > 0 && (

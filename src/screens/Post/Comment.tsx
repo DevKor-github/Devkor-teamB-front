@@ -43,7 +43,6 @@ export function CommentTextField({ addComment, postId }: { addComment: (comment:
       }
       
       if(text.trim().length>0){
-        // const API_URL = "http://3.37.163.236:8000/"
         try{
           const token = await AsyncStorage.getItem('userToken')
           const nickname = await AsyncStorage.getItem('userNickname')
@@ -78,24 +77,27 @@ export function CommentTextField({ addComment, postId }: { addComment: (comment:
           console.error(error)
         }
       }
+      getPoint();
     }
-  
-    const handleSelectAttachment = () => {
-      launchImageLibrary({ mediaType: 'mixed', selectionLimit: 3 }, (response) => {
-        if (response.assets) {
-          const newAttachments = response.assets.map(asset => ({
-            uri: asset.uri,
-            name: asset.fileName,
-            type: asset.type,
-          } as Attachment));
-          setAttachments([...attachments, ...newAttachments]);
-        }
-      });
-    };
-  
-    const handleRemoveAttachment = (uri: string) => {
-      setAttachments(attachments.filter(attachment => attachment.uri !== uri));
-    };
+
+    const getPoint = async() => {
+      const token = await AsyncStorage.getItem('userToken')
+      try{
+        const response = await axios.post(
+          `${API_URL}/student/get-points/`,
+          {point_type: 'answer'},
+          {
+            headers: {
+              authorization: `token ${token}`,
+            },
+          },
+        );
+        console.log(response.data)
+      } catch(e) {
+        console.error(e)
+      }
+
+    }
   
     return (
       <KeyboardAvoidingView 
@@ -116,37 +118,20 @@ export function CommentTextField({ addComment, postId }: { addComment: (comment:
                 <TouchableOpacity onPress={handleAddComment}>
                   <Icon name="send" size={18} color={Colors.ui.primary} />
                 </TouchableOpacity>
-                {/* <TouchableOpacity onPress={handleSelectAttachment}>
-                  <Icon name="image" size={18} color={Colors.ui.primary} />
-                </TouchableOpacity> */}
               </View>
             </View>
-            {/* <View style={styles.attachmentPreviewContainer}>
-              {attachments.map(attachment => (
-                <View key={attachment.uri} style={[styles.attachmentWrapper,{paddingBottom: inputHeight}]}>
-                  {attachment.type.startsWith('image/') ? (
-                    <Image source={{ uri: attachment.uri }} style={styles.previewImage} />
-                  ) : (
-                    <Text style={styles.fileName}>{attachment.name}</Text>
-                  )}
-                  <TouchableOpacity onPress={() => handleRemoveAttachment(attachment.uri)} style={styles.removeButton}>
-                    <Icon name="x" size={18} color="white" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View> */}
         </View>
       </KeyboardAvoidingView>
     );
   }
 
   
-export function CommentContainer({comment, handleDeleteComment}: {comment: Comment, handleDeleteComment: (commentId:number)=>void}) {
+export function CommentContainer({comment, currPoint, handleDeleteComment}: {comment: Comment, currPoint: number, handleDeleteComment: (commentId:number)=>void}) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isBlurVisible, setIsBluerVisible] = useState(true);
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
     const moreButtonRef = useRef<TouchableOpacity>(null);
-    const [point, setPoint] = useState(40); // 샘플
+    const [point, setPoint] = useState(currPoint); // 샘플
     const date = new Date(comment.date)
   
   
@@ -187,7 +172,6 @@ export function CommentContainer({comment, handleDeleteComment}: {comment: Comme
           style: 'destructive',
           onPress: async () => {
             // 삭제 로직
-            // const API_URL = "http://3.37.163.236:8000/"
             const token = await AsyncStorage.getItem('userToken')
             try{
               const response = await axios.delete(`${API_URL}/comments/${comment.commentId}/`,

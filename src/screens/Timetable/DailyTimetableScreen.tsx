@@ -203,12 +203,12 @@ const DailyTimetableScreen = () => {
     const timer = setInterval(() => {
       const time = new Date(2024, 9, 10, 10, 15);
       const now = parseTime(time);
-      // for (let i = 0; i < courses.length; i++) { // 여기 에러떠서 주석처리해둠
-      //   if (parseTime(courses[i].end) > now) {
-      //     setActiveCourse(i);
-      //     break;
-      //   }
-      // }
+      for (let i = 0; i < courses.length; i++) { // 여기 에러떠서 주석처리해둠
+        if (parseTime(courses[i].end) > now) {
+          setActiveCourse(i);
+          break;
+        }
+      }
     }, 1000);
     return () => clearInterval(timer);
   }, [courses]);

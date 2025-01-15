@@ -49,6 +49,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [images, setImages] = useState<Attachment[]>([]);
   const [files, setFiles] = useState<Attachment[]>([]);
+  const [point, setPoint] = useState(Number);
 
   useEffect(()=>{
     console.log("\n\nPostScreen입니다")
@@ -58,6 +59,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     fetchComments(post.postId)
     setTags(post.tags)
     sortAttachments(post.attachments)
+    fetchCurrPoint();
     // console.log(post.attachments)
   },[]) 
 
@@ -156,7 +158,8 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   }
 
   const handlePostEdit = () => {
-    console.log(post)
+    // console.log(post)
+    setIsModalVisible(false)
     navigation.navigate('PostEditScreen', {post: post, lectureName: lectureName});
   }
 
@@ -201,24 +204,70 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   
         // 서버에 동기화 요청
         const token = await AsyncStorage.getItem('userToken')
-        console.log(post.title) // Test2
-        console.log(post.content) // 테스트입니다
-        console.log(post.postId) // 37
-        const response = await axios.patch(`${API_URL}/posts/${post.postId}/`, 
-          { title: post.title,
-            content: post.content,
-            course_fk: post.postId,
-            student: post.postId,
-            id: post.postId,
-            likes: post.likes }, 
-          { headers: { authorization: `token ${token}`,}},
+
+        const formData = new FormData();
+        formData.append('course_fk', post.postId);
+        formData.append('student', post.postId);
+        formData.append('id', post.postId);
+        formData.append('likes', post.likes);
+
+        const response = await axios.patch(`${API_URL}/posts/${post.postId}/`, formData,
+          { 
+            headers: { 
+              authorization: `token ${token}`,
+            }
+          },
         );
-        console.log(response)
+        // console.log(response)
       } catch(error){
         console.error(error)
       }
 
     }
+
+    const fetchCurrPoint = async() => {
+      try{
+        const token = await AsyncStorage.getItem('userToken');
+        const response = await axios.get(`${API_URL}/student/get-now-points/`, {
+          headers: {
+            authorization: `token ${token}`,
+          },
+        });
+        const value = response.data as number;
+        console.log('fetch curr point:',response.data)
+
+        setPoint(value);
+      } catch(e){
+        console.error(e);
+      }
+    }
+
+    // const usePoint = async (type: string, point: number) => {
+    //   try {
+    //     const token = await AsyncStorage.getItem('userToken');
+    //     const response = await axios.post(
+    //       `${API_URL}/student/use-points/`,
+    //       {point_costs: type},
+    //       {
+    //         headers: {
+    //           authorization: `token ${token}`,
+    //         },
+    //       },
+    //     );
+    
+    //     if (response.status === 201) {
+    //       // PointEventHandler.emit('POINTS_UPDATED', -point);
+    //       return true;
+    //     } else {
+    //       return false;
+    //     }
+    //   } catch (e) {
+    //     console.error(e);
+    //     return false;
+    //   }
+    // };
+
+
 
     useEffect(() => {
       navigation.setOptions({title: lectureName});
@@ -339,8 +388,8 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
               >
                 <View style={style.menu_like}>
                   <Text style={{fontSize: 16}}>해당 게시글에 공감하시겠어요?</Text>
-                  <View style={{flexDirection:'row', justifyContent:'space-between'}}>
-                    <TouchableOpacity onPress={()=>setIsLikeModalVisible(false)}>
+                  <View style={{flexDirection:'row', justifyContent:'space-between', marginTop: 15}}>
+                    <TouchableOpacity onPress={()=>setIsLikeModalVisible(false)} style={{marginRight: 20}}>
                       <Text>취소</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={handlePressLike}>
@@ -380,7 +429,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
           {comments.map(comment => (
             <View style={{marginTop: 10}}>
-              <CommentContainer key={comment.commentId} comment={comment} handleDeleteComment={handleDeleteComment}/>
+              <CommentContainer key={comment.commentId} comment={comment} currPoint={point} handleDeleteComment={handleDeleteComment}/>
             </View>
           ))}
           <View style={{height:90}}></View>
@@ -465,7 +514,6 @@ export const styles = StyleSheet.create({
     padding: 2,
   },
 })
-
 
 export const style = StyleSheet.create({
   textfield: {
