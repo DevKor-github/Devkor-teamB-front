@@ -152,11 +152,10 @@ const Timetable: React.FC<TimetableProps> = ({
   courses,
   onPress,
   candidate,
+  slotCount = DEFAULT_SLOT_COUNT,
   scrollable = false,
 }) => {
-  const maxHeight = scrollable
-    ? slotHeight * DEFAULT_SLOT_COUNT + labelSize + 4
-    : null;
+  const maxHeight = scrollable ? slotHeight * slotCount + labelSize + 4 : null;
   const scrollViewRef = useRef<ScrollView | null>(null);
 
   useEffect(() => {

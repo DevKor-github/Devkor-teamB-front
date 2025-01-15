@@ -1,35 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import Colors from '@src/Colors';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { FontSizes, GlobalStyles } from '@src/GlobalStyles';
-import axios from 'axios';
-import { API_URL } from '@env';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
-
-const fetchUserImage = async () => {
-  const token = await AsyncStorage.getItem('userToken');
-  const { data } = await axios.get(`${API_URL}/student/image/`, {
-    headers: { authorization: `token ${token}` },
-  });
-  // (임시) 존재하는 이미지로 대체
-  return data[data.length - 2].image;
-};
-
-const fetchUserInfo = async () => {
-  const token = await AsyncStorage.getItem('userToken');
-  const { data } = await axios.get(`${API_URL}/student/user-info/`, {
-    headers: { authorization: `token ${token}` },
-  });
-  return data.nickname;
-};
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
+import {useNavigation} from '@react-navigation/native';
+import {
+  consumePoints,
+  earnPoints,
+  PermissionType,
+  RewardType,
+} from './Store/StoreHandler';
+import {
+  fetchAllCourses,
+  fetchStudentImage,
+  fetchTimetables,
+  fetchUserInfo,
+} from '@src/data/studentApi';
+import {API_URL} from '@env';
+import {removeAccess} from '@src/data/authStorage';
 
 const MY_INFO_ITEMS = {
   // '아이디 변경하기': 'changeId',
   '비밀번호 변경하기': 'changePassword',
   '시간표 수정하기': 'editTimetable',
-  '로그아웃': 'logout',
+  로그아웃: 'logout',
   // '탈퇴하기': 'withdraw',
 };
 
@@ -39,24 +41,44 @@ const MY_POST_ITEMS = [
   // '내가 스크랩한 글',
 ];
 
-const handleItemPress = ({key, navigation}: {key: string, navigation: any}) => {
+const handleItemPress = ({
+  key,
+  navigation,
+  callback,
+}: {
+  key: string;
+  navigation: any;
+  callback: (argv: boolean) => void;
+}) => {
   switch (key) {
     case 'editTimetable':
-      AsyncStorage.getItem('userId').then(id =>
-        navigation.navigate('RegisterInfo', {userId: id, skip: true}),
-      );
+      try {
+        callback(true);
+        const fetchData = async () => {
+          const courses = await fetchAllCourses();
+          const timetable = await fetchTimetables()!;
+          navigation.navigate('Register', {
+            courses: courses,
+            timetable: timetable,
+          });
+        };
+        fetchData();
+        callback(false);
+      } catch (e) {
+        console.error('[RegisterInfoScreen]', e);
+      }
       break;
     case 'logout':
       Alert.alert('로그아웃하겠습니까?', '', [
-        { text: '취소' },
+        {text: '취소'},
         {
           text: '확인',
           style: 'destructive',
           onPress: async () => {
-            await AsyncStorage.removeItem('userToken');
+            await removeAccess();
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Login' }],
+              routes: [{name: 'Login'}],
             });
           },
         },
@@ -68,14 +90,22 @@ const handleItemPress = ({key, navigation}: {key: string, navigation: any}) => {
 };
 
 const MyPageScreen = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [userImage, setUserImage] = useState('');
-  const [nickname, setNickname] = useState('');
+  const [userNickname, setUserNickname] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
-    fetchUserImage().then(image => setUserImage(image));
-    fetchUserInfo().then(nickname => setNickname(nickname));
-  }, []);
+    const getImage = async () => {
+      const {data} = await fetchUserInfo();
+      const nickname = data.nickname;
+      const image = await fetchStudentImage(nickname.replace(/[0-9]/g, ''));
+      setUserNickname(nickname);
+      setUserImage(`${API_URL}${image}`);
+    };
+    getImage();
+  }, [userImage, userNickname]);
+
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <View style={styles.container}>
@@ -87,16 +117,14 @@ const MyPageScreen = () => {
           <View style={styles.headerTop} />
           <View style={styles.avatarContainer}>
             <Image
-              // source={require('@assets/images/UserImage.png')}
-              source={{
-                uri: `${API_URL}${userImage}`,
-              }}
+              source={{uri: userImage}}
+              defaultSource={require('@assets/images/UserImage.png')}
               style={styles.avatar}
             />
           </View>
           <View style={GlobalStyles.row}>
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{nickname}</Text>
+              <Text style={styles.userName}>{userNickname}</Text>
               {/* <View style={styles.userDetail}>
                 <Text style={styles.userSchool}>고려대학교 재학</Text>
                 <TouchableOpacity style={styles.schoolCertificationButton}>
@@ -114,7 +142,13 @@ const MyPageScreen = () => {
               <TouchableOpacity
                 key={index}
                 style={styles.item}
-                onPress={() => handleItemPress({key, navigation})}>
+                onPress={() =>
+                  handleItemPress({
+                    key,
+                    navigation,
+                    callback: setIsLoading,
+                  })
+                }>
                 <View style={styles.itemContainer}>
                   <Text style={styles.itemText}>{item}</Text>
                   <Image
@@ -140,13 +174,65 @@ const MyPageScreen = () => {
               </TouchableOpacity>
             ))}
           </View>
+          {/* 포인트 관련. 삭제할 예정 */}
+          <HowToUsePoint />
+          <HowToGetPoint />
         </View>
       </View>
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={Colors.ui.primary} />
+        </View>
+      )}
     </SafeAreaView>
   );
 };
 
+// 포인트 적립 기능
+const HowToUsePoint = () => {
+  return (
+    <TouchableOpacity
+      onPress={async () => {
+        await earnPoints(RewardType.CHOSEN);
+      }}
+      style={tempStyle.pointInfoContainer}>
+      <Text>포인트 적립 방법</Text>
+    </TouchableOpacity>
+  );
+};
+
+// 포인트 사용 기능
+const HowToGetPoint = () => {
+  return (
+    <TouchableOpacity
+      onPress={async () => {
+        await consumePoints(PermissionType.DAY);
+      }}
+      style={tempStyle.pointInfoContainer}>
+      <Text>포인트 사용 방법</Text>
+    </TouchableOpacity>
+  );
+};
+
+const tempStyle = StyleSheet.create({
+  pointInfoContainer: {
+    backgroundColor: 'pink',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 12,
+  },
+});
+
 const styles = StyleSheet.create({
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   safeArea: {
     flex: 1,
     overflow: 'hidden',
@@ -190,8 +276,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    width:52,
-    height: 52,
+    width: 80,
+    height: 80,
   },
   userInfo: {
     paddingBottom: 12,

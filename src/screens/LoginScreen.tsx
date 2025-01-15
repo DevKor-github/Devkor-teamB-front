@@ -11,16 +11,17 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from '@src/Colors';
 
-// import {TimetableModel} from '@src/Types';
-import {API_URL} from '@env';
 import {GlobalStyles} from '@src/GlobalStyles';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {InputField} from '@src/screens/SignUp/InputField';
 import {CustomButton} from '@src/screens/SignUp/CustomButton';
+import {fetchLogin} from '@src/data/authApi';
+import {setUserNickname} from '@src/data/authStorage';
+import {setUserId} from '@src/data/authStorage';
+import {fetchTimetables, fetchUserInfo} from '@src/data/studentApi';
+import {logger} from '@src/logger';
 
 enum LoginStatus {
   SUCCESS,
@@ -30,29 +31,6 @@ enum LoginStatus {
   UNKNOWN_FAILURE,
 }
 
-// const hasTimetableEntries = async (token: string, userId: string) => {
-//   const {data, status} = await axios.get(`${API_URL}/timetables/${userId}/`, {
-//     headers: {authorization: `token ${token}`},
-//     validateStatus: x => x === 200 || x === 404,
-//   });
-//   if (status === 404) {
-//     throw LoginStatus.TIMETABLE_FAILURE;
-//   }
-//   const timetable = TimetableModel.fromJson(data);
-//   return timetable.courses.length > 0;
-// };
-
-const getUserInfo = async (token: string) => {
-  const {data, status} = await axios.get(`${API_URL}/student/user-info/`, {
-    headers: {authorization: `token ${token}`},
-    validateStatus: x => x === 200 || x === 404,
-  });
-  if (status === 404) {
-    throw LoginStatus.USER_INFO_FAILURE;
-  }
-  return {userId: data.user_id.toString(), userNickname: data.nickname};
-};
-
 function LoginScreen({navigation}: {navigation: any}) {
   const [username, setUsername] = useState('test1');
   const [password, setPassword] = useState('test1');
@@ -60,47 +38,61 @@ function LoginScreen({navigation}: {navigation: any}) {
   const isFormValid = username.length > 0 && password.length > 0;
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleLoginRequest = async () => {
     try {
-      Keyboard.dismiss();
-      setIsLoading(true);
-      const {status, data} = await axios.post(
-        `${API_URL}/student/login/`,
-        {username: username, password: password},
-        {validateStatus: x => x === 200 || x === 400},
-      );
+      const {status} = await fetchLogin(username, password);
       if (status === 400) {
         throw LoginStatus.LOGIN_FAILURE;
       }
       setLoginError(false);
-      const token = data.Token;
-      const {userId, userNickname} = await getUserInfo(token);
-      await Promise.all([
-        AsyncStorage.setItem('userToken', token),
-        AsyncStorage.setItem('userId', userId),
-        AsyncStorage.setItem('userNickname', userNickname),
-      ]);
-      // const hasTimetable = await hasTimetableEntries(token, userId);
-      setIsLoading(false);
-      // navigation.navigate(
-      //  hasTimetable ? 'Home' : 'RegisterInfo',
-      //  hasTimetable ? {} : {userId},
-      // );
-      navigation.navigate('RegisterInfo', {userId});
-    } catch (e) {
-      console.log(e);
-      setIsLoading(false);
+    } catch (e: any) {
       if (e === LoginStatus.LOGIN_FAILURE) {
         setLoginError(true);
-      } else if (e === LoginStatus.TIMETABLE_FAILURE) {
-        Alert.alert(
-          '로그인 실패',
-          '시간표 정보를 불러오는 데 실패했습니다.\n인터넷 연결을 확인하고 다시 시도해 주세요.',
-        );
-      } else if (e === LoginStatus.USER_INFO_FAILURE) {
+      } else {
+        logger.error('handleLoginRequest', e);
+        throw Error(e);
+      }
+    }
+  };
+
+  const handleUserInfoRequest = async () => {
+    try {
+      const {data, status} = await fetchUserInfo();
+      if (status === 404) {
+        throw LoginStatus.USER_INFO_FAILURE;
+      }
+      await Promise.all([
+        setUserId(data.user_id.toString()),
+        setUserNickname(data.nickname),
+      ]);
+    } catch (e: any) {
+      if (e === LoginStatus.USER_INFO_FAILURE) {
         Alert.alert(
           '로그인 실패',
           '유저 정보를 불러오는 데 실패했습니다.\n인터넷 연결을 확인하고 다시 시도해 주세요.',
+        );
+      } else {
+        logger.error('handleUserInfoRequest', e);
+        throw Error(e);
+      }
+    }
+  };
+
+  const handleLoginButtonPress = async () => {
+    try {
+      Keyboard.dismiss();
+      setIsLoading(true);
+      await handleLoginRequest();
+      await handleUserInfoRequest();
+      const timetable = await fetchTimetables();
+      setIsLoading(false);
+      navigation.navigate(timetable ? 'Home' : 'RegisterInfo');
+    } catch (e) {
+      setIsLoading(false);
+      if (e === LoginStatus.TIMETABLE_FAILURE) {
+        Alert.alert(
+          '로그인 실패',
+          '시간표 정보를 불러오는 데 실패했습니다.\n인터넷 연결을 확인하고 다시 시도해 주세요.',
         );
       } else {
         Alert.alert(
@@ -116,7 +108,7 @@ function LoginScreen({navigation}: {navigation: any}) {
       return (
         <CustomButton
           text="로그인"
-          onPress={handleLogin}
+          onPress={handleLoginButtonPress}
           disabled={!isFormValid}
         />
       );

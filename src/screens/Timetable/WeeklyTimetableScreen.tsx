@@ -5,7 +5,7 @@ import {useEffect, useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import Timetable from '@components/Timetable/Timetable';
 import {Course, CourseBlock} from '@src/Types';
-import {fetchTimetableData} from '@src/screens/Timetable/TimetableAPI';
+import {fetchTimetables} from '@src/data/studentApi';
 
 function WeeklyTimetableScreen() {
   const [viewHeight, setViewHeight] = useState(0);
@@ -14,7 +14,7 @@ function WeeklyTimetableScreen() {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [courses, setCourses] = useState<Course[]>([]);
   useEffect(() => {
-    fetchTimetableData().then(result => {
+    fetchTimetables().then(result => {
       if (result) {
         setCourses(result.courses);
         setScrollEnabled(contentHeight > viewHeight);
