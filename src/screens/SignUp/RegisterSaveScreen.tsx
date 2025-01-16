@@ -2,35 +2,18 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Easing, Image, StyleSheet, View} from 'react-native';
 import Colors from '@src/Colors';
 import {TimetableModel, TimetableUpdateData} from '@src/Types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import {API_URL} from '@env';
+import {fetchTimetableUpdate} from '@src/data/studentApi';
 
-const fetchUserId = async () => {
-  const token = await AsyncStorage.getItem('userToken');
-  const response = await axios.get(`${API_URL}/student/user-info/`, {
-    headers: {
-      authorization: `token ${token}`,
-    },
-  });
-  return response.data.user_id as number;
-};
-
-const fetchUpdateTimetable = async (timetable: TimetableModel) => {
+const updateTimetable = async (timetable: TimetableModel) => {
   try {
-    const token = await AsyncStorage.getItem('userToken');
-    const userId = await fetchUserId();
     const updateData: TimetableUpdateData = {
       student: timetable.student,
       course_ids: timetable.courses.map(e => e.id),
       semester: timetable.semester,
       year: timetable.year,
     };
-    await axios.put(`${API_URL}/timetables/${userId}/`, updateData, {
-      headers: {
-        authorization: `token ${token}`,
-      },
-    });
+
+    await fetchTimetableUpdate(updateData);
   } catch (e) {
     console.error(e);
   }
@@ -61,27 +44,6 @@ const ActivityIndicator = () => {
   );
 };
 
-const indicatorStyle = StyleSheet.create({
-  indicatorContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  active: {
-    margin: 12,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: Colors.primary[500],
-  },
-  inactive: {
-    margin: 12,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: Colors.primary[100],
-  },
-});
-
 const RegistrationSaveScreen = ({
   navigation,
   route,
@@ -94,7 +56,7 @@ const RegistrationSaveScreen = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      await fetchUpdateTimetable(timetable);
+      await updateTimetable(timetable);
       await new Promise(resolve => setTimeout(resolve, 1000));
       navigation.reset({routes: [{name: 'Home'}]});
     };
@@ -219,6 +181,28 @@ const styles = StyleSheet.create({
     width: 360,
     height: 360,
     tintColor: Colors.primary[100],
+  },
+});
+
+
+const indicatorStyle = StyleSheet.create({
+  indicatorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  active: {
+    margin: 12,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.primary[500],
+  },
+  inactive: {
+    margin: 12,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.primary[100],
   },
 });
 

@@ -27,6 +27,7 @@ const Colors = {
     onPrimary: PRIMARY[50],
     disabled: 'rgb(230, 230, 230)',
     background: 'rgb(255, 255, 255)',
+    gray: 'rgb(200, 200, 200)',
   },
   text: {
     accent: PRIMARY[500],

@@ -242,6 +242,7 @@ const StoreHistoryScreen = () => {
 
   useEffect(() => {
     fetchGetPointHistory().then(setHistory);
+    return () => setHistory([]);
   }, [setHistory]);
 
   return (

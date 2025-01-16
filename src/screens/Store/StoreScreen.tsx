@@ -118,7 +118,7 @@ const PointInfoButton = () => {
   const style = {marginLeft: 4};
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate('StoreHistoryScreen')}
+      onPress={() => navigation.navigate('StoreHistory')}
       style={pointStyles.button}>
       <Image
         style={pointStyles.buttonIcon}
@@ -269,12 +269,12 @@ const StoreHeader = () => {
           <Text style={headerStyles.logoText}>KU&A</Text>
         </View>
         <View style={headerStyles.buttonContainer}>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Image
               style={headerStyles.icon}
               source={require('@assets/icons/bell.png')}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/* <TouchableOpacity>
             <Image
               style={headerStyles.icon}

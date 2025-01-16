@@ -8,16 +8,16 @@ const Stack = createStackNavigator();
 
 const StoreNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName="StoreScreen">
+    <Stack.Navigator initialRouteName="Store">
       <Stack.Screen
-        name="StoreScreen"
+        name="Store"
         component={StoreScreen}
         options={{
           headerShown: false,
         }}
       />
       <Stack.Screen
-        name="StoreHistoryScreen"
+        name="StoreHistory"
         component={StoreHistoryScreen}
         options={{
           title: '포인트 내역',

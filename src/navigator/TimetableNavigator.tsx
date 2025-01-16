@@ -10,7 +10,7 @@ import PostListScreen from '@src/screens/Post/PostListScreen';
 import {View} from 'react-native-animatable';
 import {StyleSheet, Text} from 'react-native';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
-import TimetableScreen from '@src/screens/TimetableScreen';
+import TimetableScreen from '@src/screens/Timetable/TimetableScreen';
 
 const Stack = createStackNavigator();
 

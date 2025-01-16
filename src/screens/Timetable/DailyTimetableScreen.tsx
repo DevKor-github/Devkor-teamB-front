@@ -13,13 +13,9 @@ import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {CourseBlock} from '@src/Types';
 import {useNavigation} from '@react-navigation/native';
-import {
-  getDay,
-  groupByDay,
-  parseTime,
-} from '@src/components/Timetable/TimetableUtils';
-import PollsModal from '@src/screens/Timetable/PollsModal';
-import {fetchTimetables} from '@src/data/studentApi';
+import {parseTime} from '@src/components/Timetable/TimetableUtils';
+import PollsModal from '@src/screens/Timetable/TimetablePollsModal';
+
 // const fetchValidPolls = async (id: number) => {
 //   const token = await AsyncStorage.getItem('userToken');
 //   const response = await axios.get(`${API_URL}/todaypolls/${id}/`, {
@@ -184,27 +180,17 @@ const EmptyCourseView = () => {
   );
 };
 
-const DailyTimetableScreen = () => {
+const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
   const [activeCourse, setActiveCourse] = useState<number>(-1);
   const [selectedCourse, setSelectedCourse] = useState<number>(-1);
-  const [courses, setCourses] = useState<CourseBlock[]>([]);
   const [showModal, setShowModal] = useState(false);
   const handleCloseModal = () => setShowModal(false);
-
-  useEffect(() => {
-    fetchTimetables().then(timetableData => {
-      if (timetableData) {
-        const coursesByDay = groupByDay(timetableData.courses);
-        setCourses(coursesByDay[getDay()] || []);
-      }
-    });
-  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       const time = new Date();
       const now = parseTime(time);
-      for (let i = 0; i < courses.length; i++) { // 여기 에러떠서 주석처리해둠
+      for (let i = 0; i < courses.length; i++) {
         if (parseTime(courses[i].end) > now) {
           setActiveCourse(i);
           break;
