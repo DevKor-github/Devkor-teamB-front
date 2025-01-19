@@ -10,10 +10,11 @@ import EmailScreen from '@screens/SignUp/EmailScreen';
 import SignUpScreen from '@screens/SignUp/SignUpScreen';
 import RegisterInfoScreen from '@src/screens/SignUp/RegisterInfoScreen';
 import RegisterScreen from '@src/screens/SignUp/RegisterScreen';
-import {View} from 'react-native-animatable';
+import { View } from 'react-native';
 import Colors from '@src/Colors';
 import RegistrationSaveScreen from '@src/screens/SignUp/RegisterSaveScreen';
 import { getToken, removeAccess } from './data/authStorage';
+import { logger } from './logger';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -35,8 +36,10 @@ const App = () => {
   useEffect(() => {
     const checkToken = async () => {
       const token = await getToken();
-      if (token !== null) {
+      if (token === null) {
         await removeAccess();
+        setInitialRoute('Login');
+      } else {
         setInitialRoute('Home');
       }
       setIsLoading(false);

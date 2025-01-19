@@ -149,10 +149,9 @@ const TimetableScreen = () => {
       try {
         const timetable = await fetchTimetables();
         const coursesByDay = groupByDay(timetable.courses);
-        setCourses(coursesByDay[getDay()]);
+        setCourses(coursesByDay[getDay()] ?? []);
         setTimetable(timetable);
       } catch (_) {
-        console.error('Unable to fetch timetables.');
         setCourses([]);
         setTimetable(TimetableModel.empty());
       }

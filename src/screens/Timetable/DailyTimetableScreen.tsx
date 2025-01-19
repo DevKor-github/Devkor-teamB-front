@@ -190,11 +190,16 @@ const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
     const timer = setInterval(() => {
       const time = new Date();
       const now = parseTime(time);
+      let found = false;
       for (let i = 0; i < courses.length; i++) {
         if (parseTime(courses[i].end) > now) {
           setActiveCourse(i);
+          found = true;
           break;
         }
+      }
+      if (!found) {
+        setActiveCourse(-1);
       }
     }, 1000);
     return () => clearInterval(timer);
