@@ -17,7 +17,7 @@ import {
   earnPoints,
   PermissionType,
   RewardType,
-} from './Store/StoreHandler';
+} from '../Store/StoreHandler';
 import {
   fetchAllCourses,
   fetchStudentImage,
@@ -35,11 +35,11 @@ const MY_INFO_ITEMS = {
   // '탈퇴하기': 'withdraw',
 };
 
-const MY_POST_ITEMS = [
-  '내가 쓴 게시물',
-  '내가 쓴 댓글',
+const MY_POST_ITEMS = {
+  '내가 쓴 게시물': 'myPost',
+  '내가 쓴 댓글': 'myComment',
   // '내가 스크랩한 글',
-];
+};
 
 const handleItemPress = ({
   key,
@@ -51,6 +51,15 @@ const handleItemPress = ({
   callback: (argv: boolean) => void;
 }) => {
   switch (key) {
+    case 'myComment':
+      navigation.navigate('MyComment');
+      break;
+    case 'myPost':
+      navigation.navigate('MyPost');
+      break;
+    case 'changePassword':
+      navigation.navigate('ChangePassword');
+      break;
     case 'editTimetable':
       try {
         callback(true);
@@ -104,7 +113,7 @@ const MyPageScreen = () => {
       setUserImage(`${API_URL}${image}`);
     };
     getImage();
-  }, [userImage, userNickname]);
+  }, []);
 
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
@@ -117,7 +126,11 @@ const MyPageScreen = () => {
           <View style={styles.headerTop} />
           <View style={styles.avatarContainer}>
             <Image
-              source={{uri: userImage}}
+              source={
+                userImage
+                  ? {uri: userImage}
+                  : require('@assets/images/UserImage.png')
+              }
               defaultSource={require('@assets/images/UserImage.png')}
               style={styles.avatar}
             />
@@ -162,8 +175,17 @@ const MyPageScreen = () => {
           <View style={styles.separator} />
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>내 글 관리</Text>
-            {MY_POST_ITEMS.map((item, index) => (
-              <TouchableOpacity key={index} style={styles.item}>
+            {Object.entries(MY_POST_ITEMS).map(([item, key], index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.item}
+                onPress={() =>
+                  handleItemPress({
+                    key,
+                    navigation,
+                    callback: setIsLoading,
+                  })
+                }>
                 <View style={styles.itemContainer}>
                   <Text style={styles.itemText}>{item}</Text>
                   <Image
@@ -177,6 +199,7 @@ const MyPageScreen = () => {
           {/* 포인트 관련. 삭제할 예정 */}
           <HowToUsePoint />
           <HowToGetPoint />
+          {/* 포인트 관련. 삭제할 예정 */}
         </View>
       </View>
       {isLoading && (

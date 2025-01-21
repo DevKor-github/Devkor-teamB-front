@@ -14,46 +14,31 @@ import Colors from '@src/Colors';
 import WeeklyTimetableScreen from '@screens/Timetable/WeeklyTimetableScreen';
 import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {fetchTimetables} from '@src/data/studentApi';
+import {getDay, groupByDay} from '@src/components/Timetable/TimetableUtils';
+import {CourseBlock, TimetableModel} from '@src/Types';
 
 enum ViewMode {
   Daily,
   Weekly,
 }
 
-class DateUtil {
-  private static instance: DateUtil;
-
-  private month: number;
-  private date: number;
-  private day: number;
-
-  private constructor() {
-    const today = new Date();
-    this.month = today.getMonth() + 1;
-    this.date = today.getDate();
-    this.day = today.getDay();
-  }
-
-  public static getInstance(): DateUtil {
-    if (!DateUtil.instance) {
-      DateUtil.instance = new DateUtil();
-    }
-    return DateUtil.instance;
-  }
-
-  public toString(): string {
-    const label = ['일', '월', '화', '수', '목', '금', '토'];
-    return `${this.month}월 ${this.date}일 ${label[this.day]}요일`;
-  }
-
-  public equals(other: DateUtil): boolean {
-    return (
-      this.month === other.month &&
-      this.date === other.date &&
-      this.day === other.day
-    );
-  }
+const dateToString = (now: Date) => {
+  const month = now.getMonth() + 1;
+  const date = now.getDate();
+  const day = now.getDay();
+  const label = ['일', '월', '화', '수', '목', '금', '토'];
+  return `${month}월 ${date}일 ${label[day]}요일`;
 }
+
+const compareDate = (old: Date, now: Date) => {
+  return (
+    old.getFullYear() === now.getFullYear() &&
+    old.getMonth() === now.getMonth() &&
+    old.getDate() === now.getDate()
+  );
+}
+
 
 const NavigationButton = ({
   label,
@@ -88,12 +73,12 @@ const NavigationButton = ({
 
 const NavigationRow = ({
   mode,
-  onClick,
   date,
+  onClick,
 }: {
   mode: ViewMode;
+  date: Date;
   onClick: Function;
-  date: DateUtil;
 }) => {
   return (
     <View style={navigationStyles.container}>
@@ -111,7 +96,7 @@ const NavigationRow = ({
           onPress={() => onClick(ViewMode.Weekly)}
         />
       </View>
-      <Text style={navigationStyles.dateText}>{date.toString()}</Text>
+      <Text style={navigationStyles.dateText}>{dateToString(date)}</Text>
     </View>
   );
 };
@@ -128,12 +113,12 @@ const TimetableHeader = () => {
           <Text style={headerStyles.logoText}>KU&A</Text>
         </View>
         <View style={headerStyles.buttonContainer}>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <Image
               style={headerStyles.icon}
               source={require('@assets/icons/bell.png')}
             />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/* <TouchableOpacity>
             <Image
               style={headerStyles.icon}
@@ -147,26 +132,43 @@ const TimetableHeader = () => {
 };
 
 const TimetableScreen = () => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [courses, setCourses] = useState<CourseBlock[]>([]);
+  const [timetable, setTimetable] = useState<TimetableModel>(TimetableModel.empty());
   const [viewMode, setViewMode] = useState(ViewMode.Daily);
-  const [currentDate, setCurrentDate] = useState(DateUtil.getInstance());
   const scrollViewRef = useRef<ScrollView | null>(null);
   const width = Dimensions.get('window').width;
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const newDate = DateUtil.getInstance();
-      if (!currentDate.equals(newDate)) {
-        setCurrentDate(newDate);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [currentDate]);
-
   const handleScroll = (event: any) => {
     const offset = event.nativeEvent.contentOffset.x;
     const index = Math.round(offset / width);
     setViewMode(index);
   };
+
+    useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const timetable = await fetchTimetables();
+        const coursesByDay = groupByDay(timetable.courses);
+        setCourses(coursesByDay[getDay()] ?? []);
+        setTimetable(timetable);
+      } catch (_) {
+        setCourses([]);
+        setTimetable(TimetableModel.empty());
+      }
+    };
+  
+    fetchData();
+  }, []);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newDate = new Date();
+      if (!compareDate(currentDate, newDate)) {
+        setCurrentDate(newDate);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [currentDate]);
 
   return (
     <View style={styles.container}>
@@ -187,10 +189,10 @@ const TimetableScreen = () => {
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}>
         <View style={{width}}>
-          <DailyTimetableScreen />
+          <DailyTimetableScreen courses={courses} />
         </View>
         <View style={{width}}>
-          <WeeklyTimetableScreen />
+          <WeeklyTimetableScreen timetable={timetable}/>
         </View>
       </ScrollView>
     </View>

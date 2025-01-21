@@ -18,7 +18,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {InputField} from '@src/screens/SignUp/InputField';
 import {CustomButton} from '@src/screens/SignUp/CustomButton';
 import {fetchLogin} from '@src/data/authApi';
-import {setUserNickname} from '@src/data/authStorage';
+import {setLoginId, setUserNickname} from '@src/data/authStorage';
 import {setUserId} from '@src/data/authStorage';
 import {fetchTimetables, fetchUserInfo} from '@src/data/studentApi';
 import {logger} from '@src/logger';
@@ -63,6 +63,7 @@ function LoginScreen({navigation}: {navigation: any}) {
       }
       await Promise.all([
         setUserId(data.user_id.toString()),
+        setLoginId(username),
         setUserNickname(data.nickname),
       ]);
     } catch (e: any) {

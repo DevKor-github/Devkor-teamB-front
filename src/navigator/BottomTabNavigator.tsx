@@ -3,7 +3,6 @@ import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
 // Screens
-import MyPageScreen from '@screens/MyPageScreen';
 import Colors from '@src/Colors';
 import StoreNavigator from '@src/navigator/StoreNavigator';
 import {Image} from 'react-native-animatable';
@@ -13,11 +12,12 @@ import {
   RouteProp,
 } from '@react-navigation/native';
 import TimetableNavigator from '@src/navigator/TimetableNavigator';
+import MyPageNavigator from './MyPageNavigator';
 
 export type BottomTabNavigatorParamList = {
   StoreNavigator: undefined;
   TimetableNavigator: undefined;
-  Mypage: undefined;
+  MyPageNavigator: undefined;
 };
 
 const BottomTab = createBottomTabNavigator<BottomTabNavigatorParamList>();
@@ -50,7 +50,7 @@ const getTabBarIcon = (route: any, focused: boolean) => {
           style={style.icon}
         />
       );
-    case 'Mypage':
+    case 'MyPageNavigator':
       return (
         <Image
           source={
@@ -92,8 +92,8 @@ function BottomNavigator() {
         })}
       />
       <BottomTab.Screen
-        name="Mypage"
-        component={MyPageScreen}
+        name="MyPageNavigator"
+        component={MyPageNavigator}
         options={{title: '마이페이지'}}
       />
     </BottomTab.Navigator>
@@ -107,8 +107,12 @@ const getTabBarStyle: any = (
   >,
 ) => {
   const routeName = getFocusedRouteNameFromRoute(route) ?? '';
+  // 하단 네비게이션 바를 가릴 페이지
   const targetScreens = [
-    'StoreHistoryScreen',
+    'StoreHistory',
+    'ChangePassword',
+    'MyComment',
+    'MyPost',
     'Community',
     'PostScreen',
     'PostCreationScreen',

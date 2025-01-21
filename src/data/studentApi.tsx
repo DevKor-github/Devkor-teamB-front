@@ -8,6 +8,7 @@ import {
   CourseMinimal,
   CourseMinimalData,
   TimetableModel,
+  TimetableUpdateData,
 } from '@src/Types';
 
 interface StudentInfo {
@@ -66,7 +67,7 @@ export const fetchTimetables = async () => {
     if (status === 200) {
       return data;
     } else {
-      return null;
+      throw Error('Timetable not found.');
     }
   } catch (error) {
     logger.error('fetchTimetables', error);
@@ -135,10 +136,26 @@ export const fetchAllCourses = async () => {
         return Course.fromJson(courseData!);
       }),
     );
-    logger.info('fetchAllCourses', items);
     return items;
   } catch (e) {
-    logger.error('fetchAllCourses', e);
     return [];
+  }
+};
+
+export const fetchTimetableUpdate = async (data: TimetableUpdateData) => {
+  try {
+    const token = await getToken();
+    const userId = await getUserId();
+    const {status} = await axios.put(`${API_URL}/timetables/${userId}/`, data, {
+      headers: {
+        authorization: `token ${token}`,
+      },
+      validateStatus: x => x === 200 || x === 404,
+    });
+    logger.info('fetchTimetableUpdate', status);
+    return status === 200;
+  } catch (e) {
+    logger.error('fetchTimetableUpdate', e);
+    return false;
   }
 };
