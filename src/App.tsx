@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {View} from 'react-native-animatable';
 import Colors from '@src/Colors';
 import RegistrationSaveScreen from '@src/screens/SignUp/RegisterSaveScreen';
+import StoreNavigator from './navigator/StoreNavigator';
 
 export type RootStackParamList = {
   Home: undefined;

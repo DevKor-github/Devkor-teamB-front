@@ -19,13 +19,16 @@ import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
 import Icon3 from 'react-native-vector-icons/AntDesign.js';
 import { GlobalStyles } from '@src/GlobalStyles';
-import { launchImageLibrary } from 'react-native-image-picker';
-import DocumentPicker from 'react-native-document-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
 import { CommentTextField, CommentContainer } from './Comment';
+
+// import APIs
 import {API_URL} from '@env';
+import { fetchComments } from './PostAPI';
+import { fetchGetPointHistory } from '@src/data/storeApi';
+import { fetchUserInfo } from '@src/data/studentApi';
 
 
 
@@ -45,7 +48,12 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   const [postState, setPostState] = useState(post);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLikeModalVisible, setIsLikeModalVisible] = useState(false);
+  
   const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [commentAvailable, setCommentAvailable] = useState<boolean>(false);
+
   const [tags, setTags] = useState<Tag[]>([]);
   const [images, setImages] = useState<Attachment[]>([]);
   const [files, setFiles] = useState<Attachment[]>([]);
@@ -53,23 +61,43 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
   useEffect(()=>{
     console.log("\n\nPostScreen입니다")
-    console.log("넘어온 post : ",post)
-    console.log("넘어온 lectureName : ",lectureName)
+    // console.log("넘어온 post : ",post)
+    // console.log("넘어온 lectureName : ",lectureName)
     console.log("author:",author)
-    fetchComments(post.postId)
+
+    
+    const data = fetchUserInfo();
+    console.log('user:',data)
+    
+    
     setTags(post.tags)
     sortAttachments(post.attachments)
-    fetchCurrPoint();
-    // console.log(post.attachments)
+    fetchCurrPoint()
+    isCommentAvailable()
   },[]) 
+
+  useEffect(() => {
+    const loadComments = async () => {
+      try {
+        setLoading(true);
+        const fetchedComments = await fetchComments(post.postId);
+        setComments(fetchedComments);
+      } catch (err) {
+        setError('Failed to load comments');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadComments();
+  }, [post.postId]);
+
 
 
   const sortAttachments = (attachments: Attachment[]) => {
-    console.log("attachments:",attachments)
     const images: Attachment[] = [];
     const files: Attachment[] = [];
     attachments.forEach(attachment => {
-      // console.log(attachment.type)
       if(attachment.type.startsWith('image')){
         images.push(attachment)
       }
@@ -79,50 +107,6 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     });
     setImages(images);
     setFiles(files); 
-  }
-
-  const fetchComments = async (postId:number) => {
-    try{
-      const token = await AsyncStorage.getItem('userToken')
-      const response = await axios.get(`${API_URL}/comments/`,  
-        {
-          params: {
-            post_id: postId
-          },
-          headers: {
-            authorization: `token ${token}`,
-          },
-        },
-      );
-
-      const commentIds = response.data.map((comment: any) => comment.id);
-      // 모든 comment ID에 대해 content를 가져오기 위한 비동기 요청 배열 생성
-      const contentPromises = commentIds.map(async (commentId: number) => {
-        const commentResponse = await axios.get(`${API_URL}/comments/${commentId}/`, {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        });
-        // console.log(commentResponse)
-        const fetchedComment : Comment = {
-          commentId: commentResponse.data.id,
-          author: commentResponse.data.author.nickname,
-          content: commentResponse.data.content,
-          date: commentResponse.data.created_at,
-          updatedDate: commentResponse.data.updated_at,
-          // isChosen: commentResponse.data.is_chosen,
-          isChosen: false,
-          postId: commentResponse.data.parent_post.id
-        }
-        return fetchedComment;
-      });
-
-      // 모든 요청이 완료되기를 기다림
-      const comments = await Promise.all(contentPromises);
-      setComments(comments)
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    }
   }
 
   const addComment = (newComment: Comment) => {
@@ -158,7 +142,6 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   }
 
   const handlePostEdit = () => {
-    // console.log(post)
     setIsModalVisible(false)
     navigation.navigate('PostEditScreen', {post: post, lectureName: lectureName});
   }
@@ -173,7 +156,6 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
         text: '삭제하기',
         style: 'default',
         onPress: async () => {
-          // 삭제 로직
           const token = await AsyncStorage.getItem('userToken')
           try{
             const response = await axios.delete(`${API_URL}/posts/${post.postId}/`,
@@ -185,11 +167,9 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
             );
             console.log("게시글 삭제: ",response.data)
             navigation.goBack()
-
           } catch(error) {
             console.error(error)
           }
-
         }
       },
     ]);
@@ -218,11 +198,9 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
             }
           },
         );
-        // console.log(response)
       } catch(error){
         console.error(error)
       }
-
     }
 
     const fetchCurrPoint = async() => {
@@ -242,36 +220,42 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
       }
     }
 
-    // const usePoint = async (type: string, point: number) => {
-    //   try {
-    //     const token = await AsyncStorage.getItem('userToken');
-    //     const response = await axios.post(
-    //       `${API_URL}/student/use-points/`,
-    //       {point_costs: type},
-    //       {
-    //         headers: {
-    //           authorization: `token ${token}`,
-    //         },
-    //       },
-    //     );
+
+    const isCommentAvailable = async () => {
+      let history = await fetchGetPointHistory();
+      history = history.filter(item => item.purpose === "U");
+      const lastUsedHistory = history[history.length-1];
     
-    //     if (response.status === 201) {
-    //       // PointEventHandler.emit('POINTS_UPDATED', -point);
-    //       return true;
-    //     } else {
-    //       return false;
-    //     }
-    //   } catch (e) {
-    //     console.error(e);
-    //     return false;
-    //   }
-    // };
+      let point: number;
+      point = lastUsedHistory.point;
 
+      let hoursLeft=0;
+      if(point==80)  hoursLeft = 1 * 24;
+      if(point==160) hoursLeft = 7 * 24;
+      if(point==240) hoursLeft = 14 * 24;
+      if(point==300) hoursLeft = 30 * 24;
 
+      const calculateHoursAgo = (pointTime: string) => {
+        const pointDate = new Date(pointTime); // `point_time`을 Date 객체로 변환
+        const now = new Date(); // 현재 시간
+        const diffInMs = now.getTime() - pointDate.getTime(); // 밀리초 단위 차이 계산
+        const diffInHours = diffInMs / (1000 * 60 * 60); // 시간을 계산
+        return Math.floor(diffInHours); // 소수점 버림
+      };
+      
+      let hoursAgo: number;
+      hoursAgo = calculateHoursAgo(lastUsedHistory.point_time);
+      
+      if(hoursLeft>=hoursAgo) setCommentAvailable(true);
+    };
+    
 
     useEffect(() => {
       navigation.setOptions({title: lectureName});
     }, [lectureName,navigation]);
+
+  if (loading) return <Text>Loading comments...</Text>;
+  if (error) return <Text>{error}</Text>;
 
   return (
     <SafeAreaView style={{height: 850}}>
@@ -429,7 +413,13 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
           {comments.map(comment => (
             <View style={{marginTop: 10}}>
-              <CommentContainer key={comment.commentId} comment={comment} currPoint={point} handleDeleteComment={handleDeleteComment}/>
+              <CommentContainer 
+                key={comment.commentId} 
+                comment={comment} 
+                currPoint={point} 
+                handleDeleteComment={handleDeleteComment}
+                commentAvailable={commentAvailable}
+              />
             </View>
           ))}
           <View style={{height:90}}></View>

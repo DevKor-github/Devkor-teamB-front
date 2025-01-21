@@ -21,7 +21,7 @@ import FloatingButton from '@src/components/FloatingButton';
 import * as Animatable from 'react-native-animatable'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
+import { API_URL } from '@env';
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
 
 interface CommunityScreenProps {
@@ -38,7 +38,6 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   },[])
 
   const fetchPostInfo = async (postId:number) => {
-    const API_URL = "http://3.37.163.236:8000/"
     try{
       const token = await AsyncStorage.getItem('userToken')
       const response = await axios.get(`${API_URL}/posts/${postId}/`,
@@ -48,8 +47,6 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
           },
         },
       );
-      // console.log('포스트!!!')
-      // console.log('response:',response.data)
       const data = response.data
       const newPost : Post = {
         postId: data.id,
@@ -57,7 +54,7 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
         author: new UserInfo(
           data.author.id,
           data.author.nickname,
-          'https://example.com/image3.jpg', //하드코딩
+          data.author.profileImage,
         ),
         postDate: data.created_at,
         views: data.views,
@@ -206,8 +203,6 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) 
   const isFocused = useIsFocused();
 
   useEffect(() => {
-    // console.log('course_fk:',course.id) // course_fk
-    // console.log('course_name: ',course.course_name)
     fetchPost();
   },[isFocused]);
 
@@ -237,7 +232,7 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) 
           title: data.title,
         }))
       setPosts(fetchedPosts)
-      console.log('포스트:',fetchedPosts)
+      console.log('CommunityScreen : isfocused')
     } catch (error) {
       console.error('Error fetching posts:', error);
     }

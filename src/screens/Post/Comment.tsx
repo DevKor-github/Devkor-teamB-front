@@ -17,18 +17,19 @@ import {Comment, Post, Attachment, Tag} from '@src/Types';
 import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Feather.js';
 import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons.js';
-import Icon3 from 'react-native-vector-icons/AntDesign.js';
-import { GlobalStyles } from '@src/GlobalStyles';
-import { launchImageLibrary } from 'react-native-image-picker';
-import DocumentPicker from 'react-native-document-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
 import { style, styles } from './PostScreen';
 import {API_URL} from '@env';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import StoreScreen from '../Store/StoreScreen';
 
 
-export function CommentTextField({ addComment, postId }: { addComment: (comment: Comment) => void, postId: number}) {
+export function CommentTextField(
+  { addComment, postId } : 
+  { addComment: (comment: Comment) => void, postId: number}) 
+{
     const [text, setText] = useState('');
     const [inputHeight, setInputHeight] = useState(20);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -92,7 +93,7 @@ export function CommentTextField({ addComment, postId }: { addComment: (comment:
             },
           },
         );
-        console.log(response.data)
+        console.log('댓글 작성으로 5포인트 획득')
       } catch(e) {
         console.error(e)
       }
@@ -126,13 +127,17 @@ export function CommentTextField({ addComment, postId }: { addComment: (comment:
   }
 
   
-export function CommentContainer({comment, currPoint, handleDeleteComment}: {comment: Comment, currPoint: number, handleDeleteComment: (commentId:number)=>void}) {
+export function CommentContainer(
+  {comment, currPoint, handleDeleteComment, commentAvailable}: 
+  {comment: Comment, currPoint: number, handleDeleteComment: (commentId:number)=>void, commentAvailable:boolean}) 
+{
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [isBlurVisible, setIsBluerVisible] = useState(true);
+    const [isBlurVisible, setIsBlurVisible] = useState(!commentAvailable);
     const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
     const moreButtonRef = useRef<TouchableOpacity>(null);
     const [point, setPoint] = useState(currPoint); // 샘플
     const date = new Date(comment.date)
+    const navigation = useNavigation<StackNavigationProp<any>>();
   
   
     const year = date.getFullYear();
@@ -141,6 +146,9 @@ export function CommentContainer({comment, currPoint, handleDeleteComment}: {com
     const hours = String(date.getHours()).padStart(2, '0'); 
     const minutes = String(date.getMinutes()).padStart(2, '0'); 
     
+    useEffect(()=>{
+      console.log(commentAvailable);
+    },[])
   
     const onPressModalClose = () => {
       setIsModalVisible(false);
@@ -190,7 +198,7 @@ export function CommentContainer({comment, currPoint, handleDeleteComment}: {com
                 ])
                 handleDeleteComment(comment.commentId);
               }
-              // console.log('deleted')
+              console.log('comment deleted')
             } catch(error) {
               console.error(error)
             }
@@ -209,9 +217,11 @@ export function CommentContainer({comment, currPoint, handleDeleteComment}: {com
         {
           text: '사용하기',
           style: 'default',
-          onPress: () => {
-            setIsBluerVisible(false);
-            // 포인트 사용 로직
+          onPress: () => { // 상점 페이지로 이동
+            setIsBlurVisible(false);
+            navigation.navigate('StoreNavigator',
+              { screen: "StoreScreen" }
+            ); 
           }
         }
       ])
@@ -283,7 +293,7 @@ export function CommentContainer({comment, currPoint, handleDeleteComment}: {com
         </View>
   
         <View style={style.buttonArea}>
-          <TouchableOpacity style={style.button}>
+          {/* <TouchableOpacity style={style.button}>
             <Icon2 name="thumb-up" size={14} color="#ff1485" />
             <Text
               style={{
@@ -306,7 +316,7 @@ export function CommentContainer({comment, currPoint, handleDeleteComment}: {com
               }}>
               12
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity style={style.button}>
             <Icon name="smile" size={14} color="#8012F1" />
             <Text style={{color: '#8012F1', fontSize: 12, fontWeight: '500'}}>

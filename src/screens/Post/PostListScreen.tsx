@@ -1,13 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, FlatList, TouchableOpacity, StyleSheet, Image} from 'react-native';
-import {mockPosts, mockLectures} from '@src/MockData';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {Lecture, Post, UserInfo} from '@src/Types';
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
-import { tagColors } from '@src/MockData';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import FloatingButton from '@src/components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
@@ -116,6 +114,7 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
         {/* 이미지 preview */}
         {fetchedPost && fetchedPost.attachments && fetchedPost.attachments.length > 0 && (
           <Image 
+            key={fetchedPost.postId}
             source={{uri: `${API_URL}/${fetchedPost.attachments[0].uri}`}}
             style={{width:65,height:65,borderRadius:5,alignSelf: 'center'}}
           />
