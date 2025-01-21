@@ -1,25 +1,35 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View, Text, StyleSheet, Modal, Image} from 'react-native';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import {CourseBlock} from '@src/Types';
 import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {TouchableOpacity} from 'react-native-gesture-handler';
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {API_URL} from '@env';
 
 interface PollsModalProps {
   course: CourseBlock;
   visible: boolean;
+  onUpdate: (e: any) => void;
   onClose: () => void;
 }
 
-const PollsModal: React.FC<PollsModalProps> = ({course, visible, onClose}) => {
+const PollsModal: React.FC<PollsModalProps> = ({
+  course,
+  visible,
+  onClose,
+  onUpdate,
+}) => {
   const [checkboxState, setCheckboxState] = useState<Map<string, boolean>>(
     new Map(),
   );
   const [isAnyCheckboxChecked, setIsAnyCheckboxChecked] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setCheckboxState(new Map());
+      setIsAnyCheckboxChecked(false);
+    }
+  }, [visible]);
 
   const handleCheckboxChange = (key: string) => {
     if (checkboxState.has(key)) {
@@ -34,33 +44,12 @@ const PollsModal: React.FC<PollsModalProps> = ({course, visible, onClose}) => {
 
   const handleCloseModal = (submitted: boolean = false) => {
     if (submitted) {
-      const submitData = async () => {
-        const userId = await AsyncStorage.getItem('userId');
-        const data = {
-          check_attention: checkboxState.get('check_attendance') || false,
-          check_test: checkboxState.get('check_test') || false,
-          check_homework: checkboxState.get('check_homework') || false,
-          answered_at: new Date().toISOString(),
-          expired: false,
-          course_fk: Number(course.id),
-          student: Number(userId),
-        };
-
-        // try {
-        //   const token = await AsyncStorage.getItem('userToken');
-        //   const response = await axios.post(`${API_URL}/todaypolls/`, data, {
-        //     headers: {
-        //       authorization: `token ${token}`,
-        //     },
-        //   });
-        //   if (response.status === 200) {
-        //     onClose();
-        //   }
-        // } catch (error) {
-        //   console.error('Failed to submit poll:', error);
-        // }
+      const answer = {
+        check_attention: checkboxState.get('check_attention') || false,
+        check_test: checkboxState.get('check_test') || false,
+        check_homework: checkboxState.get('check_homework') || false,
       };
-      submitData();
+      onUpdate(answer);
     }
     onClose();
   };
@@ -100,7 +89,7 @@ const PollsModal: React.FC<PollsModalProps> = ({course, visible, onClose}) => {
                 innerIconStyle={styles.checkboxStyle}
                 text="출석체크를 진행했어요!"
                 onPress={() => {
-                  handleCheckboxChange('check_attendance');
+                  handleCheckboxChange('check_attention');
                 }}
               />
               <BouncyCheckbox

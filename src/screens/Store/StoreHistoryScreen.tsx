@@ -87,12 +87,6 @@ const TimeStamp = ({timestamp}: {timestamp: string}) => {
     return (
       <Text style={itemStyles.timestampTextAccent}>{`${hours}시간 전`}</Text>
     );
-  } else if (
-    pointTime.getDate() === now.getDate() - 1 &&
-    pointTime.getMonth() === now.getMonth() &&
-    pointTime.getFullYear() === now.getFullYear()
-  ) {
-    return <Text style={itemStyles.timestampText}>어제</Text>;
   } else if (diffMins < 60 * 24 * 7) {
     const days = Math.floor(diffMins / (60 * 24));
     return <Text style={itemStyles.timestampText}>{`${days}일 전`}</Text>;
@@ -136,7 +130,7 @@ const PointHistoryList = ({
         case 5:
           return `게시글 답변 작성 ${absPoint}포인트 적립`;
         case 10:
-          return `오늘의 질문 답변 작성 ${absPoint}포인트 적립`;
+          return `오늘의 브리핑 답변 ${absPoint}포인트 적립`;
         case 20:
           return `게시글 답변 채택 ${absPoint}포인트 적립`;
         case 100:
