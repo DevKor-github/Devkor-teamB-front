@@ -55,6 +55,7 @@ const CourseItem = ({
   });
 
   const toggleActive = () => {
+    // showDialog();
     if (!poll || poll.answered_at === null) {
       showDialog();
     }
@@ -92,7 +93,7 @@ const CourseItem = ({
                   style={itemStyles.smileIcon}
                 />
                 <Text style={itemStyles.briefingText}>
-                  출석을 자주 부르는 과목이에요.
+                  지난 시간에 출석을 불렀어요.
                 </Text>
               </View>
               <View style={itemStyles.briefingTextContainer}>

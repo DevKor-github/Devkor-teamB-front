@@ -1,5 +1,5 @@
 import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 import React from 'react';
 import ProgressBar from '@components/ProgessBar';
 import {CourseBlock} from '@src/Types';
@@ -7,17 +7,24 @@ import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {useNavigation} from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import {
+  BriefingSummary,
+  fetchBriefing,
+  fetchBriefingById,
+} from '@src/data/briefingApi';
 
-const BriefingHeader = ({course, attendance, assignment, notification}: {course: CourseBlock, attendance: Number, assignment: Number, notification: Number}) => {
+const BriefingHeader = ({
+  course,
+  summary,
+}: {
+  course: CourseBlock;
+  summary: BriefingSummary;
+}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const handlePressMore = () => {
     navigation.navigate('BriefingScreen', {
-      lectureName: course.course_name,
-      attendance: attendance,
-      assignment: assignment,
-      notification: notification
+      course: course,
+      summary: summary,
     });
   };
 
@@ -86,62 +93,30 @@ const AssignmentProgressBar = ({progress}: {progress: number}) => {
 };
 
 const DailyBriefingWidget = ({course}: {course: CourseBlock}) => {
-  const [attendance, setAttendance] = useState(0);
-  const [assignment, setAssignment] = useState(0);
-  const [notification, setNotification] = useState(0);
-  const [summary, setSummary] = useState(Object);
+  const [summary, setSummary] = useState<BriefingSummary>({
+    response_percentage: 0,
+    attendance_percentage: 0,
+    assignment_percentage: 0,
+    notification_percentage: 0,
+  });
 
-  useEffect(()=>{
-    // console.log('브리핑:',course.id)
-    fetchBriefing(course);
-  },[])
-
-  useEffect(()=>{
-    console.log('summary:',attendance, assignment, notification)
-  },[notification])
-
-  const fetchBriefing = async (course: CourseBlock) => {
-    const API_URL = "http://3.37.163.236:8000/"
-    try{
-      const token = await AsyncStorage.getItem('userToken')
-      console.log(course.id)
-      const response = await axios.get(`${API_URL}/briefings/`,  
-        {
-          headers: {
-            authorization: `token ${token}`,
-          },
-          params : {
-            course_fk: course.id,
-          }
-        },);
-
-      if(response.data.length > 0){
-        const briefing_id = response.data[0].id
-        console.log('briefing_id:',briefing_id)
-  
-        const response2 = await axios.get(`${API_URL}/briefings/${briefing_id}/`,  
-          {
-            headers: {
-              authorization: `token ${token}`,
-            },
-          },); 
-        setAttendance(response2.data.content.summary.attendance_percentage)
-        setAssignment(response2.data.content.summary.assignment_percentage)
-        setNotification(response2.data.content.summary.notification_percentage)
+  useEffect(() => {
+    const fetchData = async () => {
+      const briefingList = await fetchBriefing(course.id, new Date());
+      if (briefingList.length > 0) {
+        const briefing = await fetchBriefingById(briefingList[0].id);
+        setSummary(briefing.content.summary);
       }
-
-    } catch(error){
-      console.error("Error fetching briefing info",error)
-    }
-  }
-
+    };
+    fetchData();
+  });
 
   return (
     <View style={styles.container}>
-      <BriefingHeader course={course} assignment={assignment} attendance={attendance} notification={notification}/>
-      <AttendanceProgressBar progress={attendance} />
-      <AssignmentProgressBar progress={assignment} />
-      <NotificationProgressBar progress={notification} />
+      <BriefingHeader course={course} summary={summary} />
+      <AttendanceProgressBar progress={summary.attendance_percentage} />
+      <AssignmentProgressBar progress={summary.assignment_percentage} />
+      <NotificationProgressBar progress={summary.notification_percentage} />
     </View>
   );
 };
