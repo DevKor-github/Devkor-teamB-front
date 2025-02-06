@@ -1,17 +1,15 @@
-import React, {useState, useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   ScrollView,
   View,
   Text,
   SafeAreaView,
   TouchableOpacity,
-  TextInput,
   StyleSheet,
   Platform,
   Image,
   Alert,
   Modal,
-  KeyboardAvoidingView,
 } from 'react-native';
 import {Comment, Post, Attachment, Tag, UserInfo} from '@src/Types';
 import Colors from '@src/Colors';
@@ -21,16 +19,15 @@ import Icon3 from 'react-native-vector-icons/AntDesign.js';
 import { GlobalStyles } from '@src/GlobalStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
 import { CommentTextField, CommentContainer } from './Comment';
+import ImageView from 'react-native-image-viewing';
 
 // import APIs
 import {API_URL} from '@env';
 import { fetchComments } from './PostAPI';
-import { fetchGetPointHistory } from '@src/data/storeApi';
+import { fetchGetPointHistory} from '@src/data/storeApi';
 import { fetchUserInfo } from '@src/data/studentApi';
-
-
+import { givePoints } from '../Store/StoreHandler';
 
 interface PostScreenProps {
   route: any;
@@ -48,6 +45,9 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   const [postState, setPostState] = useState(post);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLikeModalVisible, setIsLikeModalVisible] = useState(false);
+  const [userId, setUserId] = useState(Number);
+  const [ismypost, setismypost] = useState(Boolean);
+  const [notChosen, setNotChosen] = useState(true);
   
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -55,33 +55,55 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   const [commentAvailable, setCommentAvailable] = useState<boolean>(false);
 
   const [tags, setTags] = useState<Tag[]>([]);
-  const [images, setImages] = useState<Attachment[]>([]);
   const [files, setFiles] = useState<Attachment[]>([]);
   const [point, setPoint] = useState(Number);
+  
+  // 이미지 관련
+  const [images, setImages] = useState<Attachment[]>([]);
+  const [visible, setVisible] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(()=>{
-    console.log("\n\nPostScreen입니다")
-    // console.log("넘어온 post : ",post)
-    // console.log("넘어온 lectureName : ",lectureName)
-    console.log("author:",author)
-
-    
-    const data = fetchUserInfo();
-    console.log('user:',data)
+    async function checkUser(){
+      try{
+        const {data, status} = await fetchUserInfo();
+        if(status==200){
+          console.log('User info:', data)
+          setUserId(data.user_id)
+          if(data.user_id==Number(author.id)) {
+            setismypost(true);
+          }
+        } else {
+          console.error('user not found')
+        }
+        
+      } catch(e){
+        console.error('Error fetching user info:',e);
+      }
+    }
+    checkUser();
     
     
     setTags(post.tags)
-    sortAttachments(post.attachments)
+    if(post.attachments){
+      sortAttachments(post.attachments)
+    }
     fetchCurrPoint()
     isCommentAvailable()
-  },[]) 
+  },[route.params?.refresh]) 
+
+  useEffect(()=>{
+  },[userId, ismypost, notChosen])
 
   useEffect(() => {
     const loadComments = async () => {
       try {
         setLoading(true);
         const fetchedComments = await fetchComments(post.postId);
-        setComments(fetchedComments);
+        if (fetchedComments.some(comment => comment.isChosen)) {
+          setNotChosen(false);
+        }
+        setComments(fetchedComments)
       } catch (err) {
         setError('Failed to load comments');
       } finally {
@@ -111,7 +133,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
   const addComment = (newComment: Comment) => {
     setComments([newComment, ...comments]);
-    console.log(newComment)
+    console.log('comments updated:',newComment)
   };
 
   const toggleMenu = () => {
@@ -135,11 +157,6 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     deletePost();
     setIsModalVisible(false);
   };
-
-  const handleDeleteComment = () => {
-    console.log('delete comment')
-    fetchComments(post.postId)
-  }
 
   const handlePostEdit = () => {
     setIsModalVisible(false)
@@ -166,7 +183,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
               },
             );
             console.log("게시글 삭제: ",response.data)
-            navigation.goBack()
+            navigation.goBack({refresh: true})
           } catch(error) {
             console.error(error)
           }
@@ -182,9 +199,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
         console.log('poststate:',postState)
         setIsLikeModalVisible(false);
   
-        // 서버에 동기화 요청
         const token = await AsyncStorage.getItem('userToken')
-
         const formData = new FormData();
         formData.append('course_fk', post.postId);
         formData.append('student', post.postId);
@@ -212,8 +227,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
           },
         });
         const value = response.data as number;
-        console.log('fetch curr point:',response.data)
-
+        // console.log('fetch curr point:',response.data)
         setPoint(value);
       } catch(e){
         console.error(e);
@@ -227,7 +241,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
       const lastUsedHistory = history[history.length-1];
     
       let point: number;
-      point = lastUsedHistory.point;
+      point = lastUsedHistory?.point||0;
 
       let hoursLeft=0;
       if(point==80)  hoursLeft = 1 * 24;
@@ -244,11 +258,42 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
       };
       
       let hoursAgo: number;
-      hoursAgo = calculateHoursAgo(lastUsedHistory.point_time);
+      hoursAgo = calculateHoursAgo(lastUsedHistory?.point_time);
       
       if(hoursLeft>=hoursAgo) setCommentAvailable(true);
     };
     
+
+    const handleChoose = async (commentId: number, isChosen: boolean) => {
+      if(isChosen) return;
+      Alert.alert('해당 댓글을 채택하시겠습니까?','채택은 취소할 수 없습니다',[
+        {
+          text: '취소',
+          style: 'cancel'
+        },
+        {
+          text: '확인',
+          style: 'default',
+          onPress: async () => {
+            const token = await AsyncStorage.getItem('userToken');
+            try{
+              const formData = new FormData();
+              formData.append('is_chosen', !(isChosen));
+              const response = await axios.patch(`${API_URL}/comments/${commentId}/`, formData,
+                { 
+                  headers: { 
+                    authorization: `token ${token}`,
+                  }
+                },
+              );
+              console.log(response.data)
+            } catch(e){
+              console.error(e)
+            }
+          }
+        }
+      ])
+    }
 
     useEffect(() => {
       navigation.setOptions({title: lectureName});
@@ -267,10 +312,10 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
             backgroundColor: 'white',
           }}>
           <View style={style.userArea}>
-            <Image // 수정 필요..
+            <Image
               source={{uri: `${author.profile}`}}
               style={{
-                width: 52,
+                width: 51,
                 height: 51,
                 flexShrink: 0,
                 borderRadius: 25,
@@ -284,8 +329,10 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
               </Text>
               <View style={style.userArea3}>
                 <View style={{...GlobalStyles.row,gap:5,flexWrap:'wrap'}}>
-                  {tags.map(tag => (
-                      <View style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
+                  {tags.map((tag,index) => (
+                      <View 
+                        key={index}
+                        style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
                           <Text style={{...GlobalStyles.text,fontSize:12,}}>#{tag.name}</Text>
                       </View>
                   ))}
@@ -293,9 +340,12 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
               </View>
             </View>
 
-            <TouchableOpacity style={{justifyContent:'center',right:0,position:'absolute'}} onPress={toggleMenu}>
-              <Icon name="more-vertical" size={24} color="#3D3D3D" />
-            </TouchableOpacity>
+            {ismypost&&(
+              <TouchableOpacity style={{justifyContent:'center',right:0,position:'absolute'}} onPress={toggleMenu}>
+                <Icon name="more-vertical" size={24} color="#3D3D3D" />
+              </TouchableOpacity>
+            )}
+
           </View>
 
           <View style={style.postArea}>
@@ -308,18 +358,36 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
             {images.length > 0 && (
               <View style={[style.postPhotoArea, { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center'}]}>
                 {images.map((image: Attachment, index: number) => (
-                  <Image
-                    key={index}
-                    source={{ uri: `${API_URL}/${image.uri}` }}
-                    style={{
-                      width: 94,
-                      height: 94,
-                      borderRadius: 9,
-                      marginLeft: 4,
-                      marginBottom: 2, // 줄 간격
-                    }}
-                  />
+                  // <Image
+                  //   key={index}
+                  //   source={{ uri: `${API_URL}/${image.uri}` }}
+                  //   style={{
+                  //     width: 94,
+                  //     height: 94,
+                  //     borderRadius: 9,
+                  //     marginLeft: 4,
+                  //     marginBottom: 2, // 줄 간격
+                  //   }}
+                  // />
+                  <TouchableOpacity key={index} onPress={() => { setCurrentIndex(index); setVisible(true); }}>
+                    <Image
+                      source={{ uri: `${API_URL}/${image.uri}` }}
+                      style={{
+                        width: 94,
+                        height: 94,
+                        borderRadius: 9,
+                        marginLeft: 4,
+                        marginBottom: 2, // 줄 간격
+                      }}
+                    />
+                </TouchableOpacity>
                 ))}
+                  <ImageView
+                    images={images.map(img => ({ uri: `${API_URL}/${img.uri}` }))}
+                    imageIndex={currentIndex}
+                    visible={visible}
+                    onRequestClose={() => setVisible(false)}
+                  />
               </View>
             )}
 
@@ -327,7 +395,11 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
             {files.length>0 && (
               <View style={style.postPhotoArea}>
                 {files.map((file:Attachment, index: number)=>(
-                  <Text style={{fontStyle:'italic'}}>{index+1}: {file.name.substring(12,)}</Text>
+                  <Text 
+                    key={index}
+                    style={{fontStyle:'italic'}}>
+                    {index+1}: {file.name.substring(12,)}
+                  </Text>
                 ))}
               </View>
             )}
@@ -411,14 +483,17 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
             </View>
           </View>
 
-          {comments.map(comment => (
+          {comments.map((comment,index) => (
             <View style={{marginTop: 10}}>
               <CommentContainer 
-                key={comment.commentId} 
+                key={index} 
                 comment={comment} 
                 currPoint={point} 
-                handleDeleteComment={handleDeleteComment}
                 commentAvailable={commentAvailable}
+                userId={userId}
+                isMyPost={ismypost}
+                notChosen={notChosen}
+                onChoose={handleChoose}
               />
             </View>
           ))}
@@ -427,6 +502,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
         <CommentTextField 
           addComment={addComment}
           postId={post.postId}
+          studentId={userId}
         />
       </>
     </SafeAreaView>

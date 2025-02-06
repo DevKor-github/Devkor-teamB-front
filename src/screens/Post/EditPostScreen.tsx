@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Image, Alert } from 'react-native';
-import { Post, UserInfo } from '@src/Types';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { mockPosts, mockTags } from '@src/MockData';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { launchImageLibrary, Asset } from 'react-native-image-picker';
-import DocumentPicker from 'react-native-document-picker'
 import { ScrollView } from 'react-native-gesture-handler';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -225,7 +221,6 @@ function PostEditScreen({ route }: { route: any }) {
         formData.append('tags', selectedTags);
         // formData.append('id', post.postId);
         formData.append('delete_image_ids',deletedImages);
-        console.log(formData._parts)
         const response = await axios.patch(`${API_URL}/posts/${post.postId}/`, formData,
           { 
             headers: { 

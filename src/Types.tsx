@@ -31,6 +31,8 @@ export type Comment = {
   isChosen: boolean;
   postId: number;
   // attachments: Attachment[];
+  authorId: number;
+  postTitle: string;
 };
 
 export type Attachment = {

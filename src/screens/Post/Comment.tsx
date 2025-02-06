@@ -23,24 +23,32 @@ import { style, styles } from './PostScreen';
 import {API_URL} from '@env';
 import {useNavigation} from '@react-navigation/native';
 import {StackNavigationProp} from '@react-navigation/stack';
-import StoreScreen from '../Store/StoreScreen';
+import {
+  consumePoints,
+  earnPoints,
+  givePoints,
+  PermissionType,
+  RewardType,
+} from '../Store/StoreHandler';
+import { fetchStudentImage } from '@src/data/studentApi';
+import { deleteComment, fetchComments } from './PostAPI';
 
 
 export function CommentTextField(
-  { addComment, postId } : 
-  { addComment: (comment: Comment) => void, postId: number}) 
+  { addComment, postId , studentId} : 
+  { addComment: (comment: Comment) => void, postId: number, studentId: number}) 
 {
     const [text, setText] = useState('');
     const [inputHeight, setInputHeight] = useState(20);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const placeholder = '첫 댓글 작성 시 포인트 3배 적립';
-  
+
     const handleAddComment = async () => {
       const commentData = {
         content: text,
         is_chosen: false,
         post: postId, 
-        student: 1, // 하드코딩
+        student: studentId,
       }
       
       if(text.trim().length>0){
@@ -60,7 +68,7 @@ export function CommentTextField(
               },
             },
           );
-  
+          console.log('response:', response.data)
           const newComment: Comment = {
             commentId: response.data.id,
             author: nickname,
@@ -69,6 +77,7 @@ export function CommentTextField(
             updatedDate: response.data.updated_at,
             isChosen: response.data.is_chosen,
             postId: response.data.post,
+            authorId: response.data.student,
           }
           addComment(newComment);
           setText('');
@@ -78,27 +87,9 @@ export function CommentTextField(
           console.error(error)
         }
       }
-      getPoint();
+      await earnPoints(RewardType.ANSWER);
     }
 
-    const getPoint = async() => {
-      const token = await AsyncStorage.getItem('userToken')
-      try{
-        const response = await axios.post(
-          `${API_URL}/student/get-points/`,
-          {point_type: 'answer'},
-          {
-            headers: {
-              authorization: `token ${token}`,
-            },
-          },
-        );
-        console.log('댓글 작성으로 5포인트 획득')
-      } catch(e) {
-        console.error(e)
-      }
-
-    }
   
     return (
       <KeyboardAvoidingView 
@@ -128,8 +119,8 @@ export function CommentTextField(
 
   
 export function CommentContainer(
-  {comment, currPoint, handleDeleteComment, commentAvailable}: 
-  {comment: Comment, currPoint: number, handleDeleteComment: (commentId:number)=>void, commentAvailable:boolean}) 
+  {comment, currPoint, commentAvailable, userId, isMyPost, notChosen, onChoose}: 
+  {comment: Comment, currPoint: number, commentAvailable:boolean, userId: number, isMyPost: boolean, notChosen: boolean, onChoose: (commentId: number, isChosen: boolean)=>void}) 
 {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isBlurVisible, setIsBlurVisible] = useState(!commentAvailable);
@@ -138,25 +129,40 @@ export function CommentContainer(
     const [point, setPoint] = useState(currPoint); // 샘플
     const date = new Date(comment.date)
     const navigation = useNavigation<StackNavigationProp<any>>();
-  
-  
-    const year = date.getFullYear();
+    const [userImage, setUserImage] = useState('');
+
+    const [isMyComment, setIsMyComment]= useState(Boolean);
+    const [isChosen, setIsChosen] = useState(comment.isChosen);
+
     const month = String(date.getMonth() + 1).padStart(2, '0'); 
     const day = String(date.getDate()).padStart(2, '0'); 
     const hours = String(date.getHours()).padStart(2, '0'); 
     const minutes = String(date.getMinutes()).padStart(2, '0'); 
-    
-    useEffect(()=>{
-      console.log(commentAvailable);
-    },[])
   
+    useEffect(()=>{
+      const getImage = async () => {
+        const image = await fetchStudentImage(comment.author);
+        setUserImage(`${API_URL}${image}`);
+      }
+      getImage()
+    },[])
+
+    useEffect(()=>{
+      if(userId==comment.authorId) setIsMyComment(true);
+    },[userId])
+
+    useEffect(()=>{
+      console.log('isChosen:',isChosen)
+      console.log('notChosen:',notChosen)
+    },[isMyComment, isMyPost, isChosen, setIsChosen, notChosen])
+
+
     const onPressModalClose = () => {
       setIsModalVisible(false);
     };
   
     const toggleMenu = () => {
       setIsModalVisible(!isModalVisible);
-      console.log(comment);
     };
   
     const onPressMore = () => {
@@ -168,8 +174,8 @@ export function CommentContainer(
       }
   
     }
-  
-    const handleDelete =  () => {
+
+    const handleDelete =  async () => {
       Alert.alert('댓글을 삭제하시겠습니까?','',[
         {
           text: '취소',
@@ -179,30 +185,8 @@ export function CommentContainer(
           text: '삭제하기',
           style: 'destructive',
           onPress: async () => {
-            // 삭제 로직
-            const token = await AsyncStorage.getItem('userToken')
-            try{
-              const response = await axios.delete(`${API_URL}/comments/${comment.commentId}/`,
-                {
-                  headers: {
-                    authorization: `token ${token}`,
-                  },
-                },
-              );
-              if(response.status==204){
-                Alert.alert('삭제되었습니다','',[
-                  {
-                    text: '확인',
-                    style: 'cancel'
-                  }
-                ])
-                handleDeleteComment(comment.commentId);
-              }
-              console.log('comment deleted')
-            } catch(error) {
-              console.error(error)
-            }
-  
+            await deleteComment(comment.commentId)
+            setIsModalVisible(false)
           }
         }
       ])
@@ -226,28 +210,99 @@ export function CommentContainer(
         }
       ])
     };
+
+    const handleChoose = async () => {
+      if(isChosen) return;
+      onChoose(comment.commentId, isChosen)
+      await givePoints(RewardType.CHOSEN, comment.authorId)
+
+      // Alert.alert('해당 댓글을 채택하시겠습니까?','채택은 취소할 수 없습니다',[
+      //   {
+      //     text: '취소',
+      //     style: 'cancel'
+      //   },
+      //   {
+      //     text: '확인',
+      //     style: 'default',
+      //     onPress: async () => {
+      //       console.log('userid:', userId)
+      //       console.log('comment author id:', comment.authorId)
+      //       const token = await AsyncStorage.getItem('userToken');
+      //       try{
+      //         const formData = new FormData();
+      //         formData.append('is_chosen', !(isChosen));
+      //         const response = await axios.patch(`${API_URL}/comments/${comment.commentId}/`, formData,
+      //           { 
+      //             headers: { 
+      //               authorization: `token ${token}`,
+      //             }
+      //           },
+      //         );
+      //         console.log(response.data)
+      //         await givePoints(RewardType.CHOSEN, comment.authorId)
+      //       } catch(e){
+      //         console.error(e)
+      //       }
+      //     }
+      //   }
+      // ])
+    }
   
     return (
       <View>
         <View style={style.userArea}>
           <Image
-            // source={{uri:post.author.profile}}
-            source={require('@assets/images/hamster.png')} // 여기 수정 필요 (지금 하드코딩..)
+            source={
+              userImage
+                ? {uri: userImage}
+                : require('@assets/images/UserImage.png')
+            }
             style={{width: 38, height: 36, borderRadius: 25}}
           />
   
           <View style={style.userArea2_comment}>
             <Text style={{color: '#3D3D3D', fontSize: 14, fontWeight: '500'}}>{comment.author}</Text>
             <View style={style.userArea3_comment}>
-              {/* <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{comment.date.substring(0,10)}</Text> */}
-              <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{month}/{day}</Text>
+              <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{comment.date.substring(0,10)}</Text>
+              {/* <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{month}/{day}</Text> */}
               <Text style={{color: '#3D3D3D', fontSize: 12, fontWeight: '300'}}>{hours}:{minutes}</Text>
             </View>
           </View>
   
-          <TouchableOpacity ref={moreButtonRef} style={{marginLeft: 210}} onPress={onPressMore}>
-            <Icon name="more-vertical" size={24} color="#3D3D3D" />
-          </TouchableOpacity>
+          <View style={{flex:1, alignItems:'center', flexDirection:'row', alignSelf: 'stretch', justifyContent:'flex-end'}}>
+            {isMyPost && !(isMyComment) && notChosen && (
+              <TouchableOpacity style={[style.button]} onPress={handleChoose}>
+                <Icon name="smile" size={14} color="#8012F1" />
+                <Text 
+                  style={{
+                    color: '#8012F1', 
+                    fontSize: 12, 
+                    fontWeight: '500'
+                  }}>
+                  채택
+                </Text>
+              </TouchableOpacity>
+            )}
+            {!(notChosen) && isChosen &&  (
+              <TouchableOpacity style={[style.button]} onPress={handleChoose}>
+                <Icon name="smile" size={14} color="#8012F1" />
+                <Text 
+                  style={{
+                    color: '#8012F1', 
+                    fontSize: 12, 
+                    fontWeight: '900'
+                  }}>
+                    채택됨
+                </Text>
+              </TouchableOpacity>
+            )}
+            {isMyComment && (
+              <TouchableOpacity style={{marginLeft:10}} ref={moreButtonRef} onPress={onPressMore}>
+                <Icon name="more-vertical" size={24} color="#3D3D3D" />
+              </TouchableOpacity>
+            )}
+          </View>
+
         </View>
   
         <View style={{marginTop: 10}}>
@@ -317,12 +372,7 @@ export function CommentContainer(
               12
             </Text>
           </TouchableOpacity> */}
-          <TouchableOpacity style={style.button}>
-            <Icon name="smile" size={14} color="#8012F1" />
-            <Text style={{color: '#8012F1', fontSize: 12, fontWeight: '500'}}>
-              채택
-            </Text>
-          </TouchableOpacity>
+
         </View>
       </View>
     );

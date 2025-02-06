@@ -4,6 +4,7 @@ import MyPageScreen from '@src/screens/MyPage/MyPageScreen';
 import ChangePasswordScreen from '@src/screens/MyPage/ChangePasswordScreen';
 import MyCommentScreen from '@src/screens/MyPage/MyCommentScreen';
 import MyPostScreen from '@src/screens/MyPage/MyPostScreen';
+import Colors from '@src/Colors';
 const Stack = createStackNavigator();
 
 const MyPageNavigator = () => {
@@ -23,8 +24,24 @@ const MyPageNavigator = () => {
           headerShown: false,
         }}
       />
-      <Stack.Screen name="MyComment" component={MyCommentScreen} />
-      <Stack.Screen name="MyPost" component={MyPostScreen} />
+      <Stack.Screen 
+        name="MyComment" 
+        component={MyCommentScreen} 
+        options={{
+          title: "내가 쓴 댓글",
+          headerBackTitleVisible: false,
+          headerTintColor: Colors.ui.primary
+        }}
+      />
+      <Stack.Screen 
+        name="MyPost" 
+        component={MyPostScreen} 
+        options={{
+          title: "내가 쓴 게시물",
+          headerBackTitleVisible: false,
+          headerTintColor: Colors.ui.primary
+        }}
+      />
     </Stack.Navigator>
   );
 };

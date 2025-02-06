@@ -62,6 +62,26 @@ export const fetchGetPoints = async (pointType: string) => {
   }
 };
 
+export const fetchGivePoints = async (pointType: string, studentId: number) => {
+  try {
+    const token = await getToken();
+    const {status} = await axios.post(
+      `${API_URL}/student/get-points/`,
+      {
+        point_type: pointType,
+        student_id: studentId
+      },
+      {headers: {authorization: `token ${token}`}},
+    );
+    logger.info('fetchGivePoints', status);
+    return status === 201;
+  } catch (error) {
+    logger.error('fetchGivePoints', error);
+    return false;
+  }
+};
+
+
 export const fetchCheckPermission = async () => {
   try {
     const token = await getToken();

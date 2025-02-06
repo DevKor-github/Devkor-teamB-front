@@ -19,7 +19,7 @@ interface CommunityScreenProps {
   navigation: any;
 }
 
-const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
+export const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [fetchedPost, setFetchedPost] = useState<Post>();
   const [commentNum, setCommentNum] = useState(Number);
@@ -59,7 +59,7 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
       }
       setFetchedPost(newPost)
     } catch (error) {
-      console.error('Error fetching tags:', error);
+      console.error('Error fetching postinfo:', error);
     }
   }
 
@@ -99,7 +99,9 @@ const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
           <Text style={postStyles.postText}>{post.title}</Text>
           <View style={{...GlobalStyles.row,gap:5,flexWrap : 'wrap',maxWidth: 280}}>
             {fetchedPost && fetchedPost.tags.map(tag => (
-                <View style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
+                <View 
+                  key={tag.id}
+                  style={{backgroundColor:"#E8E8E8",borderRadius:12,paddingHorizontal:8,paddingVertical:3}}>
                     <Text style={{...GlobalStyles.text,fontSize:12,}}>{tag.name}</Text>
                 </View>
             ))}
@@ -217,15 +219,12 @@ const styles = StyleSheet.create({
 },
 });
 
-const postStyles = StyleSheet.create({
+export const postStyles = StyleSheet.create({
   container: {
     marginTop: 16,
     paddingBottom: 60,
     borderRadius: 10,
-    // backgroundColor: Colors.ui.background,
-    // ...GlobalStyles.expand,
     minHeight: 680,
-    // ...GlobalStyles.shadow,
   },
   title: {
     margin: 12,

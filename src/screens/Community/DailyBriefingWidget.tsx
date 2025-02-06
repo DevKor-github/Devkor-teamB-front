@@ -23,7 +23,7 @@ const BriefingHeader = ({course, attendance, assignment, notification}: {course:
 
   return (
     <View style={headerStyle.container}>
-      <Text style={headerStyle.title}> 오늘의 브리핑</Text>
+      <Text style={headerStyle.title}> 지난 수업 브리핑</Text>
       <TouchableOpacity onPress={handlePressMore}>
         <View style={GlobalStyles.row}>
           <Text style={headerStyle.more}>자세히 보기</Text>

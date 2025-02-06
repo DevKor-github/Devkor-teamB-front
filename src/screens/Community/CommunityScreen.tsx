@@ -94,7 +94,7 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   );
 };
 
-const PostView = ({ items, id, lectureName, course}: { items: Post[]; id: number; lectureName: string; course: CourseBlock}) => {
+export const PostView = ({ items, id, lectureName, course}: { items: Post[]; id: number; lectureName: string; course: CourseBlock}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [isFabOpen, setFabOpen] = useState(false);
  
@@ -200,11 +200,14 @@ const PostView = ({ items, id, lectureName, course}: { items: Post[]; id: number
 const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
   const {course}: {course: CourseBlock} = route.params;
   const [posts, setPosts] = useState<Post[]>([]);
-  const isFocused = useIsFocused();
 
   useEffect(() => {
+    // if(route.params?.refresh){
+    //   fetchPost();
+    // }
     fetchPost();
-  },[isFocused]);
+    console.log("refreshed")
+  },[route.params?.refresh]);
 
   useLayoutEffect(() =>
     setNavigationHeader(navigation, [course.course_name, course.instructor]),
@@ -212,7 +215,6 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) 
   );
 
   const fetchPost = async ()=>{
-    const API_URL = "http://3.37.163.236:8000/"
     try {
       const token = await AsyncStorage.getItem('userToken')
       const response = await axios.get(`${API_URL}/posts/`, 

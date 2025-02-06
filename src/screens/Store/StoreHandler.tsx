@@ -2,6 +2,7 @@ import {PointEventHandler} from '../../Events';
 import {
   fetchCheckPermission,
   fetchGetPoints,
+  fetchGivePoints,
   fetchUsePoints,
 } from '@src/data/storeApi';
 import {fetchUserInfo} from '@src/data/studentApi';
@@ -73,6 +74,18 @@ const earnPoints = async (rewardType: RewardType) => {
   }
 };
 
+const givePoints = async (rewardType: RewardType, studentId: number) => {
+  try {
+    const isSuccess = await fetchGivePoints(rewardType.type, studentId);
+    if (isSuccess) {
+      PointEventHandler.emit('POINTS_UPDATED', rewardType.point);
+    }
+    return isSuccess;
+  } catch (e) {
+    return false;
+  }
+};
+
 const getPermissionExpireDate = async () => {
   const {data} = await fetchUserInfo();
   const expireDate = new Date(data.permission_date);
@@ -100,4 +113,4 @@ const getPermissionType = async () => {
   }
 };
 
-export {consumePoints, earnPoints, getPermissionRemainder, getPermissionType};
+export {consumePoints, earnPoints, givePoints, getPermissionRemainder, getPermissionType};
