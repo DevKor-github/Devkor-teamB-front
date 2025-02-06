@@ -15,7 +15,7 @@ import WeeklyTimetableScreen from '@screens/Timetable/WeeklyTimetableScreen';
 import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchTimetables} from '@src/data/studentApi';
-import {getDay, groupByDay} from '@src/components/Timetable/TimetableUtils';
+import {groupByDay} from '@src/components/Timetable/TimetableUtils';
 import {CourseBlock, TimetableModel} from '@src/Types';
 
 enum ViewMode {
@@ -29,7 +29,7 @@ const dateToString = (now: Date) => {
   const day = now.getDay();
   const label = ['일', '월', '화', '수', '목', '금', '토'];
   return `${month}월 ${date}일 ${label[day]}요일`;
-}
+};
 
 const compareDate = (old: Date, now: Date) => {
   return (
@@ -37,8 +37,7 @@ const compareDate = (old: Date, now: Date) => {
     old.getMonth() === now.getMonth() &&
     old.getDate() === now.getDate()
   );
-}
-
+};
 
 const NavigationButton = ({
   label,
@@ -134,7 +133,9 @@ const TimetableHeader = () => {
 const TimetableScreen = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [courses, setCourses] = useState<CourseBlock[]>([]);
-  const [timetable, setTimetable] = useState<TimetableModel>(TimetableModel.empty());
+  const [timetable, setTimetable] = useState<TimetableModel>(
+    TimetableModel.empty(),
+  );
   const [viewMode, setViewMode] = useState(ViewMode.Daily);
   const scrollViewRef = useRef<ScrollView | null>(null);
   const width = Dimensions.get('window').width;
@@ -144,22 +145,23 @@ const TimetableScreen = () => {
     setViewMode(index);
   };
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const timetable = await fetchTimetables();
         const coursesByDay = groupByDay(timetable.courses);
-        setCourses(coursesByDay[getDay()] ?? []);
+        // setCourses(coursesByDay[getDay()] ?? []);
+        setCourses(coursesByDay['목']);
         setTimetable(timetable);
       } catch (_) {
         setCourses([]);
         setTimetable(TimetableModel.empty());
       }
     };
-  
+
     fetchData();
   }, []);
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       const newDate = new Date();
@@ -192,7 +194,7 @@ const TimetableScreen = () => {
           <DailyTimetableScreen courses={courses} />
         </View>
         <View style={{width}}>
-          <WeeklyTimetableScreen timetable={timetable}/>
+          <WeeklyTimetableScreen timetable={timetable} />
         </View>
       </ScrollView>
     </View>

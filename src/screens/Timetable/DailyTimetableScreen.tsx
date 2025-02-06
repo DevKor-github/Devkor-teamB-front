@@ -15,49 +15,24 @@ import {CourseBlock} from '@src/Types';
 import {useNavigation} from '@react-navigation/native';
 import {parseTime} from '@src/components/Timetable/TimetableUtils';
 import PollsModal from '@src/screens/Timetable/TimetablePollsModal';
-
-// const fetchValidPolls = async (id: number) => {
-//   const token = await AsyncStorage.getItem('userToken');
-//   const response = await axios.get(`${API_URL}/todaypolls/${id}/`, {
-//     headers: {
-//       authorization: `token ${token}`,
-//     },
-//   });
-//   const createdAt = response.data.created_at;
-//   console.log('생성 시간: ', createdAt);
-
-//   const now = new Date();
-//   const createdDate = new Date(createdAt).toDateString();
-//   const nowDate = now.toDateString();
-//   return createdDate === nowDate;
-// };
-
-// const fetchTodayPolls = async (courseId: number) => {
-//   const token = await AsyncStorage.getItem('userToken');
-//   const userId = await AsyncStorage.getItem('userId');
-//   console.log(courseId);
-//   const response = await axios.get(
-//     `${API_URL}/todaypolls/?student_id=${Number(userId)}&course_fk=${courseId}`,
-//     {
-//       headers: {
-//         authorization: `token ${token}`,
-//       },
-//     },
-//   );
-
-//   return response.data
-//     .map((poll: any) => fetchValidPolls(poll.id))
-//     .some((valid: boolean) => valid);
-// };
+import {
+  fetchTodayPolls,
+  fetchTodayPollsById,
+  fetchUpdateTodayPolls,
+  TodayPolls,
+} from '@src/data/briefingApi';
+import {earnPoints, RewardType} from '../Store/StoreHandler';
 
 const CourseItem = ({
   course,
+  poll,
   active,
   expand,
   showDialog,
   callback,
 }: {
   course: CourseBlock;
+  poll: TodayPolls | null;
   active: boolean;
   expand: boolean;
   showDialog: Function;
@@ -65,15 +40,6 @@ const CourseItem = ({
 }) => {
   const navigation = useNavigation<any>();
   const rotateAnim = useRef(new Animated.Value(0)).current;
-  const [voted] = useState(false);
-
-  // useEffect(() => {
-  //   const fetchPolls = async () => {
-  //     const hasVoted = await fetchTodayPolls(Number(course.id));
-  //     setVoted(hasVoted);
-  //   };
-  //   fetchPolls();
-  // }, [course.id]);
 
   useEffect(() => {
     Animated.timing(rotateAnim, {
@@ -89,7 +55,8 @@ const CourseItem = ({
   });
 
   const toggleActive = () => {
-    if (!voted) {
+    // showDialog();
+    if (!poll || poll.answered_at === null) {
       showDialog();
     }
     callback();
@@ -100,7 +67,7 @@ const CourseItem = ({
       <View
         style={[itemStyles.container, active && itemStyles.activeContainer]}>
         <View style={itemStyles.headerRow}>
-          {!voted && (
+          {(!poll || poll.answered_at === null) && (
             <Image
               source={require('@assets/icons/warn_circle.png')}
               style={[itemStyles.statusIcon]}
@@ -126,7 +93,7 @@ const CourseItem = ({
                   style={itemStyles.smileIcon}
                 />
                 <Text style={itemStyles.briefingText}>
-                  출석을 자주 부르는 과목이에요.
+                  지난 시간에 출석을 불렀어요.
                 </Text>
               </View>
               <View style={itemStyles.briefingTextContainer}>
@@ -144,7 +111,7 @@ const CourseItem = ({
                   style={itemStyles.smileIcon}
                 />
                 <Text style={itemStyles.briefingText}>
-                  지난 시간에 휴강 공지가 있었어요.
+                  지난 시간에 시험 공지가 있었어요.
                 </Text>
               </View>
             </View>
@@ -180,11 +147,67 @@ const EmptyCourseView = () => {
   );
 };
 
+const getPollsData = async (courseId: number) => {
+  const date = getFormattedDate();
+  const data = await fetchTodayPolls(courseId, date);
+  if (data.length === 0) {
+    throw Error('Invalid Polls Data');
+  } else {
+    const poll = data.reduce((prev, current) =>
+      prev.id > current.id ? prev : current,
+    );
+    const todayData = await fetchTodayPollsById(poll.id);
+    return todayData;
+  }
+};
+
+const getFormattedDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const date = String(today.getDate()).padStart(2, '0');
+
+  const formattedDate = `${year}-${month}-${date}T00:00`;
+  return formattedDate;
+};
+
 const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
   const [activeCourse, setActiveCourse] = useState<number>(-1);
   const [selectedCourse, setSelectedCourse] = useState<number>(-1);
   const [showModal, setShowModal] = useState(false);
+  const [poll, setPoll] = useState<Record<string, TodayPolls>>({});
+
   const handleCloseModal = () => setShowModal(false);
+
+  const handlePollUpdate = async (data: any) => {
+    let newPoll: TodayPolls = poll[courses[selectedCourse].id];
+    newPoll.check_attention = data.check_attention;
+    newPoll.check_test = data.check_test;
+    newPoll.check_homework = data.check_homework;
+    newPoll.answered_at = new Date();
+    await fetchUpdateTodayPolls(newPoll.id, data);
+    await earnPoints(RewardType.SURVEY);
+    setPoll(prev => ({
+      ...prev,
+      [courses[selectedCourse].id]: newPoll,
+    }));
+  };
+
+  useEffect(() => {
+    const fetchPolls = async () => {
+      try {
+        const pollData: Record<string, TodayPolls> = {};
+        for (const course of courses) {
+          const data = await getPollsData(Number(course.id));
+          pollData[course.id] = data;
+        }
+        setPoll(pollData);
+      } catch (e) {
+        setPoll({});
+      }
+    };
+    fetchPolls();
+  }, [courses]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -217,6 +240,7 @@ const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
         renderItem={({item, index}: {item: CourseBlock; index: number}) => (
           <CourseItem
             course={item}
+            poll={poll[item.id] || null}
             showDialog={() => setShowModal(true)}
             active={activeCourse === index}
             expand={selectedCourse === index}
@@ -235,6 +259,7 @@ const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
           course={courses[selectedCourse]}
           visible={showModal}
           onClose={handleCloseModal}
+          onUpdate={handlePollUpdate}
         />
       )}
     </View>

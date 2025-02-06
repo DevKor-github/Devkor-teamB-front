@@ -22,7 +22,7 @@ import {
 } from '@src/data/storeApi';
 import Banner from '@src/components/Banner';
 
-const PointHistoryView = () => {
+const PointHistoryView = ({totalPoint}: {totalPoint: number}) => {
   const days = ['일', '월', '화', '수', '목', '금', '토'];
   const [points, setPoints] = useState([0, 0, 0, 0, 0, 0, 0]);
   const today = new Date().getDay();
@@ -51,7 +51,7 @@ const PointHistoryView = () => {
       setPoints(weekPoints);
     };
     getPointHistory();
-  }, []);
+  }, [totalPoint]);
 
   return (
     <View style={pointHistoryStyles.container}>
@@ -85,7 +85,7 @@ const PointTips = () => {
       [require('@assets/icons/tip_response.png'), '게시글 답변 시', 5],
     ],
     [
-      [require('@assets/icons/tip_question.png'), '오늘의 질문 답변 시', 10],
+      [require('@assets/icons/tip_question.png'), '오늘의 브리핑 답변 시', 10],
       // [require('@assets/icons/tip_accept.png'), '게시글 답변 채택 시', 20],
     ],
   ];
@@ -158,7 +158,7 @@ const PointInfoSection = () => {
           </Text>
           <PointInfoButton />
         </View>
-        <PointHistoryView />
+        <PointHistoryView totalPoint={point} />
       </View>
       <View style={pointStyles.divider} />
       <PointTips />
