@@ -109,9 +109,9 @@ const PollsModal: React.FC<PollsModalProps> = ({
                 fillColor={Colors.ui.primary}
                 iconStyle={styles.checkboxStyle}
                 innerIconStyle={styles.checkboxStyle}
-                text="공지가 있었어요!"
+                text="시험 공지가 있었어요!"
                 onPress={() => {
-                  handleCheckboxChange('notice');
+                  handleCheckboxChange('check_test');
                 }}
               />
             </View>

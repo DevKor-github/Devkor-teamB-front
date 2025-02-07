@@ -14,6 +14,7 @@ import {
 import PollsModal from '../Timetable/TimetablePollsModal';
 import {earnPoints, RewardType} from '../Store/StoreHandler';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import {BriefingEventHandler} from '@src/Events';
 
 const BriefingHeader = ({text}: {text: String}) => {
   return (
@@ -153,14 +154,20 @@ const BriefingScreen: React.FC<BriefingScreenProps> = ({route, navigation}) => {
   const handleCloseModal = () => setShowModal(false);
 
   const handlePollUpdate = async (data: any) => {
-    let newPoll = poll!;
-    newPoll.check_attention = data.check_attention;
-    newPoll.check_test = data.check_test;
-    newPoll.check_homework = data.check_homework;
-    newPoll.answered_at = new Date();
-    setPoll(newPoll);
-    await fetchUpdateTodayPolls(newPoll.id, data);
-    await earnPoints(RewardType.SURVEY);
+    let newPoll = poll;
+    if (poll === undefined) {
+      console.error('Invalid Poll Data');
+    } else {
+      newPoll!.check_attention = data.check_attention;
+      newPoll!.check_test = data.check_test;
+      newPoll!.check_homework = data.check_homework;
+      newPoll!.answered_at = new Date();
+      BriefingEventHandler.emit('BRIEFING_UPDATED', {
+        id: newPoll!.id,
+        data: data,
+        newPoll: newPoll,
+      });
+    }
   };
 
   useEffect(() => {
@@ -205,7 +212,19 @@ const BriefingScreen: React.FC<BriefingScreenProps> = ({route, navigation}) => {
       </View>
       <View style={styles.divider} />
       <View style={styles.briefingContainer}>
-        <BriefingHeader text="내가 답변한 브리핑" />
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <BriefingHeader text="내가 답변한 브리핑" />
+          {voted && (
+            <TouchableOpacity onPress={() => setShowModal(true)}>
+              <Text style={headerStyle.more}>수정하기</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         {voted ? (
           <MyTodayPolls poll={poll!} />
         ) : (

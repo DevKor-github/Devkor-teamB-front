@@ -15,7 +15,7 @@ import WeeklyTimetableScreen from '@screens/Timetable/WeeklyTimetableScreen';
 import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {fetchTimetables} from '@src/data/studentApi';
-import {groupByDay} from '@src/components/Timetable/TimetableUtils';
+import {getDay, groupByDay} from '@src/components/Timetable/TimetableUtils';
 import {CourseBlock, TimetableModel} from '@src/Types';
 
 enum ViewMode {
@@ -150,8 +150,7 @@ const TimetableScreen = () => {
       try {
         const timetable = await fetchTimetables();
         const coursesByDay = groupByDay(timetable.courses);
-        // setCourses(coursesByDay[getDay()] ?? []);
-        setCourses(coursesByDay['목']);
+        setCourses(coursesByDay[getDay()] ?? []);
         setTimetable(timetable);
       } catch (_) {
         setCourses([]);

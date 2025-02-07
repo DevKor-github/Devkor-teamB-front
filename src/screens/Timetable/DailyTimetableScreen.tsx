@@ -22,6 +22,7 @@ import {
   TodayPolls,
 } from '@src/data/briefingApi';
 import {earnPoints, RewardType} from '../Store/StoreHandler';
+import {BriefingEventHandler} from '@src/Events';
 
 const CourseItem = ({
   course,
@@ -55,10 +56,10 @@ const CourseItem = ({
   });
 
   const toggleActive = () => {
+    showDialog();
+    // if (!poll || poll.answered_at === null) {
     // showDialog();
-    if (!poll || poll.answered_at === null) {
-      showDialog();
-    }
+    // }
     callback();
   };
 
@@ -179,18 +180,42 @@ const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
 
   const handleCloseModal = () => setShowModal(false);
 
+  useEffect(() => {
+    const listener = ({
+      id,
+      data,
+      newPoll,
+    }: {
+      id: number;
+      data: any;
+      newPoll: TodayPolls;
+    }) => {
+      if (!newPoll.answered_at || newPoll.answered_at === null) {
+        earnPoints(RewardType.SURVEY);
+      }
+      fetchUpdateTodayPolls(newPoll!.id, data);
+      setPoll(prev => ({
+        ...prev,
+        [id]: newPoll,
+      }));
+    };
+
+    BriefingEventHandler.addListener('BRIEFING_UPDATED', listener);
+    return () => BriefingEventHandler.removeListener('BRIEFING_UPDATED');
+  }, []);
+
   const handlePollUpdate = async (data: any) => {
-    let newPoll: TodayPolls = poll[courses[selectedCourse].id];
+    const id = courses[selectedCourse].id;
+    let newPoll: TodayPolls = poll[id];
     newPoll.check_attention = data.check_attention;
     newPoll.check_test = data.check_test;
     newPoll.check_homework = data.check_homework;
     newPoll.answered_at = new Date();
-    await fetchUpdateTodayPolls(newPoll.id, data);
-    await earnPoints(RewardType.SURVEY);
-    setPoll(prev => ({
-      ...prev,
-      [courses[selectedCourse].id]: newPoll,
-    }));
+    BriefingEventHandler.emit('BRIEFING_UPDATED', {
+      id: id,
+      data: data,
+      newPoll: newPoll,
+    });
   };
 
   useEffect(() => {
