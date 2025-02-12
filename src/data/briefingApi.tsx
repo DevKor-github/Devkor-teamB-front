@@ -93,12 +93,16 @@ export const fetchTodayPollsById = async (id: number) => {
   }
 };
 
-export const fetchUpdateTodayPolls = async (id: number, data: any) => {
+export const fetchUpdateTodayPolls = async (data: TodayPolls) => {
   try {
     const token = await getToken();
     const {status} = await axios.post(
-      `${API_URL}/todaypolls/${id}/answer/`,
-      data,
+      `${API_URL}/todaypolls/${data.id}/answer/`,
+      {
+        check_attention: data.check_attention,
+        check_test: data.check_test,
+        check_homework: data.check_homework,
+      },
       {
         headers: {
           authorization: `token ${token}`,

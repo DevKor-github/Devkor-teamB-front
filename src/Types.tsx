@@ -171,6 +171,14 @@ export interface TimeSlot {
   end: string;
 }
 
+export interface FullTimetableData {
+  id: number;
+  student: number;
+  year: string;
+  semester: string;
+  courses: Course[];
+}
+
 export interface TimetableData {
   student: number;
   year: string;

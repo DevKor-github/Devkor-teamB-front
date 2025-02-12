@@ -271,17 +271,16 @@ const RegistrationBody = ({
   );
 };
 
-const RegistrationHeader = () =>
-  // {subTitle}: {subTitle: string}
-  {
-    // const navigation = useNavigation<NavigationProps>();
-    return (
-      <View style={headerStyles.container}>
-        <Text style={headerStyles.title}>KU&A</Text>
-        {/* <Text style={headerStyles.subTitle}>{subTitle}</Text> */}
-      </View>
-    );
-  };
+const RegistrationHeader = ({timetable}: {timetable: TimetableModel}) => {
+  return (
+    <View style={headerStyles.container}>
+      <Text style={headerStyles.title}>KU&A</Text>
+      <Text style={headerStyles.subTitle}>
+        {timetable.year}년 {timetable.semester}학기
+      </Text>
+    </View>
+  );
+};
 
 const RegisterScreen = ({route}: {route: any}) => {
   const slideAnim = useRef(new Animated.Value(1000)).current;
@@ -304,7 +303,7 @@ const RegisterScreen = ({route}: {route: any}) => {
           <View style={styles.top} />
           <View style={styles.bottom} />
           <View style={styles.content}>
-            <RegistrationHeader />
+            <RegistrationHeader timetable={timetable} />
             <RegistrationBody courses={courses} data={timetable} skip={skip} />
           </View>
         </View>

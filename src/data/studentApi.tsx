@@ -7,6 +7,7 @@ import {
   CourseData,
   CourseMinimal,
   CourseMinimalData,
+  FullTimetableData,
   TimetableModel,
   TimetableUpdateData,
 } from '@src/Types';
@@ -52,26 +53,48 @@ export const fetchStudentImage = async (name: string) => {
   }
 };
 
-export const fetchTimetables = async () => {
+export const fetchTimetableData = async (id: number) => {
   try {
     const token = await getToken();
-    const userId = await getUserId();
     const {data, status} = await axios.get<TimetableModel>(
-      `${API_URL}/timetables/${userId}/`,
+      `${API_URL}/timetables/${id}/`,
       {
         headers: {authorization: `token ${token}`},
         validateStatus: x => x === 200 || x === 404,
       },
     );
+    logger.info('fetchTimetableData', status);
+    return data;
+  } catch (error) {
+    logger.error('fetchTimetableData', error);
+    throw Error('Unable to fetch timetable data.');
+  }
+};
+
+export const fetchTimetables = async (year?: string, semester?: string) => {
+  try {
+    const token = await getToken();
+    const userId = await getUserId();
+    const {data, status} = await axios.get<FullTimetableData[]>(
+      `${API_URL}/timetables/`,
+      {
+        params: {student_id: userId, year: year, semester: semester},
+        headers: {authorization: `token ${token}`},
+        validateStatus: x => x === 200 || x === 404,
+      },
+    );
+
     logger.info('fetchTimetables', status);
-    if (status === 200) {
-      return data;
+    if (status === 404) {
+      return -1;
+    } else if (data !== null && data.length > 0) {
+      return data[0].id;
     } else {
-      throw Error('Timetable not found.');
+      return -1;
     }
   } catch (error) {
     logger.error('fetchTimetables', error);
-    throw Error('Unable to fetch timetables.');
+    return -1;
   }
 };
 
@@ -142,11 +165,13 @@ export const fetchAllCourses = async () => {
   }
 };
 
-export const fetchTimetableUpdate = async (data: TimetableUpdateData) => {
+export const fetchTimetableUpdate = async (
+  id: number,
+  data: TimetableUpdateData,
+) => {
   try {
     const token = await getToken();
-    const userId = await getUserId();
-    const {status} = await axios.put(`${API_URL}/timetables/${userId}/`, data, {
+    const {status} = await axios.put(`${API_URL}/timetables/${id}/`, data, {
       headers: {
         authorization: `token ${token}`,
       },

@@ -109,7 +109,7 @@ const DailyBriefingWidget = ({course}: {course: CourseBlock}) => {
       }
     };
     fetchData();
-  });
+  }, [course]);
 
   return (
     <View style={styles.container}>

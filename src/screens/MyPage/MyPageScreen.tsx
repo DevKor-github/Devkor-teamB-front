@@ -13,19 +13,14 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {useNavigation} from '@react-navigation/native';
 import {
-  consumePoints,
-  earnPoints,
-  PermissionType,
-  RewardType,
-} from '../Store/StoreHandler';
-import {
   fetchAllCourses,
   fetchStudentImage,
-  fetchTimetables,
+  fetchTimetableData,
   fetchUserInfo,
 } from '@src/data/studentApi';
 import {API_URL} from '@env';
 import {removeAccess} from '@src/data/authStorage';
+import {getTimetableId} from '@src/components/Timetable/TimetableUtils';
 
 const MY_INFO_ITEMS = {
   // '아이디 변경하기': 'changeId',
@@ -65,10 +60,11 @@ const handleItemPress = ({
         callback(true);
         const fetchData = async () => {
           const courses = await fetchAllCourses();
-          const timetable = await fetchTimetables()!;
+          const id = await getTimetableId();
+          const data = await fetchTimetableData(id);
           navigation.navigate('Register', {
             courses: courses,
-            timetable: timetable,
+            timetable: data,
           });
         };
         fetchData();
@@ -196,10 +192,6 @@ const MyPageScreen = () => {
               </TouchableOpacity>
             ))}
           </View>
-          {/* 포인트 관련. 삭제할 예정 */}
-          <HowToUsePoint />
-          <HowToGetPoint />
-          {/* 포인트 관련. 삭제할 예정 */}
         </View>
       </View>
       {isLoading && (
@@ -210,41 +202,6 @@ const MyPageScreen = () => {
     </SafeAreaView>
   );
 };
-
-// 포인트 적립 기능
-const HowToUsePoint = () => {
-  return (
-    <TouchableOpacity
-      onPress={async () => {
-        await earnPoints(RewardType.CHOSEN);
-      }}
-      style={tempStyle.pointInfoContainer}>
-      <Text>포인트 적립 방법</Text>
-    </TouchableOpacity>
-  );
-};
-
-// 포인트 사용 기능
-const HowToGetPoint = () => {
-  return (
-    <TouchableOpacity
-      onPress={async () => {
-        await consumePoints(PermissionType.DAY);
-      }}
-      style={tempStyle.pointInfoContainer}>
-      <Text>포인트 사용 방법</Text>
-    </TouchableOpacity>
-  );
-};
-
-const tempStyle = StyleSheet.create({
-  pointInfoContainer: {
-    backgroundColor: 'pink',
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 12,
-  },
-});
 
 const styles = StyleSheet.create({
   loadingContainer: {

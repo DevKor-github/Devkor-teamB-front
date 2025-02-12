@@ -4,8 +4,14 @@ import Colors from '@src/Colors';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {TimetableModel} from '@src/Types';
-import {fetchAllCourses, fetchTimetables} from '@src/data/studentApi';
+import {
+  fetchAllCourses,
+  fetchCreateTimetable,
+  fetchTimetableData,
+} from '@src/data/studentApi';
 import {getUserId} from '@src/data/authStorage';
+import {logger} from '@src/logger';
+import {getTimetableId} from '@src/components/Timetable/TimetableUtils';
 
 const ICON_SIZE = 540;
 
@@ -86,18 +92,22 @@ const RegistrationInfoScreen = ({navigation}: {navigation: any}) => {
   }, [iconAnimation, logoAnimation, textAnimation, opacityAnimation]);
 
   const getTimetable = async () => {
-    const fetchedTimetables = await fetchTimetables();
-    if (fetchedTimetables == null) {
+    const id = await getTimetableId();
+    if (id === -1) {
+      const month = new Date().getMonth() + 1 < 8 ? '1' : '2';
+      const year = new Date().getFullYear().toString();
       const userId = await getUserId();
       const newTimetable = new TimetableModel({
         student: Number(userId),
         courses: [],
-        semester: '2',
-        year: '2024',
+        semester: month,
+        year: year,
       });
+      await fetchCreateTimetable(newTimetable);
       return newTimetable;
     } else {
-      return TimetableModel.fromJson(fetchedTimetables);
+      const timetable = await fetchTimetableData(id);
+      return TimetableModel.fromJson(timetable);
     }
   };
 
@@ -114,8 +124,8 @@ const RegistrationInfoScreen = ({navigation}: {navigation: any}) => {
         });
       };
       fetchData();
-    } catch (e) {
-      console.error('[RegisterInfoScreen]', e);
+    } catch (e: any) {
+      logger.error('RegisterInfoScreen', e.toString());
     }
   }, [runEnterAnimation, navigation, runExitAnimation]);
 

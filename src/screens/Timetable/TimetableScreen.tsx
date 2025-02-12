@@ -14,8 +14,12 @@ import Colors from '@src/Colors';
 import WeeklyTimetableScreen from '@screens/Timetable/WeeklyTimetableScreen';
 import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchTimetables} from '@src/data/studentApi';
-import {getDay, groupByDay} from '@src/components/Timetable/TimetableUtils';
+import {fetchTimetableData} from '@src/data/studentApi';
+import {
+  getDay,
+  getTimetableId,
+  groupByDay,
+} from '@src/components/Timetable/TimetableUtils';
 import {CourseBlock, TimetableModel} from '@src/Types';
 
 enum ViewMode {
@@ -148,10 +152,11 @@ const TimetableScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const timetable = await fetchTimetables();
-        const coursesByDay = groupByDay(timetable.courses);
+        const id = await getTimetableId();
+        const data = await fetchTimetableData(id);
+        const coursesByDay = groupByDay(data.courses);
         setCourses(coursesByDay[getDay()] ?? []);
-        setTimetable(timetable);
+        setTimetable(data);
       } catch (_) {
         setCourses([]);
         setTimetable(TimetableModel.empty());

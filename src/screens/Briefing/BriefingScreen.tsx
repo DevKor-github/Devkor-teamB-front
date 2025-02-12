@@ -8,13 +8,15 @@ import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
 import {
   fetchTodayPolls,
   fetchTodayPollsById,
-  fetchUpdateTodayPolls,
   TodayPolls,
 } from '@src/data/briefingApi';
 import PollsModal from '../Timetable/TimetablePollsModal';
-import {earnPoints, RewardType} from '../Store/StoreHandler';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import {BriefingEventHandler} from '@src/Events';
+import {
+  getDay,
+  getFormattedDate,
+} from '@src/components/Timetable/TimetableUtils';
 
 const BriefingHeader = ({text}: {text: String}) => {
   return (
@@ -25,27 +27,25 @@ const BriefingHeader = ({text}: {text: String}) => {
 };
 
 const BriefingProgressBar = ({
-  imgsource,
-  progress,
-  lectureName,
+  src,
+  percentage,
   text,
 }: {
-  imgsource: any;
-  progress: number;
-  lectureName: any;
-  text: any;
+  src: any;
+  percentage: number;
+  text: String;
 }) => {
-  const percentage = Math.round(progress);
+  const progress = Math.round(percentage);
   return (
     <View style={[styles.item, {...GlobalStyles.row}]}>
-      <Image source={imgsource} style={styles.icon} />
+      <Image source={src} style={styles.icon} />
       <View style={styles.progresscontainer}>
         <View style={styles.textcontainer}>
-          <Text style={styles.text}>오늘 {lectureName} 들은 </Text>
+          <Text style={styles.text}>브리핑에 응답한 학생의 </Text>
           <Text style={{...GlobalStyles.boldText, color: Colors.primary[500]}}>
-            {percentage}
+            {progress}
           </Text>
-          <Text style={styles.text}>%의 학생이</Text>
+          <Text style={styles.text}>%가</Text>
         </View>
         <ProgressBar progress={progress}>
           <View style={GlobalStyles.row}>
@@ -74,16 +74,6 @@ const getPollsData = async (courseId: number) => {
     const todayData = await fetchTodayPollsById(poll.id);
     return todayData;
   }
-};
-
-const getFormattedDate = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const date = String(today.getDate()).padStart(2, '0');
-
-  const formattedDate = `${year}-${month}-${date}T00:00`;
-  return formattedDate;
 };
 
 const AnswerTodayPolls = ({
@@ -152,21 +142,16 @@ const BriefingScreen: React.FC<BriefingScreenProps> = ({route, navigation}) => {
   const [voted, setVoted] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const handleCloseModal = () => setShowModal(false);
-
-  const handlePollUpdate = async (data: any) => {
-    let newPoll = poll;
+  const handlePollUpdate = async (summary: any) => {
     if (poll === undefined) {
       console.error('Invalid Poll Data');
     } else {
-      newPoll!.check_attention = data.check_attention;
-      newPoll!.check_test = data.check_test;
-      newPoll!.check_homework = data.check_homework;
-      newPoll!.answered_at = new Date();
-      BriefingEventHandler.emit('BRIEFING_UPDATED', {
-        id: newPoll!.id,
-        data: data,
-        newPoll: newPoll,
-      });
+      let data = poll!;
+      data.check_attention = summary.check_attention;
+      data.check_test = summary.check_test;
+      data.check_homework = summary.check_homework;
+      data.answered_at = new Date();
+      BriefingEventHandler.emit('BRIEFING_UPDATED', data);
     }
   };
 
@@ -192,48 +177,46 @@ const BriefingScreen: React.FC<BriefingScreenProps> = ({route, navigation}) => {
       <View style={styles.briefingContainer}>
         <BriefingHeader text="오늘의 브리핑" />
         <BriefingProgressBar
-          imgsource={require('@assets/icons/briefing_calendar.png')}
-          progress={summary.attendance_percentage}
-          lectureName={course.course_name}
-          text="출석체크를 진행했다고 답변했어요"
+          src={require('@assets/icons/briefing_calendar.png')}
+          percentage={summary.attendance_percentage}
+          text="출석체크를 했다고 답했어요"
         />
         <BriefingProgressBar
-          imgsource={require('@assets/icons/briefing_book.png')}
-          progress={summary.assignment_percentage}
-          lectureName={course.course_name}
-          text="과제가 있었다고 답변했어요"
+          src={require('@assets/icons/briefing_book.png')}
+          percentage={summary.assignment_percentage}
+          text="과제가 있었다고 답했어요"
         />
         <BriefingProgressBar
-          imgsource={require('@assets/icons/briefing_bell.png')}
-          progress={summary.notification_percentage}
-          lectureName={course.course_name}
-          text="공지가 있었다고 답변했어요"
+          src={require('@assets/icons/briefing_bell.png')}
+          percentage={summary.notification_percentage}
+          text="시험 공지가 있었다고 답했어요"
         />
       </View>
       <View style={styles.divider} />
-      <View style={styles.briefingContainer}>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-          <BriefingHeader text="내가 답변한 브리핑" />
-          {voted && (
-            <TouchableOpacity onPress={() => setShowModal(true)}>
-              <Text style={headerStyle.more}>수정하기</Text>
-            </TouchableOpacity>
+      {(getDay() === course.day || voted) && (
+        <View style={styles.briefingContainer}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <BriefingHeader text="내가 답변한 브리핑" />
+            {getDay() === course.day && voted && (
+              <TouchableOpacity onPress={() => setShowModal(true)}>
+                <Text style={headerStyle.more}>수정하기</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {voted && <MyTodayPolls poll={poll!} />}
+          {getDay() === course.day && !voted && (
+            <AnswerTodayPolls
+              courseName={course.course_name}
+              handleBriefingAnswer={() => setShowModal(true)}
+            />
           )}
         </View>
-        {voted ? (
-          <MyTodayPolls poll={poll!} />
-        ) : (
-          <AnswerTodayPolls
-            courseName={course.course_name}
-            handleBriefingAnswer={() => setShowModal(true)}
-          />
-        )}
-      </View>
+      )}
       <PollsModal
         course={course}
         visible={showModal}
