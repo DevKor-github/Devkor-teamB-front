@@ -18,7 +18,8 @@ import {CustomButton} from '@src/screens/SignUp/CustomButton';
 import {useNavigation} from '@react-navigation/native';
 import {fetchSignUp} from '@src/data/authApi';
 
-const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d]{6,12}$/;
+const passwordRegex =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{6,12}$/;
 
 function SignUpScreen({route}: any) {
   const [username, setUsername] = useState('');

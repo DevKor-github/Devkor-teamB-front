@@ -7,6 +7,7 @@ import {
 } from '@src/Types';
 import Colors from '@src/Colors.tsx';
 import {ColorValue} from 'react-native';
+import {fetchTimetables} from '@src/data/studentApi';
 
 const colorMap: Map<number, number> = new Map();
 export const DEFAULT_SLOT_COUNT = 7;
@@ -239,4 +240,20 @@ export const parseTime = (time: string | Date) => {
     const minute = time.getMinutes();
     return hour * 100 + minute;
   }
+};
+
+export const getFormattedDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const date = String(today.getDate()).padStart(2, '0');
+
+  const formattedDate = `${year}-${month}-${date}T00:00`;
+  return formattedDate;
+};
+
+export const getTimetableId = () => {
+  const month = new Date().getMonth() + 1 < 8 ? '1' : '2';
+  const year = new Date().getFullYear().toString();
+  return fetchTimetables(year, month);
 };

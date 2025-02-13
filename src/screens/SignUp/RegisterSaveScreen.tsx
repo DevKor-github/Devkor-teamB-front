@@ -3,6 +3,7 @@ import {Animated, Easing, Image, StyleSheet, View} from 'react-native';
 import Colors from '@src/Colors';
 import {TimetableModel, TimetableUpdateData} from '@src/Types';
 import {fetchTimetableUpdate} from '@src/data/studentApi';
+import {getTimetableId} from '@src/components/Timetable/TimetableUtils';
 
 const updateTimetable = async (timetable: TimetableModel) => {
   try {
@@ -12,8 +13,8 @@ const updateTimetable = async (timetable: TimetableModel) => {
       semester: timetable.semester,
       year: timetable.year,
     };
-
-    await fetchTimetableUpdate(updateData);
+    const id = await getTimetableId();
+    await fetchTimetableUpdate(id, updateData);
   } catch (e) {
     console.error(e);
   }
@@ -183,7 +184,6 @@ const styles = StyleSheet.create({
     tintColor: Colors.primary[100],
   },
 });
-
 
 const indicatorStyle = StyleSheet.create({
   indicatorContainer: {

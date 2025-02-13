@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { logger } from '@src/logger';
+import {logger} from '@src/logger';
 
 export const getToken = async () => {
   return await AsyncStorage.getItem('userToken');
@@ -57,7 +57,7 @@ export const removeAccess = async () => {
       removeUserNickname(),
       removeLoginId(),
     ]);
-  } catch(e) {
+  } catch (e) {
     logger.error('removeAccess', e);
   }
 };

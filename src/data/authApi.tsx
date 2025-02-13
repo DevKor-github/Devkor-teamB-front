@@ -69,12 +69,16 @@ export const fetchSignUp = async (
       last_name: '',
       group: '',
     };
-    const {data, status} = await axios.post(`${API_URL}/student/signup/`, query, {
-      validateStatus: x => x === 201 || x === 400,
-    });
+    const {data, status} = await axios.post(
+      `${API_URL}/student/signup/`,
+      query,
+      {
+        validateStatus: x => x === 201 || x === 400,
+      },
+    );
     logger.info('fetchSignUp', data);
     return status === 201;
-  } catch (e) {
+  } catch (e: any) {
     logger.error('fetchSignUp', e);
     throw Error('Failed to sign up');
   }

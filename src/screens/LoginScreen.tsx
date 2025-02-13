@@ -20,8 +20,9 @@ import {CustomButton} from '@src/screens/SignUp/CustomButton';
 import {fetchLogin} from '@src/data/authApi';
 import {setLoginId, setUserNickname} from '@src/data/authStorage';
 import {setUserId} from '@src/data/authStorage';
-import {fetchTimetables, fetchUserInfo} from '@src/data/studentApi';
+import {fetchUserInfo} from '@src/data/studentApi';
 import {logger} from '@src/logger';
+import {getTimetableId} from '@src/components/Timetable/TimetableUtils';
 
 enum LoginStatus {
   SUCCESS,
@@ -32,8 +33,8 @@ enum LoginStatus {
 }
 
 function LoginScreen({navigation}: {navigation: any}) {
-  const [username, setUsername] = useState('test1');
-  const [password, setPassword] = useState('test1');
+  const [username, setUsername] = useState('test999');
+  const [password, setPassword] = useState('Test123@');
   const [loginError, setLoginError] = useState(false);
   const isFormValid = username.length > 0 && password.length > 0;
   const [isLoading, setIsLoading] = useState(false);
@@ -85,9 +86,9 @@ function LoginScreen({navigation}: {navigation: any}) {
       setIsLoading(true);
       await handleLoginRequest();
       await handleUserInfoRequest();
-      const timetable = await fetchTimetables();
+      const id = await getTimetableId();
       setIsLoading(false);
-      navigation.navigate(timetable ? 'Home' : 'RegisterInfo');
+      navigation.navigate(id !== -1 ? 'Home' : 'RegisterInfo');
     } catch (e) {
       setIsLoading(false);
       if (e === LoginStatus.TIMETABLE_FAILURE) {

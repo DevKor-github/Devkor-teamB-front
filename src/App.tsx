@@ -10,11 +10,11 @@ import EmailScreen from '@screens/SignUp/EmailScreen';
 import SignUpScreen from '@screens/SignUp/SignUpScreen';
 import RegisterInfoScreen from '@src/screens/SignUp/RegisterInfoScreen';
 import RegisterScreen from '@src/screens/SignUp/RegisterScreen';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import Colors from '@src/Colors';
 import RegistrationSaveScreen from '@src/screens/SignUp/RegisterSaveScreen';
-import { getToken, removeAccess } from './data/authStorage';
-import { logger } from './logger';
+import {getToken, removeAccess} from './data/authStorage';
+import {logger} from './logger';
 import StoreNavigator from './navigator/StoreNavigator';
 
 export type RootStackParamList = {

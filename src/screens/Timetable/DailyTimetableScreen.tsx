@@ -13,7 +13,10 @@ import Colors from '@src/Colors';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {CourseBlock} from '@src/Types';
 import {useNavigation} from '@react-navigation/native';
-import {parseTime} from '@src/components/Timetable/TimetableUtils';
+import {
+  getFormattedDate,
+  parseTime,
+} from '@src/components/Timetable/TimetableUtils';
 import PollsModal from '@src/screens/Timetable/TimetablePollsModal';
 import {
   fetchTodayPolls,
@@ -22,6 +25,7 @@ import {
   TodayPolls,
 } from '@src/data/briefingApi';
 import {earnPoints, RewardType} from '../Store/StoreHandler';
+import {BriefingEventHandler} from '@src/Events';
 
 const CourseItem = ({
   course,
@@ -55,7 +59,6 @@ const CourseItem = ({
   });
 
   const toggleActive = () => {
-    // showDialog();
     if (!poll || poll.answered_at === null) {
       showDialog();
     }
@@ -161,16 +164,6 @@ const getPollsData = async (courseId: number) => {
   }
 };
 
-const getFormattedDate = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const date = String(today.getDate()).padStart(2, '0');
-
-  const formattedDate = `${year}-${month}-${date}T00:00`;
-  return formattedDate;
-};
-
 const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
   const [activeCourse, setActiveCourse] = useState<number>(-1);
   const [selectedCourse, setSelectedCourse] = useState<number>(-1);
@@ -179,18 +172,27 @@ const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
 
   const handleCloseModal = () => setShowModal(false);
 
-  const handlePollUpdate = async (data: any) => {
-    let newPoll: TodayPolls = poll[courses[selectedCourse].id];
-    newPoll.check_attention = data.check_attention;
-    newPoll.check_test = data.check_test;
-    newPoll.check_homework = data.check_homework;
-    newPoll.answered_at = new Date();
-    await fetchUpdateTodayPolls(newPoll.id, data);
-    await earnPoints(RewardType.SURVEY);
-    setPoll(prev => ({
-      ...prev,
-      [courses[selectedCourse].id]: newPoll,
-    }));
+  useEffect(() => {
+    BriefingEventHandler.addListener('BRIEFING_UPDATED', (poll: TodayPolls) => {
+      earnPoints(RewardType.SURVEY);
+      fetchUpdateTodayPolls(poll);
+      setPoll(prev => ({
+        ...prev,
+        [poll.course_fk]: poll,
+      }));
+    });
+
+    return () => BriefingEventHandler.removeListener('BRIEFING_UPDATED');
+  }, []);
+
+  const handlePollUpdate = async (summary: any) => {
+    const id = courses[selectedCourse].id;
+    let data: TodayPolls = poll[id];
+    data.check_attention = summary.check_attention;
+    data.check_test = summary.check_test;
+    data.check_homework = summary.check_homework;
+    data.answered_at = new Date();
+    BriefingEventHandler.emit('BRIEFING_UPDATED', data);
   };
 
   useEffect(() => {

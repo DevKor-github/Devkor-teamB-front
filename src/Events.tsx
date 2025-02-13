@@ -22,4 +22,5 @@ class EventListener {
 }
 
 const PointEventHandler = new EventListener();
-export {PointEventHandler};
+const BriefingEventHandler = new EventListener();
+export {PointEventHandler, BriefingEventHandler};
