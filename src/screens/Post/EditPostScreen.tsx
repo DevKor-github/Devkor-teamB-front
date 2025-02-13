@@ -216,12 +216,12 @@ function PostEditScreen({ route }: { route: any }) {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
-        formData.append('course_fk', post.postId); 
-        formData.append('student', post.postId);
+        formData.append('course_fk', post.id); 
+        formData.append('student', post.id);
         formData.append('tags', selectedTags);
         // formData.append('id', post.postId);
         formData.append('delete_image_ids',deletedImages);
-        const response = await axios.patch(`${API_URL}/posts/${post.postId}/`, formData,
+        const response = await axios.patch(`${API_URL}/posts/${post.id}/`, formData,
           { 
             headers: { 
               authorization: `token ${token}`,

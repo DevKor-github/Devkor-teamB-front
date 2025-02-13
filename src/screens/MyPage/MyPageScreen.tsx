@@ -132,7 +132,7 @@ const MyPageScreen = () => {
                   : require('@assets/images/UserImage.png')
               }
               defaultSource={require('@assets/images/UserImage.png')}
-              style={styles.avatar}
+              style={[styles.avatar,{borderRadius:50}]}
             />
           </View>
           <View style={GlobalStyles.row}>

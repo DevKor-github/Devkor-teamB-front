@@ -52,7 +52,8 @@ const MyCommentScreen = () => {
           authorization: `token ${token}`,
         }
       });
-      const fetchedComments = response.data;
+      const fetchedComments = response.data.commented;
+      console.log(fetchedComments)
       const detailedComments = await Promise.all(
         fetchedComments.map(async (comment: any) => {
           const details = await fetchCommentDetails(comment.id);
@@ -106,7 +107,8 @@ const MyCommentScreen = () => {
         reports: response.data.reports,
         content: response.data.content,
         attachments: response.data.attachment,
-        tags: response.data.tags
+        tags: response.data.tags,
+        liked: response.data.liked
       }
       console.log(fetchedPost)
       navigation.navigate('PostScreen', {post: fetchedPost, lecture: comment.course.course_name})

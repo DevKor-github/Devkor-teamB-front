@@ -13,57 +13,31 @@ import { TextInput } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {API_URL} from '@env';
+import { fetchPostInfo } from './PostAPI';
 
 interface CommunityScreenProps {
   route: any;
   navigation: any;
 }
 
-export const PostItem = ({post, lectureName}: {post: Post, lectureName: string}) => {
+export const PostItem = ({post, lectureName}: {post: any, lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [fetchedPost, setFetchedPost] = useState<Post>();
   const [commentNum, setCommentNum] = useState(Number);
 
   useEffect(()=>{
-    fetchPostInfo(post.postId)
-    fetchComments(post.postId)
-  },[post.postId])
-
-
-  const fetchPostInfo = async (postId:number) => {
-    try{
-      const token = await AsyncStorage.getItem('userToken')
-      const response = await axios.get(`${API_URL}/posts/${postId}/`,  
-        {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        },
-      );
-      const data = response.data
-      const newPost : Post = {
-        postId: data.id,
-        title: data.title,
-        author: new UserInfo(
-          data.author.id,
-          data.author.nickname,
-          data.author.profileImage,
-        ),
-        postDate: data.created_at,
-        views: data.views, 
-        likes: data.likes,
-        reports: data.reports,
-        content: data.content,
-        attachments: data.attachment,
-        tags: data.tags,
+    const getPostInfo = async() => {
+      const postData = await fetchPostInfo(post.id)
+      if(postData){
+        setFetchedPost(postData)
       }
-      setFetchedPost(newPost)
-    } catch (error) {
-      console.error('Error fetching postinfo:', error);
     }
-  }
 
-  const fetchComments = async (postId:number) => {
+    getPostInfo()
+    getCommentNum(post.id)
+  },[post.id])
+
+  const getCommentNum = async (postId:number) => {
     try{
       const token = await AsyncStorage.getItem('userToken')
       const response = await axios.get(`${API_URL}/comments/`,  
@@ -116,7 +90,7 @@ export const PostItem = ({post, lectureName}: {post: Post, lectureName: string})
         {/* 이미지 preview */}
         {fetchedPost && fetchedPost.attachments && fetchedPost.attachments.length > 0 && (
           <Image 
-            key={fetchedPost.postId}
+            key={fetchedPost.id}
             source={{uri: `${API_URL}/${fetchedPost.attachments[0].uri}`}}
             style={{width:65,height:65,borderRadius:5,alignSelf: 'center'}}
           />
@@ -156,7 +130,7 @@ const PostView = ({items, id, lectureName}: {items: Post[]; id: number, lectureN
           <FlatList
             data={items}
             renderItem={({item}: {item: Post,}) => (
-              <PostItem key={item.postId} post={item} lectureName={lectureName} />
+              <PostItem key={item.id} post={item} lectureName={lectureName} />
             )}
           />
         )}

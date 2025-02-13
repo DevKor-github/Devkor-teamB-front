@@ -47,7 +47,7 @@ export type Tag = {
 };
 
 export type Post = {
-  postId: number;
+  id: number;
   author: UserInfo;
   title: string;
   postDate: string;
@@ -60,6 +60,7 @@ export type Post = {
   // images: Attachment[];
   // files: Attachment[];
   tags: any[];
+  liked: boolean;
 };
 
 // 새로 추가한 타입

@@ -78,6 +78,7 @@ export function CommentTextField(
             isChosen: response.data.is_chosen,
             postId: response.data.post,
             authorId: response.data.student,
+            postTitle: response.data.postTitle
           }
           addComment(newComment);
           setText('');
@@ -152,8 +153,8 @@ export function CommentContainer(
     },[userId])
 
     useEffect(()=>{
-      console.log('isChosen:',isChosen)
-      console.log('notChosen:',notChosen)
+      // console.log('isChosen:',isChosen)
+      // console.log('notChosen:',notChosen)
     },[isMyComment, isMyPost, isChosen, setIsChosen, notChosen])
 
 

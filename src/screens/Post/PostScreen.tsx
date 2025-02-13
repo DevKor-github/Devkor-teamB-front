@@ -24,7 +24,7 @@ import ImageView from 'react-native-image-viewing';
 
 // import APIs
 import {API_URL} from '@env';
-import { fetchComments } from './PostAPI';
+import { fetchComments, fetchPostInfo } from './PostAPI';
 import { fetchGetPointHistory} from '@src/data/storeApi';
 import { fetchUserInfo } from '@src/data/studentApi';
 import { givePoints } from '../Store/StoreHandler';
@@ -35,14 +35,14 @@ interface PostScreenProps {
 }
 
 const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
-  const post: Post = route.params.post;
+  const post: any = route.params.post;
   const lectureName: string = route.params.lecture;
-  const author: UserInfo = new UserInfo(
-    post.author.id,
-    post.author.name,
-    post.author.profile,
-  );
-  const [postState, setPostState] = useState(post);
+  // const author: UserInfo = new UserInfo(
+  //   post.author.id,
+  //   post.author.name,
+  //   post.author.profile,
+  // );
+  const [postInfo, setPostInfo] = useState<Post | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLikeModalVisible, setIsLikeModalVisible] = useState(false);
   const [userId, setUserId] = useState(Number);
@@ -57,6 +57,8 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [files, setFiles] = useState<Attachment[]>([]);
   const [point, setPoint] = useState(Number);
+  const [liked, setLiked] = useState(false);
+  const [scraped, setScraped] = useState(false);
   
   // 이미지 관련
   const [images, setImages] = useState<Attachment[]>([]);
@@ -64,13 +66,21 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(()=>{
+    const getPostInfo = async () => {
+      const fetchedPostInfo = await fetchPostInfo(route.params.post.id);
+      setPostInfo(fetchedPostInfo)
+      if(fetchedPostInfo?.liked) setLiked(true)
+    }
+    getPostInfo();
+  },[])
+
+  useEffect(()=>{
     async function checkUser(){
       try{
         const {data, status} = await fetchUserInfo();
         if(status==200){
-          console.log('User info:', data)
           setUserId(data.user_id)
-          if(data.user_id==Number(author.id)) {
+          if(data.user_id==Number(postInfo?.author.id)) {
             setismypost(true);
           }
         } else {
@@ -83,14 +93,17 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     }
     checkUser();
     
-    
-    setTags(post.tags)
-    if(post.attachments){
-      sortAttachments(post.attachments)
+    if(postInfo){
+      // console.log('postInfo:',postInfo)
+      setTags(postInfo.tags)
+      sortAttachments(postInfo?.attachments)
     }
+    // if(postInfo?.attachments){
+    //   sortAttachments(postInfo?.attachments)
+    // }
     fetchCurrPoint()
     isCommentAvailable()
-  },[route.params?.refresh]) 
+  },[postInfo]) 
 
   useEffect(()=>{
   },[userId, ismypost, notChosen])
@@ -99,7 +112,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     const loadComments = async () => {
       try {
         setLoading(true);
-        const fetchedComments = await fetchComments(post.postId);
+        const fetchedComments = await fetchComments(post.id);
         if (fetchedComments.some(comment => comment.isChosen)) {
           setNotChosen(false);
         }
@@ -112,7 +125,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     };
 
     loadComments();
-  }, [post.postId]);
+  }, [post.id]);
 
 
 
@@ -160,7 +173,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
   const handlePostEdit = () => {
     setIsModalVisible(false)
-    navigation.navigate('PostEditScreen', {post: post, lectureName: lectureName});
+    navigation.navigate('PostEditScreen', {post: postInfo, lectureName: lectureName});
   }
 
   const deletePost = () =>
@@ -175,7 +188,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
         onPress: async () => {
           const token = await AsyncStorage.getItem('userToken')
           try{
-            const response = await axios.delete(`${API_URL}/posts/${post.postId}/`,
+            const response = await axios.delete(`${API_URL}/posts/${post.id}/`,
               {
                 headers: {
                   authorization: `token ${token}`,
@@ -193,26 +206,23 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
     const handlePressLike = async () => {
       try{
-        setIsLikeModalVisible(true);
-        post.likes += 1;
-        setPostState({ ...postState, likes: post.likes });
-        console.log('poststate:',postState)
-        setIsLikeModalVisible(false);
-  
         const token = await AsyncStorage.getItem('userToken')
-        const formData = new FormData();
-        formData.append('course_fk', post.postId);
-        formData.append('student', post.postId);
-        formData.append('id', post.postId);
-        formData.append('likes', post.likes);
-
-        const response = await axios.patch(`${API_URL}/posts/${post.postId}/`, formData,
-          { 
-            headers: { 
-              authorization: `token ${token}`,
-            }
-          },
-        );
+        const response = await axios.post(`${API_URL}/posts/${post.id}/like/`,
+          {id:post.id},
+          {headers:{
+            authorization: `token ${token}`,
+          }}
+        )
+        // console.log(response.data.Detail)
+        if(response.data.Detail=="이 게시글에 좋아요를 눌렀어요."){
+          post.likes += 1;
+          setLiked(true)
+          if(postInfo) setPostInfo({ ...postInfo, likes: post.likes });
+        } else{
+          post.likes -= 1;
+          setLiked(false)
+          if(postInfo) setPostInfo({ ...postInfo, likes: post.likes });
+        }
       } catch(error){
         console.error(error)
       }
@@ -286,7 +296,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                   }
                 },
               );
-              console.log(response.data)
+              // console.log(response.data)
             } catch(e){
               console.error(e)
             }
@@ -313,7 +323,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
           }}>
           <View style={style.userArea}>
             <Image
-              source={{uri: `${author.profile}`}}
+              source={{uri: `${postInfo?.author.profile}`}}
               style={{
                 width: 51,
                 height: 51,
@@ -325,7 +335,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
             <View style={style.userArea2}>
               <Text style={{color: '#3D3D3D', fontSize: 16, fontWeight: '500'}}>
-                {post.author.name}
+                {postInfo?.author.name}
               </Text>
               <View style={style.userArea3}>
                 <View style={{...GlobalStyles.row,gap:5,flexWrap:'wrap'}}>
@@ -349,10 +359,10 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
           </View>
 
           <View style={style.postArea}>
-            <Text style={style.postTitle}>{post.title}</Text>
+            <Text style={style.postTitle}>{postInfo?.title}</Text>
 
             <View style={style.postContentArea}>
-              <Text style={style.postContent}>{post.content}</Text>
+              <Text style={style.postContent}>{postInfo?.content}</Text>
             </View>
 
             {images.length > 0 && (
@@ -432,7 +442,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
           </View>
 
           {/* 공감 모달 */}
-          <View>
+          {/* <View>
             <Modal
               visible={isLikeModalVisible}
               transparent={true}
@@ -455,17 +465,24 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                 </View>
               </TouchableOpacity>
             </Modal>
-          </View>
+          </View> */}
 
 
           <View style={style.buttonArea}>
             {/* 왼쪽 정렬된 버튼 */}
             <View style={{ flexDirection: 'row', flex: 1 }}>
-              <TouchableOpacity style={[style.button, { flexDirection: 'row', alignItems: 'center', marginRight: 10 }]} onPress={()=>setIsLikeModalVisible(true)}>
+              <TouchableOpacity style={[style.button, { flexDirection: 'row', alignItems: 'center', marginRight: 10 }]} onPress={handlePressLike}>
                 <Icon2 name="thumb-up" size={14} color="#ff1485" />
-                <Text style={{ color: '#4D4D4D', fontSize: 12, fontWeight: '500', marginLeft: 5 }}>
-                  공감
-                </Text>
+                {liked && (
+                  <Text style={{ color: '#ff1485', fontSize: 12, fontWeight: '900', marginLeft: 5 }}>
+                    공감
+                  </Text>
+                )}
+                {!liked && (
+                  <Text style={{ color: '#4D4D4D', fontSize: 12, fontWeight: '500', marginLeft: 5 }}>
+                    공감
+                  </Text>
+                )}
               </TouchableOpacity>
               <TouchableOpacity style={[style.button, { flexDirection: 'row', alignItems: 'center' }]}>
                 <Icon3 name="star" size={14} color="#ff1485" />
@@ -477,9 +494,9 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
 
             {/* 오른쪽 정렬된 텍스트 */}
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1, alignItems: 'center'}}>
-              <Text style={{ marginLeft: 10, color: '#4D4D4D', fontSize: 12 }}>조회 {post.views}</Text>
+              <Text style={{ marginLeft: 10, color: '#4D4D4D', fontSize: 12 }}>조회 {postInfo?.views}</Text>
               <Text style={{ marginLeft: 10, color: '#4D4D4D', fontSize: 12 }}>댓글 {comments.length}</Text>
-              <Text style={{ marginLeft: 10, color: '#4D4D4D', fontSize: 12 }}>공감 {post.likes}</Text>
+              <Text style={{ marginLeft: 10, color: '#4D4D4D', fontSize: 12 }}>공감 {postInfo?.likes}</Text>
             </View>
           </View>
 
@@ -501,7 +518,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
         </ScrollView>
         <CommentTextField 
           addComment={addComment}
-          postId={post.postId}
+          postId={post.id}
           studentId={userId}
         />
       </>

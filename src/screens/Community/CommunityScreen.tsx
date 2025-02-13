@@ -23,56 +23,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_URL } from '@env';
 import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
+import { fetchPost, fetchPostInfo } from '../Post/PostAPI';
 
 interface CommunityScreenProps {
   route: any;
   navigation: any;
 }
 
-const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
+const PostItem = ({post, lectureName}: {post: any; lectureName: string}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const [fetchedPost, setFetchedPost] = useState<Post>();
-
-  useEffect(()=>{
-    fetchPostInfo(post.postId)
-  },[])
-
-  const fetchPostInfo = async (postId:number) => {
-    try{
-      const token = await AsyncStorage.getItem('userToken')
-      const response = await axios.get(`${API_URL}/posts/${postId}/`,
-        {
-          headers: {
-            authorization: `token ${token}`,
-          },
-        },
-      );
-      const data = response.data
-      const newPost : Post = {
-        postId: data.id,
-        title: data.title,
-        author: new UserInfo(
-          data.author.id,
-          data.author.nickname,
-          data.author.profileImage,
-        ),
-        postDate: data.created_at,
-        views: data.views,
-        likes: data.likes,
-        reports: data.reports,
-        content: data.content,
-        attachments: data.attachment,
-        tags: data.tags,
-      }
-      setFetchedPost(newPost)
-    } catch (error) {
-      console.error('Error fetching tags:', error);
-    }
-  }
 
   const handleNavigate = () => {
+    console.log(post)
     navigation.navigate('PostScreen',{
-      post: fetchedPost,
+      post: post,
       lecture: lectureName,
     })
   }
@@ -83,10 +47,9 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
       onPress = {handleNavigate}
       >
       <View style={{...GlobalStyles.row, justifyContent: 'space-between', alignItems: 'center'}}>
-        {/* <Text style={[postStyles.postText, {color: Colors.primary[500]}]}>Q.</Text> */}
         <Text style={postStyles.postText}>{post.title}</Text>
         <Text style={{color: "#666", fontSize: 12,marginTop: 3,justifyContent: 'center'}}>
-          {fetchedPost?fetchedPost.postDate.substring(0,10):null}
+          {post.created_at.substring(0,10)}
         </Text>
       </View>
       
@@ -94,35 +57,28 @@ const PostItem = ({post, lectureName}: {post: Post; lectureName: string}) => {
   );
 };
 
-export const PostView = ({ items, id, lectureName, course}: { items: Post[]; id: number; lectureName: string; course: CourseBlock}) => {
+export const PostView = ({ items, lectureId, lectureName, course}: { items: Post[]; lectureId: number; lectureName: string; course: CourseBlock}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [isFabOpen, setFabOpen] = useState(false);
- 
-  useEffect(()=>{
-    console.log('postview:',items)
-    console.log(lectureName)
-  },[])
 
   const handlePressMore = () => {
     navigation.navigate('PostListScreen', {
       lectureName: lectureName,
-      id: id,
+      id: lectureId,
       items: items,
     });
   };
 
   const handlePressPlus = () => {
-    console.log(isFabOpen);
     setFabOpen(!isFabOpen);
   };
 
   const handleNavigate = (screen: string) => {
     setFabOpen(false);
-    console.log(id, lectureName)
     if(screen=='BriefingScreen'){
       navigation.navigate(screen, {course:course})
     }
-    navigation.navigate(screen, { lectureId: id, lectureName: lectureName});
+    navigation.navigate(screen, { lectureId: lectureId, lectureName: lectureName});
   };
 
   return (
@@ -146,7 +102,7 @@ export const PostView = ({ items, id, lectureName, course}: { items: Post[]; id:
       ) : (
         <FlatList
           data={items}
-          renderItem={({item}: {item: Post}) => (
+          renderItem={({item}: {item: any}) => (
             <PostItem post={item} lectureName={lectureName} />
           )}
         />
@@ -166,7 +122,6 @@ export const PostView = ({ items, id, lectureName, course}: { items: Post[]; id:
           <Animatable.View
             duration={500}
             style={{width: 70}}
-            // style={[styles.fabOption, { bottom: 80 }]}
           >
             <TouchableOpacity
               onPress={() => handleNavigate('PostCreationScreen')}>
@@ -199,53 +154,28 @@ export const PostView = ({ items, id, lectureName, course}: { items: Post[]; id:
 
 const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
   const {course}: {course: CourseBlock} = route.params;
-  const [posts, setPosts] = useState<Post[]>([]);
-
+  const [posts, setPosts] = useState<any[]>([]);
+  
   useEffect(() => {
-    // if(route.params?.refresh){
-    //   fetchPost();
-    // }
-    fetchPost();
-    console.log("refreshed")
-  },[route.params?.refresh]);
+    const fetchData = async () => {
+      const fetchedPosts = await fetchPost(course.id);
+      if(fetchedPosts) setPosts(fetchedPosts); 
+    };
+
+    fetchData();
+  }, [course.id]);
 
   useLayoutEffect(() =>
     setNavigationHeader(navigation, [course.course_name, course.instructor]),
     [course, navigation],
   );
 
-  const fetchPost = async ()=>{
-    try {
-      const token = await AsyncStorage.getItem('userToken')
-      const response = await axios.get(`${API_URL}/posts/`, 
-        {
-          params: {
-            course_id: course.course_id
-          },
-          headers: {
-            authorization: `token ${token}`,
-          },
-        },
-      );
-      // console.log(response.data)
-      const fetchedPosts: Post[] = response.data
-        .map((data:any)=>({
-          postId: data.id,
-          title: data.title,
-        }))
-      setPosts(fetchedPosts)
-      console.log('CommunityScreen : isfocused')
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    }
-  }
-
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
       <DailyBriefingWidget course={course} />
       <PostView
         items={posts}
-        id={course.id}
+        lectureId={course.id}
         lectureName={course.course_name}
         course={course}
       />

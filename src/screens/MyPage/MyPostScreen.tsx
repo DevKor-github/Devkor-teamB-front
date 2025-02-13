@@ -36,7 +36,6 @@ const MyPostScreen = () => {
           },
         },
       );
-      // console.log('detail:',response.data)
       return response.data; 
     } catch (e) {
       console.error(`Failed to fetch post ${postId}`, e);
@@ -52,20 +51,19 @@ const MyPostScreen = () => {
           authorization: `token ${token}`,
         }
       });
-
-      const fetchedPosts = response.data;
+      const fetchedPosts = response.data.posted;
       const detailedPosts = await Promise.all(
         fetchedPosts.map(async (post: any) => {
           const details = await fetchPostDetails(post.id);
           return details
-            ? { ...post, ...details } // ✅ 상세 정보를 합쳐서 새로운 객체 생성
-            : post; // ✅ 실패하면 기존 데이터 유지
+            ? { ...post, ...details } 
+            : post; 
         })
       );
 
       const formattedPosts: MyPost[] = detailedPosts.map((item:any)=>({
         post: {
-          postId: item.id,
+          id: item.id,
           title: item.title,
           author: new UserInfo(
             item.author.id,
@@ -78,11 +76,11 @@ const MyPostScreen = () => {
           reports: item.reports,
           content : item.content,
           attachments: item.attachment,
-          tags: item.tags
+          tags: item.tags,
+          liked: item.liked
         },
         course: item.course
       }));
-
       setPosts(formattedPosts);
       setLoding(false)
 
@@ -123,9 +121,7 @@ const MyPostScreen = () => {
           <View 
             key={index}
           >
-            <Text 
-              style={postStyles.title}
-            >
+            <Text style={postStyles.title}>
               {courseName}
             </Text>
             
