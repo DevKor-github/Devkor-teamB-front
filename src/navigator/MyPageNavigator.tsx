@@ -5,6 +5,7 @@ import ChangePasswordScreen from '@src/screens/MyPage/ChangePasswordScreen';
 import MyCommentScreen from '@src/screens/MyPage/MyCommentScreen';
 import MyPostScreen from '@src/screens/MyPage/MyPostScreen';
 import Colors from '@src/Colors';
+import MyScrapScreen from '@src/screens/MyPage/MyScrapScreen';
 const Stack = createStackNavigator();
 
 const MyPageNavigator = () => {
@@ -38,6 +39,15 @@ const MyPageNavigator = () => {
         component={MyPostScreen} 
         options={{
           title: "내가 쓴 게시물",
+          headerBackTitleVisible: false,
+          headerTintColor: Colors.ui.primary
+        }}
+      />
+      <Stack.Screen 
+        name="MyScrap" 
+        component={MyScrapScreen} 
+        options={{
+          title: "내가 스크랩한 게시물",
           headerBackTitleVisible: false,
           headerTintColor: Colors.ui.primary
         }}

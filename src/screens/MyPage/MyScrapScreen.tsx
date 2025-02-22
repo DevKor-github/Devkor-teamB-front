@@ -20,7 +20,7 @@ type MyPost = {
   };
 };
 
-const MyPostScreen = () => {
+const MyScrapScreen = () => {
   const [posts, setPosts] = useState<MyPost[]>([]);
   const [loading, setLoding] = useState(true);
   const [groupedPosts, setGroupedPosts] = useState<Record<string, MyPost[]>>({});
@@ -43,7 +43,7 @@ const MyPostScreen = () => {
     }
   };
 
-  const fetchMyPost = async () => {
+  const fetchMyScrap = async () => {
     const token = await AsyncStorage.getItem('userToken')
     try{
       const response = await axios.get(`${API_URL}/posts/my/`, {
@@ -52,7 +52,7 @@ const MyPostScreen = () => {
         }
       });
       console.log(response.data)
-      const fetchedPosts = response.data.posted;
+      const fetchedPosts = response.data.scraped;
       const detailedPosts = await Promise.all(
         fetchedPosts.map(async (post: any) => {
           const details = await fetchPostDetails(post.id);
@@ -92,7 +92,7 @@ const MyPostScreen = () => {
   }
   
   useEffect(()=>{
-    fetchMyPost()
+    fetchMyScrap()
   },[])
   
   useEffect(() => {
@@ -147,4 +147,4 @@ const MyPostScreen = () => {
   );
 }
 
-export default MyPostScreen;
+export default MyScrapScreen;

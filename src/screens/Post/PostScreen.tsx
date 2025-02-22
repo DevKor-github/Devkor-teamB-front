@@ -69,8 +69,8 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     const getPostInfo = async () => {
       const fetchedPostInfo = await fetchPostInfo(route.params.post.id);
       setPostInfo(fetchedPostInfo)
-      // console.log('fetchedPostInfo:',fetchedPostInfo)
       if(fetchedPostInfo?.liked) setLiked(true)
+      if(fetchedPostInfo?.scraped) setScrapped(true)
     }
     getPostInfo();
   },[])

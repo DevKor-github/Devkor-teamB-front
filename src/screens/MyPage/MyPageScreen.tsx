@@ -33,7 +33,7 @@ const MY_INFO_ITEMS = {
 const MY_POST_ITEMS = {
   '내가 쓴 게시물': 'myPost',
   '내가 쓴 댓글': 'myComment',
-  // '내가 스크랩한 글',
+  '내가 스크랩한 글': 'myScrap',
 };
 
 const handleItemPress = ({
@@ -51,6 +51,9 @@ const handleItemPress = ({
       break;
     case 'myPost':
       navigation.navigate('MyPost');
+      break;
+    case 'myScrap':
+      navigation.navigate('MyScrap');
       break;
     case 'changePassword':
       navigation.navigate('ChangePassword');

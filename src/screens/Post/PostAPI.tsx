@@ -125,6 +125,8 @@ export const fetchPostInfo = async (postId:number) => {
       attachments: data.attachment,
       tags: data.tags,
       liked: data.liked,
+      scraped: data.scraped,
+      
     }
     return newPost
   } catch (error) {

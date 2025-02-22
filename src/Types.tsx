@@ -61,6 +61,7 @@ export type Post = {
   // files: Attachment[];
   tags: any[];
   liked: boolean;
+  scraped: boolean;
 };
 
 // 새로 추가한 타입
