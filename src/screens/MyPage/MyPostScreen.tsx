@@ -51,6 +51,7 @@ const MyPostScreen = () => {
           authorization: `token ${token}`,
         }
       });
+      console.log(response.data)
       const fetchedPosts = response.data.posted;
       const detailedPosts = await Promise.all(
         fetchedPosts.map(async (post: any) => {

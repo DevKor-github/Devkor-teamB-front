@@ -58,7 +58,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
   const [files, setFiles] = useState<Attachment[]>([]);
   const [point, setPoint] = useState(Number);
   const [liked, setLiked] = useState(false);
-  const [scraped, setScraped] = useState(false);
+  const [scrapped, setScrapped] = useState(false);
   
   // 이미지 관련
   const [images, setImages] = useState<Attachment[]>([]);
@@ -69,6 +69,7 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
     const getPostInfo = async () => {
       const fetchedPostInfo = await fetchPostInfo(route.params.post.id);
       setPostInfo(fetchedPostInfo)
+      // console.log('fetchedPostInfo:',fetchedPostInfo)
       if(fetchedPostInfo?.liked) setLiked(true)
     }
     getPostInfo();
@@ -222,6 +223,30 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
           post.likes -= 1;
           setLiked(false)
           if(postInfo) setPostInfo({ ...postInfo, likes: post.likes });
+        }
+      } catch(error){
+        console.error(error)
+      }
+    }
+
+    const handlePressScrap = async () => {
+      try{
+        const token = await AsyncStorage.getItem('userToken')
+        const response = await axios.post(`${API_URL}/posts/${post.id}/scrap/`,
+          {id:post.id},
+          {headers:{
+            authorization: `token ${token}`,
+          }}
+        )
+        console.log(response.data.Detail)
+        if(response.data.Detail=="이 게시글을 스크랩하셨어요."){
+          // post.likes += 1;
+          setScrapped(true)
+          // if(postInfo) setPostInfo({ ...postInfo, likes: post.likes });
+        } else{
+          // post.likes -= 1;
+          setScrapped(false)
+          // if(postInfo) setPostInfo({ ...postInfo, likes: post.likes });
         }
       } catch(error){
         console.error(error)
@@ -441,32 +466,6 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
             </Modal>
           </View>
 
-          {/* 공감 모달 */}
-          {/* <View>
-            <Modal
-              visible={isLikeModalVisible}
-              transparent={true}
-              onRequestClose={toggleMenu}>
-              <TouchableOpacity
-                onPressOut={onPressModalClose}
-                activeOpacity={1}
-                style={style.overlay}
-              >
-                <View style={style.menu_like}>
-                  <Text style={{fontSize: 16}}>해당 게시글에 공감하시겠어요?</Text>
-                  <View style={{flexDirection:'row', justifyContent:'space-between', marginTop: 15}}>
-                    <TouchableOpacity onPress={()=>setIsLikeModalVisible(false)} style={{marginRight: 20}}>
-                      <Text>취소</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handlePressLike}>
-                      <Text style={{color:Colors.primary[500]}}>확인</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </Modal>
-          </View> */}
-
 
           <View style={style.buttonArea}>
             {/* 왼쪽 정렬된 버튼 */}
@@ -484,11 +483,18 @@ const PostScreen: React.FC<PostScreenProps> = ({route,navigation,}) => {
                   </Text>
                 )}
               </TouchableOpacity>
-              <TouchableOpacity style={[style.button, { flexDirection: 'row', alignItems: 'center' }]}>
+              <TouchableOpacity style={[style.button, { flexDirection: 'row', alignItems: 'center' }]} onPress={handlePressScrap}>
                 <Icon3 name="star" size={14} color="#ff1485" />
-                <Text style={{ color: '#4D4D4D', fontSize: 12, fontWeight: '500', marginLeft: 5 }}>
-                  스크랩
-                </Text>
+                {scrapped && (
+                  <Text style={{ color: '#ff1485', fontSize: 12, fontWeight: '900', marginLeft: 5 }}>
+                    스크랩
+                  </Text>
+                )}
+                {!scrapped && (
+                  <Text style={{ color: '#4D4D4D', fontSize: 12, fontWeight: '500', marginLeft: 5 }}>
+                    스크랩
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
 

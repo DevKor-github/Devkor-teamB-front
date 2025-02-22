@@ -94,7 +94,7 @@ const MyCommentScreen = () => {
         }
       });
       const fetchedPost:Post = {
-        postId: response.data.id,
+        id: response.data.id,
         title: response.data.title,
         author: new UserInfo(
           response.data.author.id,
