@@ -77,7 +77,7 @@ function SignUpScreen({route}: any) {
               onChangeText={setPassword}
               secureTextEntry
               placeholder="패스워드를 입력해주세요"
-              errorText="영문 대소문자, 숫자, 6~12자 조합"
+              errorText="영문 대문자 및 특수문자 필수, 6-12자"
               error={!isPasswordValid}
             />
             <InputField

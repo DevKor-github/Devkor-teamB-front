@@ -33,8 +33,8 @@ enum LoginStatus {
 }
 
 function LoginScreen({navigation}: {navigation: any}) {
-  const [username, setUsername] = useState('test999');
-  const [password, setPassword] = useState('Test123@');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(false);
   const isFormValid = username.length > 0 && password.length > 0;
   const [isLoading, setIsLoading] = useState(false);
