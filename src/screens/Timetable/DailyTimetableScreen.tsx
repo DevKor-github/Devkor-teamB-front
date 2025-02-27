@@ -7,6 +7,7 @@ import {
   Image,
   FlatList,
   Animated,
+  Alert,
 } from 'react-native';
 
 import Colors from '@src/Colors';
@@ -36,12 +37,13 @@ const CourseItem = ({
   callback,
 }: {
   course: CourseBlock;
-  poll: TodayPolls | null;
+  poll: TodayPolls | undefined;
   active: boolean;
   expand: boolean;
   showDialog: Function;
   callback: Function;
 }) => {
+  const [isFirstOpen, setIsFirstOpen] = useState(true);
   const navigation = useNavigation<any>();
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
@@ -59,7 +61,15 @@ const CourseItem = ({
   });
 
   const toggleActive = () => {
-    if (!poll || poll.answered_at === null) {
+    if (!poll) {
+      if (!expand && isFirstOpen) {
+        setIsFirstOpen(false);
+        Alert.alert(
+          '오늘의 브리핑 이용 불가',
+          '강의를 등록한 다음 날부터 브리핑을 작성할 수 있어요. 자정이 지나면 다시 확인해 주세요!',
+        );
+      }
+    } else if (poll.answered_at === null) {
       showDialog();
     }
     callback();
@@ -70,7 +80,7 @@ const CourseItem = ({
       <View
         style={[itemStyles.container, active && itemStyles.activeContainer]}>
         <View style={itemStyles.headerRow}>
-          {(!poll || poll.answered_at === null) && (
+          {poll && poll.answered_at === null && (
             <Image
               source={require('@assets/icons/warn_circle.png')}
               style={[itemStyles.statusIcon]}
@@ -154,7 +164,7 @@ const getPollsData = async (courseId: number) => {
   const date = getFormattedDate();
   const data = await fetchTodayPolls(courseId, date);
   if (data.length === 0) {
-    throw Error('Invalid Polls Data');
+    throw Error('Empty Polls Data');
   } else {
     const poll = data.reduce((prev, current) =>
       prev.id > current.id ? prev : current,
@@ -168,7 +178,7 @@ const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
   const [activeCourse, setActiveCourse] = useState<number>(-1);
   const [selectedCourse, setSelectedCourse] = useState<number>(-1);
   const [showModal, setShowModal] = useState(false);
-  const [poll, setPoll] = useState<Record<string, TodayPolls>>({});
+  const [poll, setPoll] = useState<Record<string, TodayPolls | undefined>>({});
 
   const handleCloseModal = () => setShowModal(false);
 
@@ -187,26 +197,29 @@ const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
 
   const handlePollUpdate = async (summary: any) => {
     const id = courses[selectedCourse].id;
-    let data: TodayPolls = poll[id];
-    data.check_attention = summary.check_attention;
-    data.check_test = summary.check_test;
-    data.check_homework = summary.check_homework;
-    data.answered_at = new Date();
-    BriefingEventHandler.emit('BRIEFING_UPDATED', data);
+    let data: TodayPolls | undefined = poll[id];
+    if (data) {
+      data.check_attention = summary.check_attention;
+      data.check_test = summary.check_test;
+      data.check_homework = summary.check_homework;
+      data.answered_at = new Date();
+      BriefingEventHandler.emit('BRIEFING_UPDATED', data);
+    }
   };
 
   useEffect(() => {
     const fetchPolls = async () => {
-      try {
-        const pollData: Record<string, TodayPolls> = {};
-        for (const course of courses) {
+      const pollData: Record<string, TodayPolls | undefined> = {};
+      for (const course of courses) {
+        try {
           const data = await getPollsData(Number(course.id));
           pollData[course.id] = data;
+        } catch (e) {
+          pollData[course.id] = undefined;
         }
-        setPoll(pollData);
-      } catch (e) {
-        setPoll({});
       }
+
+      setPoll(pollData);
     };
     fetchPolls();
   }, [courses]);
@@ -242,7 +255,7 @@ const DailyTimetableScreen = ({courses}: {courses: CourseBlock[]}) => {
         renderItem={({item, index}: {item: CourseBlock; index: number}) => (
           <CourseItem
             course={item}
-            poll={poll[item.id] || null}
+            poll={poll[item.id]}
             showDialog={() => setShowModal(true)}
             active={activeCourse === index}
             expand={selectedCourse === index}

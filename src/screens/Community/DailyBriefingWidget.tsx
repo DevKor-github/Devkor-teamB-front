@@ -103,9 +103,27 @@ const DailyBriefingWidget = ({course}: {course: CourseBlock}) => {
   useEffect(() => {
     const fetchData = async () => {
       const briefingList = await fetchBriefing(course.id, new Date());
+      let attendance = 0;
+      let assignment = 0;
+      let notification = 0;
       if (briefingList.length > 0) {
-        const briefing = await fetchBriefingById(briefingList[0].id);
-        setSummary(briefing.content.summary);
+        for (const briefing of briefingList) {
+          const x = await fetchBriefingById(briefing.id);
+          attendance += x.check_attention ? 1 : 0;
+          assignment += x.check_homework ? 1 : 0;
+          notification += x.check_test ? 1 : 0;
+        }
+        attendance /= briefingList.length;
+        assignment /= briefingList.length;
+        notification /= briefingList.length;
+        setSummary({
+          response_percentage: 0,
+          attendance_percentage: Math.round(attendance * 100),
+          assignment_percentage: Math.round(assignment * 100),
+          notification_percentage: Math.round(notification * 100),
+        });
+        // const briefing = await fetchBriefingById(briefingList[0].id);
+        // setSummary(briefing.content.summary);
       }
     };
     fetchData();

@@ -117,12 +117,36 @@ export const fetchUpdateTodayPolls = async (data: TodayPolls) => {
   }
 };
 
+// export const fetchBriefing = async (course_fk: number, date: Date) => {
+//   try {
+//     const created_at_start = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+//     const token = await getToken();
+//     const {data} = await axios.get<Array<BriefingList>>(
+//       `${API_URL}/briefings/`,
+//       {
+//         params: {
+//           course_fk: course_fk,
+//           created_at_start: created_at_start,
+//         },
+//         headers: {
+//           authorization: `token ${token}`,
+//         },
+//       },
+//     );
+//     logger.info('fetchBriefing', data);
+//     return data;
+//   } catch (e) {
+//     logger.error('fetchBriefing', e);
+//     return [];
+//   }
+// };
+
 export const fetchBriefing = async (course_fk: number, date: Date) => {
   try {
-    const created_at_start = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    const created_at_start = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}T00:00`;
     const token = await getToken();
-    const {data} = await axios.get<Array<BriefingList>>(
-      `${API_URL}/briefings/`,
+    const {data} = await axios.get<Array<TodayPolls>>(
+      `${API_URL}/todaypolls/`,
       {
         params: {
           course_fk: course_fk,
@@ -141,10 +165,26 @@ export const fetchBriefing = async (course_fk: number, date: Date) => {
   }
 };
 
+// export const fetchBriefingById = async (id: number) => {
+//   try {
+//     const token = await getToken();
+//     const {data} = await axios.get<Briefing>(`${API_URL}/briefings/${id}/`, {
+//       headers: {
+//         authorization: `token ${token}`,
+//       },
+//     });
+//     logger.info('fetchBriefingById', data);
+//     return data;
+//   } catch (e) {
+//     logger.error('fetchBriefingById', e);
+//     throw Error('Cannot fetch Briefing');
+//   }
+// };
+
 export const fetchBriefingById = async (id: number) => {
   try {
     const token = await getToken();
-    const {data} = await axios.get<Briefing>(`${API_URL}/briefings/${id}/`, {
+    const {data} = await axios.get<TodayPolls>(`${API_URL}/todaypolls/${id}/`, {
       headers: {
         authorization: `token ${token}`,
       },
