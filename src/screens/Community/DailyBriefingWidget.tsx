@@ -12,6 +12,7 @@ import {
   fetchBriefing,
   fetchBriefingById,
 } from '@src/data/briefingApi';
+import {fetchCourseInfo} from '@src/data/studentApi';
 
 const BriefingHeader = ({
   course,
@@ -92,7 +93,28 @@ const AssignmentProgressBar = ({progress}: {progress: number}) => {
   );
 };
 
-const DailyBriefingWidget = ({course}: {course: CourseBlock}) => {
+const getTargetDate = (day: string) => {
+  const today = new Date();
+  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+  const targetDayIndex = dayNames.findIndex(
+    d => d.toLowerCase() === day.toLowerCase(),
+  );
+
+  const todayIndex = today.getDay();
+  let daysToSubtract = todayIndex - targetDayIndex;
+
+  const targetDate = new Date();
+  targetDate.setDate(today.getDate() - daysToSubtract);
+  return targetDate;
+};
+
+const DailyBriefingWidget = ({
+  course,
+  day,
+}: {
+  course: CourseBlock;
+  day: string;
+}) => {
   const [summary, setSummary] = useState<BriefingSummary>({
     response_percentage: 0,
     attendance_percentage: 0,
@@ -102,28 +124,33 @@ const DailyBriefingWidget = ({course}: {course: CourseBlock}) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const briefingList = await fetchBriefing(course.id, new Date());
+      const targetDate = getTargetDate(day);
+      const briefingList = await fetchBriefing(course.id, targetDate);
       let attendance = 0;
       let assignment = 0;
       let notification = 0;
+      let total_briefing = 0;
       if (briefingList.length > 0) {
         for (const briefing of briefingList) {
           const x = await fetchBriefingById(briefing.id);
-          attendance += x.check_attention ? 1 : 0;
-          assignment += x.check_homework ? 1 : 0;
-          notification += x.check_test ? 1 : 0;
+          if (!x.answered_at) {
+            attendance += x.check_attention ? 1 : 0;
+            assignment += x.check_homework ? 1 : 0;
+            notification += x.check_test ? 1 : 0;
+            total_briefing += 1;
+          }
         }
-        attendance /= briefingList.length;
-        assignment /= briefingList.length;
-        notification /= briefingList.length;
+        if (total_briefing !== 0) {
+          attendance /= total_briefing;
+          assignment /= total_briefing;
+          notification /= total_briefing;
+        }
         setSummary({
           response_percentage: 0,
           attendance_percentage: Math.round(attendance * 100),
           assignment_percentage: Math.round(assignment * 100),
           notification_percentage: Math.round(notification * 100),
         });
-        // const briefing = await fetchBriefingById(briefingList[0].id);
-        // setSummary(briefing.content.summary);
       }
     };
     fetchData();

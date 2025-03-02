@@ -12,7 +12,10 @@ import {fetchTimetables} from '@src/data/studentApi';
 const colorMap: Map<number, number> = new Map();
 export const DEFAULT_SLOT_COUNT = 7;
 const defaultStartTime = 9;
+
 const defaultLabel = ['월', '화', '수', '목', '금'];
+let label = [...defaultLabel];
+
 const strToInt = (timeStr: string) => {
   const [hourStr, minStr] = timeStr.split(':');
   return [parseInt(hourStr, 10), parseInt(minStr, 10)];
@@ -56,7 +59,7 @@ export const convertToSlot = (time: string) => {
 // 강의를 요일 별로 분류하는 함수
 export const groupByDay = (courses: Course[]) => {
   const items: Record<string, CourseBlock[]> = {};
-  defaultLabel.forEach(day => (items[day] = []));
+  label.forEach(day => (items[day] = []));
 
   courses.forEach((course: Course) => {
     const courseSlots: TimeSlot[] = getCourseSlot(course);
@@ -99,7 +102,8 @@ export const calculateTotalSlots = (courses: Course[]) => {
 };
 
 export const getLabels = (courses: Course[]) => {
-  const label = [...defaultLabel];
+  label = [...defaultLabel];
+
   if (courses.length === 0) {
     return label;
   }

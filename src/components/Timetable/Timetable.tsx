@@ -50,15 +50,17 @@ const TimetableHeader = ({labels}: {labels: string[]}) => {
 
 const ClickableLecture = ({
   course,
+  day,
   onPress,
 }: {
   course: CourseBlock;
+  day: string;
   onPress: Function;
 }) => {
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      onPress={() => onPress(course)}
+      onPress={() => onPress(course, day)}
       style={{
         backgroundColor: getLectureColor(course.id),
         top: singleSlotHeight * convertToSlot(course.start),
@@ -81,7 +83,7 @@ const TimetableBody: React.FC<TimetableProps> = ({
 }) => {
   const candidates = candidate === undefined ? [] : [candidate];
   const slotCount = calculateTotalSlots([...courses, ...candidates]);
-  const labels = getLabels(courses);
+  const labels = getLabels([...courses, ...candidates]);
   const coursesByDay = groupByDay(courses);
   const candidateByDay = groupByDay(candidates);
 
@@ -104,6 +106,7 @@ const TimetableBody: React.FC<TimetableProps> = ({
           {coursesByDay[day].map(course => (
             <ClickableLecture
               key={`lecture-${course.id}-${day}-${course.end}`}
+              day={day}
               course={course}
               onPress={onPress}
             />
@@ -181,7 +184,9 @@ const Timetable: React.FC<TimetableProps> = ({
         maxHeight: maxHeight,
         ...styles.container,
       }}>
-      <TimetableHeader labels={getLabels(courses)} />
+      <TimetableHeader
+        labels={getLabels(candidate ? [...courses, candidate] : courses)}
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}

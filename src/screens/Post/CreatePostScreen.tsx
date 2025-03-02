@@ -1,24 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Image, Alert } from 'react-native';
-import { Post, UserInfo } from '@src/Types';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import { launchImageLibrary, Asset } from 'react-native-image-picker';
-import DocumentPicker from 'react-native-document-picker'
-import { ScrollView } from 'react-native-gesture-handler';
+import React, {useEffect, useState} from 'react';
+import {View, Text, TextInput, StyleSheet, Image, Alert} from 'react-native';
+import {Post, UserInfo} from '@src/Types';
+import {useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {TouchableOpacity} from 'react-native-gesture-handler';
+import {launchImageLibrary, Asset} from 'react-native-image-picker';
+import DocumentPicker from 'react-native-document-picker';
+import {ScrollView} from 'react-native-gesture-handler';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Attachment, Tag } from '@src/Types';
+import {Attachment, Tag} from '@src/Types';
 
-import { GlobalStyles } from '@src/GlobalStyles';
+import {GlobalStyles} from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Octicons';
 import Icon2 from 'react-native-vector-icons/Feather';
-import Icon3 from 'react-native-vector-icons/FontAwesome5'
+import Icon3 from 'react-native-vector-icons/FontAwesome5';
 import FloatingButton2 from '@src/components/FloatingButton2';
 
-const API_URL = "http://3.37.163.236:8000/"
+const API_URL = 'http://3.37.163.236:8000/';
 
 const styles = StyleSheet.create({
   container: {
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   },
   tagContainer: {
     ...GlobalStyles.row,
-    flexWrap : 'wrap',
+    flexWrap: 'wrap',
     marginBottom: 10,
   },
   inputTitle: {
@@ -50,9 +50,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   button: {
-    width: 320,
+    width: '100%',
     height: 48,
-    borderRadius: 10,
+    borderRadius: 12,
     justifyContent: 'center',
     alignSelf: 'center',
     marginTop: 25,
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: 16,
   },
   photoContainer: {
     flexDirection: 'row',
@@ -73,10 +73,10 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     marginHorizontal: 4,
-    alignItems:'center',
+    alignItems: 'center',
     position: 'relative',
     ...GlobalStyles.shadow,
-    backgroundColor: 'white'
+    backgroundColor: 'white',
   },
   attachmentPreview: {
     // margin: 5,
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   tag: {
     paddingVertical: 6,
@@ -117,29 +117,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'lightgray',
     // backgroundColor: 'white',
-    marginVertical:2,
-    marginHorizontal:2
+    marginVertical: 2,
+    marginHorizontal: 2,
   },
   tagPressed: {
     backgroundColor: 'pink',
-    margin: 2
+    margin: 2,
   },
   tagText: {
-    color: "#A0A0A0",
-    fontWeight: 300,
+    color: '#A0A0A0',
+    fontWeight: '300',
     fontSize: 12,
-    ...GlobalStyles.text
+    ...GlobalStyles.text,
   },
   tagTextPressed: {
-    color: "black",
-    fontWeight: 300,
+    color: 'black',
+    fontWeight: '300',
     fontSize: 12,
-    ...GlobalStyles.text
-  }
+    ...GlobalStyles.text,
+  },
 });
 
-function PostCreationScreen({ route }: { route: any }) {
-  const { lectureId } = route.params;
+function PostCreationScreen({route}: {route: any}) {
+  const {lectureId} = route.params;
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<Attachment[]>([]);
@@ -148,32 +148,32 @@ function PostCreationScreen({ route }: { route: any }) {
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
 
-  useEffect(()=>{
-    console.log('course_fk:',lectureId)
+  useEffect(() => {
+    // console.log('course_fk:', lectureId);
     fetchTags();
-  },[])
+  }, []);
 
   const handleAttachPhoto = async () => {
-    console.log(images)
+    // console.log(images);
     if (images.length >= 10) {
       Alert.alert('이미지는 최대 10장까지 업로드할 수 있습니다.');
       return;
     }
     try {
       const result = await launchImageLibrary({
-        mediaType: 'photo', 
+        mediaType: 'photo',
         selectionLimit: 10 - images.length,
       });
 
       if (result.assets) {
-        const photoAttachment: Attachment[] = result.assets.map((asset) => ({
+        const photoAttachment: Attachment[] = result.assets.map(asset => ({
           uri: asset.uri ?? '',
           name: asset.fileName ?? '',
           type: asset.type ?? '',
         }));
-        setImages((prevImages) => {
+        setImages(prevImages => {
           const updatedImages = [...prevImages, ...photoAttachment];
-          console.log('Updated Images:', updatedImages);
+          // console.log('Updated Images:', updatedImages);
           return updatedImages;
         });
       }
@@ -188,13 +188,13 @@ function PostCreationScreen({ route }: { route: any }) {
         type: [DocumentPicker.types.allFiles],
       });
 
-      const fileAttachment: Attachment[] = result.map((file) => ({
+      const fileAttachment: Attachment[] = result.map(file => ({
         uri: file.uri ?? '',
         name: file.name ?? '',
         type: file.type ?? '',
       }));
       setFiles([...files, ...fileAttachment]);
-      console.log(files)
+      //(files);
     } catch (error) {
       if (DocumentPicker.isCancel(error)) {
         console.log('User cancelled file picker');
@@ -205,94 +205,88 @@ function PostCreationScreen({ route }: { route: any }) {
   };
 
   const handleRemoveImage = (uri: string) => {
-    console.log('pressed')
+    //('pressed');
     setImages(images.filter(image => image.uri !== uri));
   };
 
   const handleRemoveFile = (uri: string) => {
-    console.log('pressed')
+    //('pressed');
     setFiles(files.filter(file => file.uri !== uri));
   };
 
   const handleSubmit = async () => {
-    const token = await AsyncStorage.getItem('userToken')
-    const userid = await AsyncStorage.getItem('userId')
-    const nickname = await AsyncStorage.getItem('userNickname')
+    const token = await AsyncStorage.getItem('userToken');
+    const userid = await AsyncStorage.getItem('userId');
+    const nickname = await AsyncStorage.getItem('userNickname');
 
     if (!nickname) {
       console.error('Error: nickname is null');
       return;
     }
 
-    try{
+    try {
       // console.log("pressed !!")
       // console.log(selectedTags)
       // console.log('images:',images)
       // console.log('files:',files)
-      const attachments = [...images,...files]
-      console.log('attachments:',attachments)
+      const attachments = [...images, ...files];
+      // console.log('attachments:', attachments);
 
       const formData = new FormData();
       formData.append('title', title);
       formData.append('content', content);
-      formData.append('course_fk', lectureId); 
+      formData.append('course_fk', lectureId);
       formData.append('student', userid);
-      formData.append('tags', selectedTags)
-      if (attachments.length > 0) { // 여기 수정 필요
-        attachments.forEach((attachment) => {
+      formData.append('tags', selectedTags);
+      if (attachments.length > 0) {
+        // 여기 수정 필요
+        attachments.forEach(attachment => {
           formData.append('image_uploads', {
             uri: attachment.uri,
-            type: attachment.type, 
-            name: attachment.name,  
+            type: attachment.type,
+            name: attachment.name,
           });
         });
       }
       // console.log('formdata:',formData._parts)
-      
-      const response = await axios.post(`${API_URL}/posts/`,formData,
-        {
-          headers: {
-            authorization: `token ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      console.log('after post:',response.data)
-      if(response.status===201){
+
+      const response = await axios.post(`${API_URL}/posts/`, formData, {
+        headers: {
+          authorization: `token ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      // console.log('after post:', response.data);
+      if (response.status === 201) {
         navigation.goBack();
       }
-
-    } catch(error) {
-      console.error(error)
+    } catch (error) {
+      console.error(error);
     }
-    
   };
 
-
-  const fetchTags = async ()=> {
-    const API_URL = "http://3.37.163.236:8000/"
+  const fetchTags = async () => {
+    const API_URL = 'http://3.37.163.236:8000/';
     try {
-      const token = await AsyncStorage.getItem('userToken')
-      const response = await axios.get(`${API_URL}/tags/`, 
-        {
-          headers: {
-            authorization: `token ${token}`,
-          },
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.get(`${API_URL}/tags/`, {
+        headers: {
+          authorization: `token ${token}`,
         },
-      );
-      if(response.status===200){
+      });
+      if (response.status === 200) {
         const fetchedTags: Tag[] = response.data
-          .filter((data: any) => data.id > 2) 
+          .filter((data: any) => data.id > 2)
           .map((data: any) => ({
             id: data.id,
             name: data.name,
           }));
-        setTags(fetchedTags); 
+        setTags(fetchedTags);
       }
     } catch (error) {
       console.error('Error fetching tags:', error);
     }
-  }
+  };
 
   const toggleTagSelection = (tagId: number) => {
     if (selectedTags.includes(tagId)) {
@@ -311,19 +305,36 @@ function PostCreationScreen({ route }: { route: any }) {
         onChangeText={setTitle}
       />
 
-      <Text style={{color: Colors.text.black,...GlobalStyles.text,fontSize: 18,fontWeight: 400,marginLeft: 2,marginBottom:10,}}>키워드 선택하기</Text>
+      <Text
+        style={{
+          color: Colors.text.black,
+          ...GlobalStyles.text,
+          fontSize: 18,
+          fontWeight: '400',
+          marginLeft: 2,
+          marginBottom: 10,
+        }}>
+        키워드 선택하기
+      </Text>
       <View style={styles.tagContainer}>
-        {tags.map((data)=>(
+        {tags.map(data => (
           <TouchableOpacity
-            key={data.id} 
-            style={[styles.tag, selectedTags.includes(data.id) && styles.tagPressed]}
-            onPress={() => toggleTagSelection(data.id)}
-          >
-            <Text style={[styles.tagText, selectedTags.includes(data.id) && styles.tagTextPressed]}>{data.name}</Text>
+            key={data.id}
+            style={[
+              styles.tag,
+              selectedTags.includes(data.id) && styles.tagPressed,
+            ]}
+            onPress={() => toggleTagSelection(data.id)}>
+            <Text
+              style={[
+                styles.tagText,
+                selectedTags.includes(data.id) && styles.tagTextPressed,
+              ]}>
+              {data.name}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
-
 
       <TextInput
         style={styles.inputText}
@@ -338,53 +349,90 @@ function PostCreationScreen({ route }: { route: any }) {
         {files.map((attachment, index) => (
           <View key={index}>
             {attachment.uri ? (
-              <View style={{...GlobalStyles.row,marginTop:7,justifyContent: 'space-between',borderBottomColor: '#F2F2F2',borderBottomWidth: 1}}>
-                <Text 
-                  style={{justifyContent: 'center',alignSelf:'center',color: '#737373',marginVertical: 7}}
-                >
+              <View
+                style={{
+                  ...GlobalStyles.row,
+                  marginTop: 7,
+                  justifyContent: 'space-between',
+                  borderBottomColor: '#F2F2F2',
+                  borderBottomWidth: 1,
+                }}>
+                <Text
+                  style={{
+                    justifyContent: 'center',
+                    alignSelf: 'center',
+                    color: '#737373',
+                    marginVertical: 7,
+                  }}>
                   {attachment.name}
                 </Text>
-                <TouchableOpacity 
-                  onPress={()=>handleRemoveFile(attachment.uri)}
-                  style={{width:25,height:20,borderRadius: 10,alignItems:'center',justifyContent: 'center'}}
-                >
-                  <Text style={{color:'#737373',fontSize:15}}>x</Text>
+                <TouchableOpacity
+                  onPress={() => handleRemoveFile(attachment.uri)}
+                  style={{
+                    width: 25,
+                    height: 20,
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <Text style={{color: '#737373', fontSize: 15}}>x</Text>
                 </TouchableOpacity>
               </View>
-            ): <Text>none</Text>}
+            ) : (
+              <Text>none</Text>
+            )}
           </View>
         ))}
       </View>
-      <TouchableOpacity 
+      {/* <TouchableOpacity
         onPress={handleAttachFile}
-        style={{backgroundColor: '#F2F2F2',marginTop:10,paddingHorizontal: 130,paddingVertical:12,borderRadius:5,display:'flex',flexDirection:'row'}}  
-      >
+        style={{
+          backgroundColor: '#F2F2F2',
+          marginTop: 10,
+          paddingHorizontal: 130,
+          paddingVertical: 12,
+          borderRadius: 5,
+          display: 'flex',
+          flexDirection: 'row',
+        }}>
         <Icon name="plus" size={15} color={Colors.primary[500]}></Icon>
-        <Text style={{color: Colors.primary[500]}}> 문서 첨부하기</Text>    
-      </TouchableOpacity>
-      
+        <Text style={{color: Colors.primary[500]}}> 문서 첨부하기</Text>
+      </TouchableOpacity> */}
+
       {/* 이미지 첨부 */}
       <View style={styles.photoContainer}>
-        <TouchableOpacity onPress={handleAttachPhoto} style={[styles.attachmentItem,{backgroundColor: '#F2F2F2',borderRadius: 5,alignItems: 'center',justifyContent:'center'}]}>
+        <TouchableOpacity
+          onPress={handleAttachPhoto}
+          style={[
+            styles.attachmentItem,
+            {
+              backgroundColor: '#F2F2F2',
+              borderRadius: 5,
+              alignItems: 'center',
+              justifyContent: 'center',
+            },
+          ]}>
           <Icon3 name="camera" size={25} color={Colors.primary[500]}></Icon3>
-          <Text style={{fontSize: 10, fontWeight: 400}}>{images.length}/10</Text>
+          <Text style={{fontSize: 10, fontWeight: 400}}>
+            {images.length}/10
+          </Text>
         </TouchableOpacity>
         {images.map((attachment, index) => (
-          <View key={index} >
+          <View key={index}>
             {attachment.uri ? (
               <View style={styles.attachmentItem}>
                 <Image
-                  source={{ uri: attachment.uri }}
+                  source={{uri: attachment.uri}}
                   style={styles.attachmentPreview}
                   width={80}
                   height={80}
                 />
-                <View style={{width:10,height:10,}}>
-                  <FloatingButton2 onPress={() => handleRemoveImage(attachment.uri)}>
+                <View style={{width: 10, height: 10}}>
+                  <FloatingButton2
+                    onPress={() => handleRemoveImage(attachment.uri)}>
                     <Icon name="x" size={15} color="white" />
                   </FloatingButton2>
                 </View>
-
               </View>
             ) : (
               <View>
@@ -396,7 +444,7 @@ function PostCreationScreen({ route }: { route: any }) {
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={[styles.buttonText, { ...GlobalStyles.boldText }]}>
+        <Text style={[styles.buttonText, {...GlobalStyles.boldText}]}>
           게시물 등록
         </Text>
       </TouchableOpacity>

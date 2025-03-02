@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,19 +8,21 @@ import {
   ImageSourcePropType,
   Dimensions,
   ScrollView,
+  StatusBar,
 } from 'react-native';
-import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
+import { FontSizes, GlobalStyles } from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import WeeklyTimetableScreen from '@screens/Timetable/WeeklyTimetableScreen';
 import DailyTimetableScreen from '@screens/Timetable/DailyTimetableScreen';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {fetchTimetableData} from '@src/data/studentApi';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { fetchTimetableData } from '@src/data/studentApi';
 import {
   getDay,
+  getLabels,
   getTimetableId,
   groupByDay,
 } from '@src/components/Timetable/TimetableUtils';
-import {CourseBlock, TimetableModel} from '@src/Types';
+import { CourseBlock, TimetableModel } from '@src/Types';
 
 enum ViewMode {
   Daily,
@@ -60,13 +62,13 @@ const NavigationButton = ({
         source={icon}
         style={[
           navigationStyles.icon,
-          {tintColor: enabled ? Colors.ui.primary : Colors.ui.disabled},
+          { tintColor: enabled ? Colors.ui.primary : Colors.ui.disabled },
         ]}
       />
       <Text
         style={[
           navigationStyles.buttonText,
-          {color: enabled ? Colors.ui.primary : Colors.ui.disabled},
+          { color: enabled ? Colors.ui.primary : Colors.ui.disabled },
         ]}>
         {label}
       </Text>
@@ -154,6 +156,7 @@ const TimetableScreen = () => {
       try {
         const id = await getTimetableId();
         const data = await fetchTimetableData(id);
+        getLabels(data.courses);
         const coursesByDay = groupByDay(data.courses);
         setCourses(coursesByDay[getDay()] ?? []);
         setTimetable(data);
@@ -178,12 +181,13 @@ const TimetableScreen = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar backgroundColor={Colors.ui.primary} />
       <TimetableHeader />
       <NavigationRow
         mode={viewMode}
         date={currentDate}
         onClick={(mode: ViewMode) => {
-          scrollViewRef.current?.scrollTo({x: mode * width, animated: true});
+          scrollViewRef.current?.scrollTo({ x: mode * width, animated: true });
         }}
       />
       <ScrollView
@@ -194,10 +198,10 @@ const TimetableScreen = () => {
         onScroll={handleScroll}
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}>
-        <View style={{width}}>
+        <View style={{ width }}>
           <DailyTimetableScreen courses={courses} />
         </View>
-        <View style={{width}}>
+        <View style={{ width }}>
           <WeeklyTimetableScreen timetable={timetable} />
         </View>
       </ScrollView>

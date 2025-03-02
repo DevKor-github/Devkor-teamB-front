@@ -1,4 +1,4 @@
-import React, {useState, useLayoutEffect, useEffect} from 'react';
+import React, { useState, useLayoutEffect, useEffect } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import {
   View,
@@ -8,56 +8,70 @@ import {
   StyleSheet,
   Image,
   Modal,
+  StatusBar,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {Post, UserInfo, CourseBlock, PostMinimal, PostMinimalData} from '@src/Types';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { Post, CourseBlock } from '@src/Types';
 import DailyBriefingWidget from '@screens/Community/DailyBriefingWidget';
-import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
+import { FontSizes, GlobalStyles } from '@src/GlobalStyles';
 import Colors from '@src/Colors';
 import Icon from 'react-native-vector-icons/Octicons';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import FloatingButton from '@src/components/FloatingButton';
-import * as Animatable from 'react-native-animatable'
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { API_URL } from '@env';
-import {setNavigationHeader} from '@src/navigator/TimetableNavigator';
-import { fetchPost, fetchPostInfo } from '../Post/PostAPI';
+import * as Animatable from 'react-native-animatable';
+import { setNavigationHeader } from '@src/navigator/TimetableNavigator';
+import { fetchPost } from '../Post/PostAPI';
 
 interface CommunityScreenProps {
   route: any;
   navigation: any;
 }
 
-const PostItem = ({post, lectureName}: {post: any; lectureName: string}) => {
+const PostItem = ({ post, lectureName }: { post: any; lectureName: string }) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
 
   const handleNavigate = () => {
-    console.log(post)
-    navigation.navigate('PostScreen',{
+    navigation.navigate('PostScreen', {
       post: post,
       lecture: lectureName,
-    })
-  }
+    });
+  };
 
   return (
-    <TouchableOpacity
-      style={postStyles.postItem}
-      onPress = {handleNavigate}
-      >
-      <View style={{...GlobalStyles.row, justifyContent: 'space-between', alignItems: 'center'}}>
+    <TouchableOpacity style={postStyles.postItem} onPress={handleNavigate}>
+      <View
+        style={{
+          ...GlobalStyles.row,
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
         <Text style={postStyles.postText}>{post.title}</Text>
-        <Text style={{color: "#666", fontSize: 12,marginTop: 3,justifyContent: 'center'}}>
-          {post.created_at.substring(0,10)}
+        <Text
+          style={{
+            color: '#666',
+            fontSize: 12,
+            marginTop: 3,
+            justifyContent: 'center',
+          }}>
+          {post.created_at.substring(0, 10)}
         </Text>
       </View>
-      
     </TouchableOpacity>
   );
 };
 
-export const PostView = ({ items, lectureId, lectureName, course}: { items: Post[]; lectureId: number; lectureName: string; course: CourseBlock}) => {
+export const PostView = ({
+  items,
+  lectureId,
+  lectureName,
+  course,
+}: {
+  items: Post[];
+  lectureId: number;
+  lectureName: string;
+  course: CourseBlock;
+}) => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [isFabOpen, setFabOpen] = useState(false);
 
@@ -75,17 +89,22 @@ export const PostView = ({ items, lectureId, lectureName, course}: { items: Post
 
   const handleNavigate = (screen: string) => {
     setFabOpen(false);
-    if(screen=='BriefingScreen'){
-      navigation.navigate(screen, {course:course})
+    if (screen == 'BriefingScreen') {
+      navigation.navigate(screen, { course: course });
     }
-    navigation.navigate(screen, { lectureId: lectureId, lectureName: lectureName});
+    navigation.navigate(screen, {
+      lectureId: lectureId,
+      lectureName: lectureName,
+    });
   };
 
   return (
     <View style={postStyles.container}>
       <View style={headerStyle.container}>
         <Text style={headerStyle.title}>{lectureName} 게시글 미리보기</Text>
-        <TouchableOpacity style={{marginVertical: 'auto'}} onPress={handlePressMore}>
+        <TouchableOpacity
+          style={{ marginVertical: 'auto' }}
+          onPress={handlePressMore}>
           <View style={GlobalStyles.row}>
             <Text style={headerStyle.more}>자세히 보기</Text>
             <Image
@@ -95,14 +114,14 @@ export const PostView = ({ items, lectureId, lectureName, course}: { items: Post
           </View>
         </TouchableOpacity>
       </View>
-      {items.length===0 ? (
+      {items.length === 0 ? (
         <View style={postStyles.postEmpty}>
           <Text style={postStyles.postEmptyText}>아직 게시물이 없습니다</Text>
         </View>
       ) : (
         <FlatList
           data={items}
-          renderItem={({item}: {item: any}) => (
+          renderItem={({ item }: { item: any }) => (
             <PostItem post={item} lectureName={lectureName} />
           )}
         />
@@ -119,10 +138,7 @@ export const PostView = ({ items, lectureId, lectureName, course}: { items: Post
           onPressOut={() => setFabOpen(false)}
           activeOpacity={1}
           style={styles.overlay}>
-          <Animatable.View
-            duration={500}
-            style={{width: 70}}
-          >
+          <Animatable.View duration={500} style={{ width: 70 }}>
             <TouchableOpacity
               onPress={() => handleNavigate('PostCreationScreen')}>
               <Image
@@ -132,10 +148,7 @@ export const PostView = ({ items, lectureId, lectureName, course}: { items: Post
               <Text style={styles.fabText}>게시글 작성</Text>
             </TouchableOpacity>
           </Animatable.View>
-          <Animatable.View
-            duration={500}
-            style={{width: 70}}
-          >
+          {/* <Animatable.View duration={500} style={{width: 70}}>
             <TouchableOpacity onPress={() => handleNavigate('BriefingScreen')}>
               <Image
                 source={require('@assets/icons/faq.png')}
@@ -143,36 +156,39 @@ export const PostView = ({ items, lectureId, lectureName, course}: { items: Post
               />
               <Text style={styles.fabText}>브리핑 답변</Text>
             </TouchableOpacity>
-          </Animatable.View>
+          </Animatable.View> */}
         </TouchableOpacity>
       </Modal>
     </View>
   );
 };
 
-
-
-const CommunityScreen: React.FC<CommunityScreenProps> = ({ route, navigation,}) => {
-  const {course}: {course: CourseBlock} = route.params;
+const CommunityScreen: React.FC<CommunityScreenProps> = ({
+  route,
+  navigation,
+}) => {
+  const { course, day }: { course: CourseBlock; day: string } = route.params;
   const [posts, setPosts] = useState<any[]>([]);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       const fetchedPosts = await fetchPost(course.id);
-      if(fetchedPosts) setPosts(fetchedPosts); 
+      if (fetchedPosts) setPosts(fetchedPosts);
     };
 
     fetchData();
   }, [course.id]);
 
-  useLayoutEffect(() =>
-    setNavigationHeader(navigation, [course.course_name, course.instructor]),
+  useLayoutEffect(
+    () =>
+      setNavigationHeader(navigation, [course.course_name, course.instructor]),
     [course, navigation],
   );
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.container}>
-      <DailyBriefingWidget course={course} />
+      <StatusBar backgroundColor={Colors.ui.background} />
+      <DailyBriefingWidget course={course} day={day} />
       <PostView
         items={posts}
         lectureId={course.id}
@@ -202,12 +218,12 @@ const headerStyle = StyleSheet.create({
     fontSize: FontSizes.medium,
     ...GlobalStyles.text,
   },
-  arrow: {width: 16, height: 16, tintColor: Colors.text.lightgray},
+  arrow: { width: 16, height: 16, tintColor: Colors.text.lightgray },
 });
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#F9F5F7",
+    backgroundColor: '#F9F5F7',
     padding: 12,
     ...GlobalStyles.expand,
   },
@@ -216,7 +232,6 @@ const styles = StyleSheet.create({
     ...GlobalStyles.row,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
-    // alignItems: 'center',
     paddingTop: 600,
     gap: 80,
   },
@@ -274,12 +289,12 @@ const postStyles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderTopColor: "#F6F2F4",
+    borderTopColor: '#F6F2F4',
   },
   postText: {
     color: Colors.text.black,
     fontSize: FontSizes.medium,
-    fontWeight: 400,
+    fontWeight: '400',
   },
 });
 

@@ -15,7 +15,7 @@ import BottomSheet, {BottomSheetState} from '@components/BottomSheet';
 import FloatingButton from '@components/FloatingButton';
 import Icon from 'react-native-vector-icons/Octicons';
 import {RadioButton, RadioGroup} from '@components/RadioButton';
-import {Course, CourseBlock, TimetableModel} from '@src/Types';
+import {Course, CourseBlock, CourseSchedule, TimetableModel} from '@src/Types';
 import Timetable from '@components/Timetable/Timetable';
 import {FontSizes, GlobalStyles} from '@src/GlobalStyles';
 import {useNavigation} from '@react-navigation/native';
@@ -222,9 +222,6 @@ const RegistrationBody = ({
                 text: '삭제',
                 style: 'destructive',
                 onPress: () => {
-                  // timetable.courses = timetable.courses.filter(
-                  //   e => e.id !== course.id,
-                  // );
                   const updatedTimetable = {
                     ...timetable,
                     courses: timetable.courses.filter(e => e.id !== course.id),

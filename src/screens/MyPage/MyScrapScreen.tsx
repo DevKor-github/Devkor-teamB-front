@@ -1,18 +1,14 @@
-import { Text, View, ScrollView } from "react-native";
-import { useEffect, useState } from "react";
+import {Text, View, ScrollView} from 'react-native';
+import {useEffect, useState} from 'react';
 import {API_URL} from '@env';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PostView } from "../Community/CommunityScreen";
-import { PostItem } from "../Post/PostListScreen";
-import { Post, UserInfo } from "@src/Types";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import { postStyles } from "../Post/PostListScreen";
+import {PostItem} from '../Post/PostListScreen';
+import {Post, UserInfo} from '@src/Types';
+import {postStyles} from '../Post/PostListScreen';
 
 type MyPost = {
-  post: Post,
+  post: Post;
   course: {
     course_id: string;
     course_name: string;
@@ -23,46 +19,42 @@ type MyPost = {
 const MyScrapScreen = () => {
   const [posts, setPosts] = useState<MyPost[]>([]);
   const [loading, setLoding] = useState(true);
-  const [groupedPosts, setGroupedPosts] = useState<Record<string, MyPost[]>>({});
-
+  const [groupedPosts, setGroupedPosts] = useState<Record<string, MyPost[]>>(
+    {},
+  );
 
   const fetchPostDetails = async (postId: number) => {
     try {
-      const token = await AsyncStorage.getItem('userToken')
-      const response = await axios.get(`${API_URL}/posts/${postId}/`,
-        {
-          headers: {
-            authorization: `token ${token}`,
-          },
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.get(`${API_URL}/posts/${postId}/`, {
+        headers: {
+          authorization: `token ${token}`,
         },
-      );
-      return response.data; 
+      });
+      return response.data;
     } catch (e) {
       console.error(`Failed to fetch post ${postId}`, e);
-      return null; 
+      return null;
     }
   };
 
   const fetchMyScrap = async () => {
-    const token = await AsyncStorage.getItem('userToken')
-    try{
+    const token = await AsyncStorage.getItem('userToken');
+    try {
       const response = await axios.get(`${API_URL}/posts/my/`, {
         headers: {
           authorization: `token ${token}`,
-        }
+        },
       });
-      console.log(response.data)
       const fetchedPosts = response.data.scraped;
       const detailedPosts = await Promise.all(
         fetchedPosts.map(async (post: any) => {
           const details = await fetchPostDetails(post.id);
-          return details
-            ? { ...post, ...details } 
-            : post; 
-        })
+          return details ? {...post, ...details} : post;
+        }),
       );
 
-      const formattedPosts: MyPost[] = detailedPosts.map((item:any)=>({
+      const formattedPosts: MyPost[] = detailedPosts.map((item: any) => ({
         post: {
           id: item.id,
           title: item.title,
@@ -75,66 +67,59 @@ const MyScrapScreen = () => {
           views: item.views,
           likes: item.likes,
           reports: item.reports,
-          content : item.content,
+          content: item.content,
           attachments: item.attachment,
           tags: item.tags,
           liked: item.liked,
-          scraped: item.scraped
+          scraped: item.scraped,
         },
-        course: item.course
+        course: item.course,
       }));
       setPosts(formattedPosts);
-      setLoding(false)
-
-    } catch(e){
-      console.error(e)
+      setLoding(false);
+    } catch (e) {
+      console.error(e);
     }
-  }
-  
-  useEffect(()=>{
-    fetchMyScrap()
-  },[])
-  
+  };
+
+  useEffect(() => {
+    fetchMyScrap();
+  }, []);
+
   useEffect(() => {
     const newGroupedPosts = posts.reduce((acc, post) => {
       const courseName = post.course.course_name;
-  
+
       if (!acc[courseName]) {
         acc[courseName] = [];
       }
-  
+
       acc[courseName].push(post);
       return acc;
     }, {} as Record<string, MyPost[]>);
-  
+
     setGroupedPosts(newGroupedPosts);
   }, [posts]);
 
   return (
-    <ScrollView
-      style={{backgroundColor:'white',minHeight:800}}
-    >
-      { loading && (
+    <ScrollView style={{backgroundColor: 'white', minHeight: 800}}>
+      {loading && (
         <View>
           <Text>Loading..</Text>
         </View>
       )}
-      { !(loading) && Object.entries(groupedPosts).map(([courseName, posts],index) => (
-          <View 
-            key={index}
-          >
-            <Text style={postStyles.title}>
-              {courseName}
-            </Text>
-            
+      {!loading &&
+        Object.entries(groupedPosts).map(([courseName, posts], index) => (
+          <View key={index}>
+            <Text style={postStyles.title}>{courseName}</Text>
+
             {posts.map((post, postIndex) => (
               <View
                 style={{
                   marginVertical: 4,
-                  paddingHorizontal:12,
-                }}
-              >
-                <PostItem 
+                  paddingHorizontal: 12,
+                }}>
+                <PostItem
                   key={postIndex}
                   post={post.post}
                   lectureName={courseName}
@@ -145,6 +130,6 @@ const MyScrapScreen = () => {
         ))}
     </ScrollView>
   );
-}
+};
 
 export default MyScrapScreen;

@@ -156,6 +156,7 @@ const PointInfoSection = () => {
             <Text style={pointStyles.pointText}>{point}</Text>
             <Text style={pointStyles.pointLabelText}>P</Text>
           </Text>
+
           <PointInfoButton />
         </View>
         <PointHistoryView totalPoint={point} />

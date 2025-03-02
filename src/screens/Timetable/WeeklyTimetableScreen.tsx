@@ -13,9 +13,9 @@ function WeeklyTimetableScreen({timetable}: {timetable: TimetableModel}) {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const courses = timetable.courses ?? [];
   useEffect(() => {
-      if (timetable) {
-        setScrollEnabled(contentHeight > viewHeight);
-      }
+    if (timetable) {
+      setScrollEnabled(contentHeight > viewHeight);
+    }
   }, [contentHeight, viewHeight]);
 
   return (
@@ -28,8 +28,8 @@ function WeeklyTimetableScreen({timetable}: {timetable: TimetableModel}) {
       <View onLayout={e => setContentHeight(e.nativeEvent.layout.height)}>
         <Timetable
           courses={courses}
-          onPress={(course: CourseBlock) => {
-            navigation.navigate('Community', {course: course});
+          onPress={(course: CourseBlock, day: string) => {
+            navigation.navigate('Community', {course: course, day: day});
           }}
         />
       </View>

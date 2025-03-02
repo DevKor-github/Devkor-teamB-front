@@ -143,7 +143,9 @@ export const fetchUpdateTodayPolls = async (data: TodayPolls) => {
 
 export const fetchBriefing = async (course_fk: number, date: Date) => {
   try {
-    const created_at_start = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}T00:00`;
+    const created_at_start = `${date.getFullYear()}-${
+      date.getMonth() + 1
+    }-${date.getDate()}T00:00`;
     const token = await getToken();
     const {data} = await axios.get<Array<TodayPolls>>(
       `${API_URL}/todaypolls/`,

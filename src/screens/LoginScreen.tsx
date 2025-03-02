@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,19 +10,20 @@ import {
   Keyboard,
   Alert,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import Colors from '@src/Colors';
 
-import {GlobalStyles} from '@src/GlobalStyles';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {InputField} from '@src/screens/SignUp/InputField';
-import {CustomButton} from '@src/screens/SignUp/CustomButton';
-import {fetchLogin} from '@src/data/authApi';
-import {setLoginId, setUserNickname} from '@src/data/authStorage';
-import {setUserId} from '@src/data/authStorage';
-import {fetchUserInfo} from '@src/data/studentApi';
-import {logger} from '@src/logger';
-import {getTimetableId} from '@src/components/Timetable/TimetableUtils';
+import { GlobalStyles } from '@src/GlobalStyles';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { InputField } from '@src/screens/SignUp/InputField';
+import { CustomButton } from '@src/screens/SignUp/CustomButton';
+import { fetchLogin } from '@src/data/authApi';
+import { setLoginId, setUserNickname } from '@src/data/authStorage';
+import { setUserId } from '@src/data/authStorage';
+import { fetchUserInfo } from '@src/data/studentApi';
+import { logger } from '@src/logger';
+import { getTimetableId } from '@src/components/Timetable/TimetableUtils';
 
 enum LoginStatus {
   SUCCESS,
@@ -32,7 +33,7 @@ enum LoginStatus {
   UNKNOWN_FAILURE,
 }
 
-function LoginScreen({navigation}: {navigation: any}) {
+function LoginScreen({ navigation }: { navigation: any }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(false);
@@ -41,7 +42,7 @@ function LoginScreen({navigation}: {navigation: any}) {
 
   const handleLoginRequest = async () => {
     try {
-      const {status} = await fetchLogin(username, password);
+      const { status } = await fetchLogin(username, password);
       if (status === 400) {
         throw LoginStatus.LOGIN_FAILURE;
       }
@@ -58,7 +59,7 @@ function LoginScreen({navigation}: {navigation: any}) {
 
   const handleUserInfoRequest = async () => {
     try {
-      const {data, status} = await fetchUserInfo();
+      const { data, status } = await fetchUserInfo();
       if (status === 404) {
         throw LoginStatus.USER_INFO_FAILURE;
       }
@@ -116,12 +117,13 @@ function LoginScreen({navigation}: {navigation: any}) {
       );
     } else {
       return (
-        <CustomButton text="로그인 중" onPress={() => {}} disabled={true} />
+        <CustomButton text="로그인 중" onPress={() => { }} disabled={true} />
       );
     }
   };
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={Colors.ui.background} />
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           style={GlobalStyles.expand}
@@ -167,7 +169,7 @@ function LoginScreen({navigation}: {navigation: any}) {
 export default LoginScreen;
 
 const styles = StyleSheet.create({
-  androidPadding: {height: Platform.OS === 'android' ? 20 : 0},
+  androidPadding: { height: Platform.OS === 'android' ? 20 : 0 },
   loadingContainer: {
     position: 'absolute',
     top: 0,
